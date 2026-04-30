@@ -35,10 +35,35 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     final user = SupabaseConfig.currentUser;
     if (user == null) {
       context.go(AppRoutes.login);
-    } else {
-      // TODO(sprint-1): leer kyc_status del usuario y redirigir a /onboarding/identity si pending
-      context.go(AppRoutes.home);
+      return;
     }
+
+    // Consultar kyc_status del perfil. Si KYC no verificado/en revisión,
+    // redirigir al onboarding.
+    try {
+      final rows = await SupabaseConfig.client
+          .rpc('sf_get_my_profile')
+          .timeout(const Duration(seconds: 5));
+      if (!mounted) return;
+
+      if (rows is List && rows.isNotEmpty) {
+        final profile = rows.first as Map<String, dynamic>;
+        final kyc = profile['kyc_status'] as String? ?? 'not_started';
+        if (kyc == 'not_started' || kyc == 'rejected') {
+          context.go(AppRoutes.kycIntro);
+          return;
+        }
+      } else {
+        // Sin perfil → algo raro, mejor ir al login para empezar de cero.
+        await SupabaseConfig.client.auth.signOut();
+        context.go(AppRoutes.login);
+        return;
+      }
+    } catch (_) {
+      // Error de red u otro: ir al home y dejar que el usuario actúe.
+    }
+    if (!mounted) return;
+    context.go(AppRoutes.home);
   }
 
   @override

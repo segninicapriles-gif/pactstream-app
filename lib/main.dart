@@ -26,9 +26,12 @@ Future<void> main() async {
   // Inicializar Supabase
   await SupabaseConfig.initialize();
 
-  // Inicializar Sentry para captura de errores
+  // Inicializar Sentry para captura de errores (solo con DSN real)
   final sentryDsn = dotenv.env['SENTRY_DSN'];
-  if (sentryDsn != null && sentryDsn.isNotEmpty) {
+  final hasValidSentry = sentryDsn != null &&
+      sentryDsn.isNotEmpty &&
+      !sentryDsn.contains('xxxxx');
+  if (hasValidSentry) {
     await SentryFlutter.init(
       (options) {
         options.dsn = sentryDsn;

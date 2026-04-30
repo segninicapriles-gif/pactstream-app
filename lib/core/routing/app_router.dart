@@ -8,7 +8,9 @@ import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/verify_email_page.dart';
 import '../../features/dashboard/presentation/pages/home_page.dart';
+import '../../features/onboarding/presentation/pages/kyc_capture_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_intro_page.dart';
+import '../../features/onboarding/presentation/pages/kyc_result_page.dart';
 
 /// Rutas de la app. Una constante por ruta para evitar typos.
 abstract final class AppRoutes {
@@ -22,7 +24,8 @@ abstract final class AppRoutes {
 
   // Onboarding (KYC)
   static const kycIntro = '/onboarding/identity';
-  static const kycPostOnfido = '/onboarding/identity/result';
+  static const kycCapture = '/onboarding/identity/capture';
+  static const kycResult = '/onboarding/identity/result';
 
   // Main shell (con bottom nav)
   static const home = '/home';
@@ -91,6 +94,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.kycIntro,
         builder: (context, state) => const KycIntroPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.kycCapture,
+        builder: (context, state) => const KycCapturePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.kycResult,
+        builder: (context, state) {
+          final status = state.uri.queryParameters['status'] ?? 'verified';
+          return KycResultPage(status: status);
+        },
       ),
 
       // === MAIN ===
