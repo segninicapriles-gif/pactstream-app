@@ -11,6 +11,12 @@ import '../../features/dashboard/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_capture_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_intro_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_result_page.dart';
+import '../../features/pact/presentation/pages/contract_pdf_preview_page.dart';
+import '../../features/pact/presentation/pages/contract_signing_page.dart';
+import '../../features/pact/presentation/pages/milestone_detail_page.dart';
+import '../../features/pact/presentation/pages/new_pact_page.dart';
+import '../../features/pact/presentation/pages/pact_detail_page.dart';
+import '../../features/pact/presentation/pages/upload_evidence_page.dart';
 
 /// Rutas de la app. Una constante por ruta para evitar typos.
 abstract final class AppRoutes {
@@ -113,7 +119,52 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const HomePage(),
       ),
 
-      // TODO(sprint-2): rutas de pacto, hitos, disputa, perfil, notificaciones.
+      // === PACT ===
+      GoRoute(
+        path: AppRoutes.pactNew,
+        builder: (context, state) => const NewPactPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.pactDetail,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return PactDetailPage(pactId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.pactSign,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ContractSigningPage(pactId: id);
+        },
+      ),
+      GoRoute(
+        path: '/pacts/:id/contract-pdf',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return ContractPdfPreviewPage(pactId: id);
+        },
+      ),
+
+      // === MILESTONE ===
+      GoRoute(
+        path: AppRoutes.milestoneDetail,
+        builder: (context, state) {
+          final pactId = state.pathParameters['pactId']!;
+          final id = state.pathParameters['id']!;
+          return MilestoneDetailPage(pactId: pactId, milestoneId: id);
+        },
+      ),
+      GoRoute(
+        path: '/pacts/:pactId/milestones/:id/evidences/upload',
+        builder: (context, state) {
+          final pactId = state.pathParameters['pactId']!;
+          final id = state.pathParameters['id']!;
+          return UploadEvidencePage(pactId: pactId, milestoneId: id);
+        },
+      ),
+
+      // TODO(sprint-2): rutas de depósito, validación, decisión, disputa.
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Página no encontrada')),

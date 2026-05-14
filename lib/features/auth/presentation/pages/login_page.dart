@@ -64,38 +64,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: AppSpacing.huge),
-                // Logo
+                const SizedBox(height: AppSpacing.xxxl),
+                // Logo oficial PactStream
                 Center(
-                  child: Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: AppColors.psGradient,
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'P',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.psNavy,
-                        ),
-                      ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xl),
+                    child: Image.asset(
+                      'assets/images/pactstream_logo.png',
+                      fit: BoxFit.contain,
+                      height: 80,
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  AppConstants.appName,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.h2,
-                ),
-                Text(
-                  AppConstants.appTagline,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
                 ),
                 const SizedBox(height: AppSpacing.xxxl),
 

@@ -55,6 +55,10 @@ dependencies:
   # Crypto (para hashes SHA-256 de evidencias)
   crypto: ^3.0.6
 
+  # PDF (generación + preview del contrato firmado)
+  pdf: ^3.11.0
+  printing: ^5.13.0
+
   # Logging y errores
   logger: ^2.5.0
   sentry_flutter: ^8.11.0
@@ -87,3 +91,4 @@ flutter:
   # builds offline.
   assets:
     - .env
+    - assets/images/pactstream_logo.png

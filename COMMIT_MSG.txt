@@ -1,0 +1,44 @@
+Sprint 2-4 · MVP v0.2.0 · Modelo v2.0 completo
+
+Acumula 2 semanas de trabajo en 3 sprints sin commit.
+
+SPRINT 2 · Stack pacts v1
+- Modelos de dominio + RPCs de creacion/firma/hitos
+- Wizard de creacion inicial (5 pasos)
+- Detalle del pacto con hitos
+- Flujo de evidencias + validacion tecnica
+- Generacion de contrato (preview + Signaturit sandbox)
+
+SPRINT 3 · Distribucion + persistencia
+- Email transaccional con Resend (dominio pactstream.io con DKIM/SPF/DMARC)
+- Centro de notificaciones in-app con badge
+- PDF real del contrato (paquete pdf + printing)
+- Deploy a produccion en Cloudflare Pages (app.pactstream.io)
+- Manifest PWA + meta tags Open Graph
+
+SPRINT 4 · Modelo v2.0 (refactor mayor)
+
+Tras validar la idea con perfiles del sector, se rediseno el modelo:
+- Las certificaciones las crea el constructor por demanda (no se predefinen hitos)
+- El promotor deposita un porcentaje asegurado (15-40, default 30)
+- Factura obligatoria por certificacion
+- Anexos formales firmados por las partes para modificaciones
+
+Incluye:
+- Migraciones SQL: schema v2 + 10 RPCs (sf_create_pact_v2,
+  sf_pact_fund_initial, sf_constructor_create_cert, sf_addendum_create,
+  sf_addendum_sign, ...)
+- Wizard de creacion rediseñado a 4 pasos con slider del deposito
+- Detalle del pacto: widget de deposito (estado/alerta/CTAs), timeline
+  de certificaciones con badges de factura/doc/version, seccion de anexos
+- 5 bottom-sheets para acciones del modelo v2 (depositar inicial,
+  reponer, crear cert, proponer anexo, firmar anexo)
+- Dashboards conectados a datos reales con loading skeletons
+  (sf_get_dashboard_data)
+- 3 hotfixes de schema mismatch (activated_at -> finalized_at,
+  milestone_id -> related_milestone_id, validated_by_tech ->
+  approved_by_tech)
+
+COMPATIBILIDAD
+Pacts v1 antiguos siguen funcionando: todos los campos v2 son nullable
+y la UI elige widget segun model_version.

@@ -7,11 +7,20 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
+import '../../../notifications/data/notifications_providers.dart';
+import '../../../notifications/presentation/pages/notifications_page.dart';
+import '../../../pact/presentation/pages/pacts_list_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
+import '../widgets/dashboard_constructor.dart';
+import '../widgets/dashboard_promotor.dart';
+import '../widgets/dashboard_tecnico.dart';
 
 /// Home shell con bottom navigation a 4 tabs (P0-11 del Design Handoff).
 ///
-/// Carga el perfil del usuario actual y muestra el estado KYC como badge.
-/// El contenido real de los dashboards por rol se construye en chunk 3.
+/// El contenido del tab Inicio cambia según el rol del usuario:
+///   - Promotor → DashboardPromotor (en custodia, tareas urgentes, obras)
+///   - Técnico → DashboardTecnico (cola de validación, KPIs)
+///   - Constructor → DashboardConstructor (pendiente cobro, hitos por subir)
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -27,7 +36,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   static const List<({IconData icon, String label})> _tabs = [
     (icon: Icons.home_outlined, label: 'Inicio'),
     (icon: Icons.folder_outlined, label: 'Obras'),
-    (icon: Icons.chat_outlined, label: 'Mensajes'),
+    (icon: Icons.notifications_outlined, label: 'Avisos'),
     (icon: Icons.person_outline, label: 'Perfil'),
   ];
 
@@ -45,7 +54,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         setState(() => _profile = rows.first as Map<String, dynamic>);
       }
     } catch (_) {
-      // Silenciar — el badge KYC simplemente no se muestra
+      // Silenciar
     } finally {
       if (mounted) setState(() => _loadingProfile = false);
     }
@@ -59,31 +68,28 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   String get _kycStatus =>
       _profile?['kyc_status'] as String? ?? 'not_started';
-
-  String get _userName =>
-      _profile?['full_name'] as String? ?? 'usuario';
-
-  String get _userRole {
-    final r = _profile?['primary_role'] as String? ?? '';
-    return switch (r) {
-      'promotor' => 'Promotor',
-      'constructor' => 'Constructor',
-      'tecnico' => 'Técnico',
-      _ => '',
-    };
-  }
+  String get _userName => _profile?['full_name'] as String? ?? 'usuario';
+  String get _userRole => _profile?['primary_role'] as String? ?? '';
 
   @override
   Widget build(BuildContext context) {
+    final unread =
+        ref.watch(unreadNotificationsProvider).maybeWhen(
+              data: (n) => n,
+              orElse: () => 0,
+            );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('PactStream'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // TODO(sprint-2): navegar a /notifications
-            },
+            icon: _BadgedIcon(
+              icon: Icons.notifications_outlined,
+              count: unread,
+            ),
+            onPressed: () => setState(() => _selectedIndex = 2),
+            tooltip: unread > 0 ? '$unread sin leer' : 'Avisos',
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -94,74 +100,167 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       body: _loadingProfile
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Saludo
-                  Text(
-                    'Hola, ${_userName.split(' ').first}',
-                    style: AppTypography.h1,
-                  ),
-                  if (_userRole.isNotEmpty)
-                    Text(
-                      'Sesión activa como $_userRole',
-                      style:
-                          AppTypography.bodyS.copyWith(color: AppColors.ink500),
-                    ),
-                  const SizedBox(height: AppSpacing.lg),
-
-                  // Badge KYC
-                  _KycStatusBadge(status: _kycStatus),
-
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // Placeholder dashboard
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(AppSpacing.md),
-                      border: Border.all(color: AppColors.ink200),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.construction,
-                            size: 64, color: AppColors.psBlue),
-                        const SizedBox(height: AppSpacing.md),
-                        Text('Dashboard por rol',
-                            style: AppTypography.h3,
-                            textAlign: TextAlign.center),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          'Tab actual: ${_tabs[_selectedIndex].label}',
-                          style: AppTypography.bodyS
-                              .copyWith(color: AppColors.ink500),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          'Contenido específico por rol en construcción (Sprint 1 chunk 3).',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.bodyS
-                              .copyWith(color: AppColors.ink600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          : _buildTabContent(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        items: _tabs
-            .map((tab) => BottomNavigationBarItem(
-                  icon: Icon(tab.icon),
-                  label: tab.label,
-                ))
-            .toList(),
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          // Refrescar contador al entrar al tab Avisos
+          if (index == 2) {
+            ref.invalidate(unreadNotificationsProvider);
+            ref.invalidate(notificationsListProvider);
+          }
+        },
+        items: _tabs.asMap().entries.map((entry) {
+          final i = entry.key;
+          final tab = entry.value;
+          final showBadge = i == 2 && unread > 0;
+          return BottomNavigationBarItem(
+            icon: showBadge
+                ? _BadgedIcon(icon: tab.icon, count: unread)
+                : Icon(tab.icon),
+            label: tab.label,
+          );
+        }).toList(),
       ),
+    );
+  }
+
+  Widget _buildTabContent() {
+    // Si el KYC no está verificado, mostrar el badge en la parte superior
+    // de cualquier tab para recordar al usuario que debe completarlo.
+    final kycBadge = _kycStatus != 'verified'
+        ? Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
+            child: _KycStatusBadge(status: _kycStatus),
+          )
+        : null;
+
+    // Solo promotor y técnico pueden crear obras (P0 spec).
+    final canCreate = _userRole == 'promotor' || _userRole == 'tecnico';
+
+    final dashboard = switch (_selectedIndex) {
+      0 => _buildDashboardForRole(),
+      1 => PactsListPage(canCreate: canCreate),
+      2 => const NotificationsPage(),
+      3 => const ProfilePage(),
+      _ => const SizedBox.shrink(),
+    };
+
+    if (kycBadge != null) {
+      return Column(
+        children: [
+          kycBadge,
+          Expanded(child: dashboard),
+        ],
+      );
+    }
+    return dashboard;
+  }
+
+  Widget _buildDashboardForRole() {
+    final orgName = _profile?['organization_id'] != null
+        ? null // TODO(sprint-1): cargar nombre de org real desde JOIN
+        : null;
+
+    return switch (_userRole) {
+      'promotor' => DashboardPromotor(userName: _userName),
+      'tecnico' => DashboardTecnico(userName: _userName),
+      'constructor' =>
+        DashboardConstructor(userName: _userName, organizationName: orgName),
+      _ => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Text(
+              'Rol desconocido. Contacta con soporte.',
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(color: AppColors.ink600),
+            ),
+          ),
+        ),
+    };
+  }
+}
+
+class _PlaceholderTab extends StatelessWidget {
+  const _PlaceholderTab({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 64, color: AppColors.ink400),
+            const SizedBox(height: AppSpacing.md),
+            Text(title,
+                style: AppTypography.h2, textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Icono con badge numérico superpuesto. Usado en AppBar y en bottom nav
+/// para indicar notificaciones sin leer.
+class _BadgedIcon extends StatelessWidget {
+  const _BadgedIcon({required this.icon, required this.count});
+
+  final IconData icon;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    if (count <= 0) {
+      return Icon(icon);
+    }
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon),
+        Positioned(
+          right: -6,
+          top: -4,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+            decoration: BoxDecoration(
+              color: AppColors.error,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.white, width: 1.5),
+            ),
+            child: Center(
+              child: Text(
+                count > 9 ? '9+' : '$count',
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -173,13 +272,6 @@ class _KycStatusBadge extends StatelessWidget {
 
   ({Color bg, Color fg, IconData icon, String label, String? cta})
       get _spec => switch (status) {
-            'verified' => (
-              bg: AppColors.successBg,
-              fg: AppColors.success,
-              icon: Icons.verified_user,
-              label: 'Identidad verificada',
-              cta: null,
-            ),
             'pending_review' => (
               bg: AppColors.warningBg,
               fg: AppColors.warning,
@@ -207,20 +299,20 @@ class _KycStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final spec = _spec;
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: spec.bg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
         border: Border.all(color: spec.fg.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(spec.icon, color: spec.fg),
+          Icon(spec.icon, color: spec.fg, size: 18),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               spec.label,
-              style: AppTypography.body.copyWith(
+              style: AppTypography.bodyS.copyWith(
                 fontWeight: FontWeight.w700,
                 color: spec.fg,
               ),
@@ -229,7 +321,14 @@ class _KycStatusBadge extends StatelessWidget {
           if (spec.cta != null)
             TextButton(
               onPressed: () => context.go(AppRoutes.kycIntro),
-              child: Text(spec.cta!),
+              style: TextButton.styleFrom(
+                foregroundColor: spec.fg,
+                minimumSize: const Size(0, 32),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              ),
+              child: Text(spec.cta!,
+                  style: AppTypography.bodyS
+                      .copyWith(fontWeight: FontWeight.w700)),
             ),
         ],
       ),

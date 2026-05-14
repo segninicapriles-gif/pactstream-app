@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -11,8 +10,8 @@ import '../../../../data/datasources/supabase/supabase_client.dart';
 
 /// Splash inicial. Decide a dónde mandar al usuario:
 ///   - Sin sesión → /login
-///   - Con sesión → /home
-///   - (V2) Con sesión pero sin KYC → /onboarding/identity
+///   - Con sesión + KYC pendiente → /onboarding/identity
+///   - Con sesión + KYC ok → /home
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
@@ -28,8 +27,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   }
 
   Future<void> _decideRoute() async {
-    // Pequeña espera para que el splash se vea
-    await Future<void>.delayed(const Duration(milliseconds: 800));
+    await Future<void>.delayed(const Duration(milliseconds: 1000));
     if (!mounted) return;
 
     final user = SupabaseConfig.currentUser;
@@ -38,8 +36,6 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       return;
     }
 
-    // Consultar kyc_status del perfil. Si KYC no verificado/en revisión,
-    // redirigir al onboarding.
     try {
       final rows = await SupabaseConfig.client
           .rpc('sf_get_my_profile')
@@ -54,7 +50,6 @@ class _SplashPageState extends ConsumerState<SplashPage> {
           return;
         }
       } else {
-        // Sin perfil → algo raro, mejor ir al login para empezar de cero.
         await SupabaseConfig.client.auth.signOut();
         context.go(AppRoutes.login);
         return;
@@ -69,46 +64,33 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.psNavy, Color(0xFF14193D)],
-          ),
-        ),
+      backgroundColor: AppColors.ink50,
+      body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // TODO(sprint-1): reemplazar por logo SVG real
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  gradient: AppColors.psGradient,
-                ),
-                child: const Center(
-                  child: Text(
-                    'P',
-                    style: TextStyle(
-                      fontSize: 56,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.psNavy,
-                    ),
-                  ),
+              // Logo oficial de PactStream
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
+                child: Image.asset(
+                  'assets/images/pactstream_logo.png',
+                  fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                AppConstants.appName,
-                style: AppTypography.h1.copyWith(color: AppColors.white),
+              const SizedBox(height: AppSpacing.xxxl),
+              const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(AppColors.psBlue),
+                ),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md),
               Text(
-                AppConstants.appTagline,
-                style: AppTypography.bodyS.copyWith(color: AppColors.psCyan),
+                'Cargando...',
+                style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
               ),
             ],
           ),

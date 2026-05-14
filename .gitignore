@@ -60,7 +60,6 @@ android/**/GeneratedPluginRegistrant.java
 **/ios/Pods/
 
 # Web
-lib/generated_plugin_registrant.dart
 
 # Code generation
 *.g.dart
@@ -82,3 +81,10 @@ coverage/
 # Secrets
 **/secrets.json
 **/api_keys.dart
+
+# Cloudflare Wrangler local cache
+.wrangler/
+
+# Logs temporales de análisis
+analyze_output.txt
+*.analysis.log

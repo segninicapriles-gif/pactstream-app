@@ -85,6 +85,16 @@ abstract final class AppTypography {
         color: AppColors.ink600,
       );
 
+  /// Estilo para etiquetas de campos / secciones (más fuerte que body S).
+  /// Usar para títulos de subsecciones dentro de cards.
+  static TextStyle get label => GoogleFonts.nunito(
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        height: 1.3,
+        letterSpacing: 0.5,
+        color: AppColors.ink600,
+      );
+
   /// Estilo monoespaciado para metadata técnica (IDs, hashes, fechas forenses).
   static TextStyle get mono => GoogleFonts.jetBrainsMono(
         fontSize: 12,
