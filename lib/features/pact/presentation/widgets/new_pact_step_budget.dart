@@ -7,10 +7,12 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../data/pact_creation_data.dart';
 
-/// Paso 2 del wizard (modelo v2.0):
-/// presupuesto total + IVA + slider del % de depósito + frecuencia de
-/// certificación. NO se crean hitos aquí — los crea el constructor durante
-/// la ejecución, por demanda.
+/// Paso 2 del wizard (modelo v2.1):
+/// presupuesto total + IVA + slider del % de Adelanto + frecuencia.
+///
+/// El Adelanto (10-40 %) se desglosa internamente:
+///   · 10 % fijo → reserva de finiquito custodiada
+///   · 0-30 % variable → entregado al constructor el día 1
 class NewPactStepBudget extends StatefulWidget {
   const NewPactStepBudget({
     super.key,
@@ -29,7 +31,6 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
   late final TextEditingController _totalCtrl;
   late final TextEditingController _freqCtrl;
 
-  // Sugerencias rápidas para la frecuencia
   static const List<String> _freqSuggestions = [
     'Mensual',
     'Quincenal',
@@ -37,8 +38,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
     'Según hitos del proyecto',
   ];
 
-  // Sugerencias rápidas para el % de depósito (anclas comunes)
-  static const List<int> _depositSuggestions = [15, 30, 40];
+  static const List<int> _advanceSuggestions = [10, 20, 30, 40];
 
   @override
   void initState() {
@@ -61,7 +61,6 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
   @override
   Widget build(BuildContext context) {
     final d = widget.data;
-    final depositCents = d.depositRequiredCents;
     final ivaCents = d.ivaIncluded
         ? 0
         : (d.totalAmountCents * d.ivaRatePct / 100).round();
@@ -74,7 +73,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
         Text('Presupuesto', style: AppTypography.h2),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Importe total acordado para la obra. Se podrá ajustar con anexos firmados por las partes.',
+          'Importe total acordado para la obra. Podrá ajustarse con anexos firmados por las partes.',
           style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -166,16 +165,16 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
 
         const SizedBox(height: AppSpacing.xl),
 
-        // === Depósito en custodia ===
-        Text('Depósito en custodia', style: AppTypography.h2),
+        // === Adelanto con doble garantía ===
+        Text('Adelanto', style: AppTypography.h2),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Importe que el promotor deposita al firmar. PactStream lo retiene y libera contra certificaciones validadas.',
+          'Importe que el promotor compromete al firmar. PactStream entrega la parte variable al constructor el día 1 y custodia el 10 % como reserva de finiquito.',
           style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
         ),
         const SizedBox(height: AppSpacing.md),
 
-        // Card del depósito con preview en € en tiempo real
+        // Card del Adelanto con desglose en tiempo real
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
@@ -186,9 +185,10 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // % grande + total en € arriba a la derecha
               Row(
                 children: [
-                  Text('${d.depositPct.toStringAsFixed(0)} %',
+                  Text('${d.advancePct.toStringAsFixed(0)} %',
                       style: AppTypography.h1
                           .copyWith(color: AppColors.psNavy)),
                   const SizedBox(width: AppSpacing.sm),
@@ -199,7 +199,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                   ),
                   const Spacer(),
                   Text(
-                    AppFormatters.moneyShort(depositCents),
+                    AppFormatters.moneyShort(d.totalAdvanceCents),
                     style: AppTypography.h2
                         .copyWith(color: AppColors.psNavy),
                   ),
@@ -215,13 +215,13 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                   trackHeight: 4,
                 ),
                 child: Slider(
-                  min: 15,
+                  min: 10,
                   max: 40,
-                  divisions: 25,
-                  value: d.depositPct,
-                  label: '${d.depositPct.toStringAsFixed(0)} %',
+                  divisions: 30,
+                  value: d.advancePct,
+                  label: '${d.advancePct.toStringAsFixed(0)} %',
                   onChanged: (v) {
-                    widget.data.depositPct = v.roundToDouble();
+                    widget.data.advancePct = v.roundToDouble();
                     widget.onChange();
                   },
                 ),
@@ -229,7 +229,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('15 %',
+                  Text('10 %',
                       style: AppTypography.caption
                           .copyWith(color: AppColors.ink500)),
                   Text('40 %',
@@ -238,20 +238,54 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
-              // Chips de anclas comunes
+              // Chips de anclas
               Wrap(
                 spacing: AppSpacing.xs,
-                children: _depositSuggestions.map((pct) {
-                  final selected = d.depositPct.round() == pct;
+                children: _advanceSuggestions.map((pct) {
+                  final selected = d.advancePct.round() == pct;
                   return ChoiceChip(
                     label: Text('$pct %'),
                     selected: selected,
                     onSelected: (_) {
-                      widget.data.depositPct = pct.toDouble();
+                      widget.data.advancePct = pct.toDouble();
                       widget.onChange();
                     },
                   );
                 }).toList(),
+              ),
+
+              // Desglose interno (las dos partes del Adelanto)
+              const SizedBox(height: AppSpacing.md),
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                ),
+                child: Column(
+                  children: [
+                    _BreakdownRow(
+                      icon: Icons.shield_outlined,
+                      iconColor: AppColors.success,
+                      label: 'Reserva de finiquito (10 %)',
+                      sublabel: 'Custodiada hasta la última certificación',
+                      value: AppFormatters.moneyShort(d.advanceReserveCents),
+                    ),
+                    const SizedBox(height: 6),
+                    Divider(height: 1, color: AppColors.ink200),
+                    const SizedBox(height: 6),
+                    _BreakdownRow(
+                      icon: Icons.payments_outlined,
+                      iconColor: AppColors.psBlue,
+                      label:
+                          'Anticipo al constructor (${d.advanceVariablePct.toStringAsFixed(0)} %)',
+                      sublabel: d.advancePct == 10
+                          ? 'No hay anticipo · solo reserva'
+                          : 'Entregado el día 1, asegurado con caución',
+                      value: AppFormatters.moneyShort(d.advanceReleasedCents),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -267,12 +301,12 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.shield_outlined,
+              const Icon(Icons.info_outline,
                   size: 16, color: AppColors.ink600),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
-                  'Sugerencia: el 30 % es lo más habitual en el sector. Tramos menores reducen el riesgo del promotor; mayores dan más colchón al constructor.',
+                  'Mínimo del 10 % obligatorio (la reserva). El resto se negocia con el constructor: lo habitual son 20-30 % adicionales para que pueda comprar materiales.',
                   style: AppTypography.caption
                       .copyWith(color: AppColors.ink600),
                 ),
@@ -287,7 +321,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
         Text('Frecuencia de certificación', style: AppTypography.h2),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Cada cuánto el constructor podrá emitir una certificación de avance para cobrar.',
+          'Cada cuánto el constructor podrá emitir certificaciones de avance para cobrar.',
           style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -322,6 +356,51 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
           }).toList(),
         ),
         const SizedBox(height: AppSpacing.xl),
+      ],
+    );
+  }
+}
+
+/// Fila de desglose del Adelanto (reserva / anticipo al constructor).
+class _BreakdownRow extends StatelessWidget {
+  const _BreakdownRow({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.sublabel,
+    required this.value,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String sublabel;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: iconColor),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: AppTypography.bodyS
+                      .copyWith(fontWeight: FontWeight.w700)),
+              Text(sublabel,
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.ink500)),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Text(value,
+            style: AppTypography.body
+                .copyWith(fontWeight: FontWeight.w800, color: iconColor)),
       ],
     );
   }

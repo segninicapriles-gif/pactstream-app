@@ -12,6 +12,7 @@ import '../sheets/pact_action_sheets.dart';
 import '../widgets/addendums_section.dart';
 import '../widgets/deposit_widget.dart';
 import '../widgets/pact_state_badge.dart';
+import '../widgets/predeposit_pending_card.dart';
 
 /// Detalle completo del pacto.
 ///
@@ -72,18 +73,35 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
     if (ok && mounted) await _refresh();
   }
 
+  // === v2.1 · handlers reales (chunk 5) ===
+
+  Future<void> _handleSetupAdvance(PactDetail detail) async {
+    final ok = await showSetupAdvanceSheet(context, detail: detail);
+    if (ok && mounted) await _refresh();
+  }
+
+  Future<void> _handlePredeposit(PactMilestone m) async {
+    final ok = await showPredepositMilestoneSheet(context, milestone: m);
+    if (ok && mounted) await _refresh();
+  }
+
+  Future<void> _handleForceAdvance(PactMilestone m) async {
+    final ok = await showForceAdvanceSheet(context, milestone: m);
+    if (ok && mounted) await _refresh();
+  }
+
   /// El FAB "Nueva certificación" solo aparece si soy constructor de un
-  /// pacto v2 en ejecución.
+  /// pacto v2/v2.1 en ejecución.
   bool _canCreateCert(PactDetail detail) {
-    return detail.pact.isV2 &&
+    return detail.pact.isV2OrLater &&
         detail.pact.state == 'in_execution' &&
         detail.me?.role == 'constructor';
   }
 
   /// "Proponer anexo" solo está disponible para partes activas en un pacto
-  /// v2 en ejecución o pausado.
+  /// v2/v2.1 en ejecución o pausado.
   bool _canProposeAddendum(PactDetail detail) {
-    if (!detail.pact.isV2) return false;
+    if (!detail.pact.isV2OrLater) return false;
     if (detail.me == null) return false;
     return detail.pact.state == 'in_execution' ||
         detail.pact.state == 'paused_pending_tech';
@@ -168,15 +186,32 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
             children: [
               _Header(detail: detail),
               const SizedBox(height: AppSpacing.md),
-              // Resumen económico clásico (v1) o widget de depósito (v2).
-              if (detail.pact.isV2)
+              // Resumen económico clásico (v1) o widget de depósito (v2/v2.1).
+              if (detail.pact.isV2OrLater)
                 DepositWidget(
                   detail: detail,
                   onFundInitial: () => _handleFundInitial(detail),
                   onReplenish: () => _handleReplenish(detail),
+                  onSetupAdvance: () => _handleSetupAdvance(detail),
                 )
               else
                 _MoneySummary(detail: detail),
+
+              // v2.1 · Pre-depósitos pendientes (cards específicas)
+              if (detail.pact.isV21 &&
+                  detail.pendingPredepositMilestones.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.md),
+                for (final m in detail.pendingPredepositMilestones)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: PredepositPendingCard(
+                      milestone: m,
+                      myRole: detail.me?.role,
+                      onPredeposit: () => _handlePredeposit(m),
+                      onForceAdvance: () => _handleForceAdvance(m),
+                    ),
+                  ),
+              ],
               const SizedBox(height: AppSpacing.md),
               _PartiesSection(
                 parties: detail.parties,
@@ -184,7 +219,7 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
               ),
               const SizedBox(height: AppSpacing.md),
               _MilestonesSection(detail: detail),
-              if (detail.pact.isV2) ...[
+              if (detail.pact.isV2OrLater) ...[
                 const SizedBox(height: AppSpacing.md),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.lg),
@@ -705,7 +740,7 @@ class _MilestonesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isV2 = detail.pact.isV2;
+    final isV2 = detail.pact.isV2OrLater;
     final milestones = detail.milestones;
     final paid = milestones.where((m) => m.state == 'paid').length;
 

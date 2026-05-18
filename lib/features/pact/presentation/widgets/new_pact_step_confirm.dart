@@ -6,7 +6,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../data/pact_creation_data.dart';
 
-/// Paso 4 del wizard (modelo v2.0): resumen final + creación del pacto en BD.
+/// Paso 4 del wizard (modelo v2.1): resumen final + creación del pacto en BD.
 class NewPactStepConfirm extends StatefulWidget {
   const NewPactStepConfirm({
     super.key,
@@ -63,8 +63,9 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Las partes invitadas recibirán un email para unirse y firmar. '
-                  'El promotor depositará el ${d.depositPct.toStringAsFixed(0)} % del presupuesto en custodia, '
-                  'y desde ahí se liberará el dinero contra certificaciones validadas.',
+                  'El promotor comprometerá el ${d.advancePct.toStringAsFixed(0)} % del presupuesto como Adelanto: '
+                  '${AppFormatters.moneyShort(d.advanceReleasedCents)} al constructor el día 1 y '
+                  '${AppFormatters.moneyShort(d.advanceReserveCents)} en custodia hasta el finiquito.',
                   textAlign: TextAlign.center,
                   style: AppTypography.body.copyWith(color: AppColors.ink600),
                 ),
@@ -84,9 +85,9 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                 ),
                 const SizedBox(height: AppSpacing.md),
 
-                // === Resumen económico v2 ===
+                // === Resumen económico v2.1 ===
                 _SummaryCard(
-                  title: 'Presupuesto y custodia',
+                  title: 'Presupuesto y Adelanto',
                   icon: Icons.account_balance_outlined,
                   rows: [
                     _SummaryRow('Presupuesto total',
@@ -98,9 +99,17 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                             ? 'Incluido (${d.ivaRatePct.toStringAsFixed(0)} %)'
                             : 'Más ${d.ivaRatePct.toStringAsFixed(0)} %'),
                     _SummaryRow(
-                        'Depósito al firmar',
-                        '${d.depositPct.toStringAsFixed(0)} % · ${AppFormatters.moneyLong(d.depositRequiredCents)}',
+                        'Adelanto total',
+                        '${d.advancePct.toStringAsFixed(0)} % · ${AppFormatters.moneyLong(d.totalAdvanceCents)}',
                         emphasis: true),
+                    _SummaryRow(
+                        '  Reserva de finiquito (10 %)',
+                        AppFormatters.moneyShort(d.advanceReserveCents),
+                        muted: true),
+                    _SummaryRow(
+                        '  Anticipo al constructor',
+                        AppFormatters.moneyShort(d.advanceReleasedCents),
+                        muted: true),
                     _SummaryRow(
                         'Frecuencia certificación', d.certificationFrequency),
                     _SummaryRow(
@@ -126,7 +135,6 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
 
                 const SizedBox(height: AppSpacing.lg),
 
-                // Aceptación
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
@@ -182,7 +190,7 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Aún no se cobra nada. El depósito se solicitará cuando todas las partes firmen.',
+            'Aún no se cobra nada. El Adelanto se solicitará cuando todas las partes firmen.',
             textAlign: TextAlign.center,
             style: AppTypography.caption.copyWith(color: AppColors.ink500),
           ),

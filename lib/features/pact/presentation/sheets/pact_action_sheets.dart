@@ -373,6 +373,7 @@ class _CreateCertSheetState extends State<_CreateCertSheet> {
         name: _nameCtrl.text,
         amountCents: _amountCents,
         description: _descCtrl.text,
+        modelVersion: widget.detail.pact.modelVersion,
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -946,6 +947,571 @@ class _ErrorBanner extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// 6 · v2.1 · Promotor configura el Adelanto (sustituye fund_initial)
+// =====================================================================
+
+Future<bool> showSetupAdvanceSheet(
+  BuildContext context, {
+  required PactDetail detail,
+}) async {
+  return await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) => _SetupAdvanceSheet(detail: detail),
+      ) ??
+      false;
+}
+
+class _SetupAdvanceSheet extends StatefulWidget {
+  const _SetupAdvanceSheet({required this.detail});
+  final PactDetail detail;
+
+  @override
+  State<_SetupAdvanceSheet> createState() => _SetupAdvanceSheetState();
+}
+
+class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
+  bool _accepted = false;
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _submit() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await PactActionsV2.setupAdvance(widget.detail.pact.id);
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = widget.detail.pact;
+    final total = p.totalAdvanceCents;
+
+    return _SheetScaffold(
+      title: 'Configurar Adelanto',
+      icon: Icons.shield_outlined,
+      iconColor: AppColors.psBlue,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.infoBg,
+            borderRadius: BorderRadius.circular(AppSpacing.md),
+            border: Border.all(color: AppColors.psBlue, width: 1),
+          ),
+          child: Column(
+            children: [
+              Text(
+                '${(p.depositRequiredPct ?? 30).toStringAsFixed(0)} % del presupuesto',
+                style: AppTypography.caption
+                    .copyWith(color: AppColors.ink600),
+              ),
+              const SizedBox(height: 4),
+              Text(AppFormatters.moneyLong(total),
+                  style: AppTypography.h1.copyWith(color: AppColors.psNavy)),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // Desglose interno
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.ink50,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            border: Border.all(color: AppColors.ink200),
+          ),
+          child: Column(
+            children: [
+              _kvRow(
+                icon: Icons.account_balance_wallet_outlined,
+                iconColor: AppColors.success,
+                label: 'Reserva de finiquito',
+                sublabel:
+                    'Custodiada en PactStream hasta la última certificación',
+                value: AppFormatters.moneyLong(p.advanceReserveCents),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Divider(height: 1, color: AppColors.ink200),
+              const SizedBox(height: AppSpacing.sm),
+              _kvRow(
+                icon: Icons.payments_outlined,
+                iconColor: AppColors.psBlue,
+                label: 'Anticipo al constructor',
+                sublabel:
+                    'Se entrega hoy. Cobertura inicial de la póliza de caución.',
+                value: AppFormatters.moneyLong(p.advanceVariableCents),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'Tras confirmar, el pacto pasará a "En ejecución" y el constructor podrá emitir certificaciones. '
+          'En esta versión MVP el ingreso se simula — en producción Mangopay confirmará la transferencia.',
+          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          value: _accepted,
+          onChanged: _loading ? null : (v) => setState(() => _accepted = v ?? false),
+          title: Text(
+            'Confirmo que he transferido ${AppFormatters.moneyShort(total)} a PactStream para configurar el Adelanto.',
+            style: AppTypography.bodyS,
+          ),
+        ),
+        if (_error != null) _ErrorBanner(message: _error!),
+        const SizedBox(height: AppSpacing.sm),
+        _PrimaryButton(
+          enabled: _accepted && !_loading,
+          loading: _loading,
+          label:
+              'Configurar Adelanto · ${AppFormatters.moneyShort(total)}',
+          onPressed: _submit,
+        ),
+      ],
+    );
+  }
+
+  Widget _kvRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String sublabel,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: iconColor),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: AppTypography.bodyS
+                      .copyWith(fontWeight: FontWeight.w700)),
+              Text(sublabel,
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.ink500)),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Text(value,
+            style: AppTypography.body
+                .copyWith(fontWeight: FontWeight.w800, color: iconColor)),
+      ],
+    );
+  }
+}
+
+// =====================================================================
+// 7 · v2.1 · Promotor pre-deposita el neto de una certificación
+// =====================================================================
+
+Future<bool> showPredepositMilestoneSheet(
+  BuildContext context, {
+  required PactMilestone milestone,
+}) async {
+  return await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) => Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: _PredepositMilestoneSheet(milestone: milestone),
+        ),
+      ) ??
+      false;
+}
+
+class _PredepositMilestoneSheet extends StatefulWidget {
+  const _PredepositMilestoneSheet({required this.milestone});
+  final PactMilestone milestone;
+
+  @override
+  State<_PredepositMilestoneSheet> createState() =>
+      _PredepositMilestoneSheetState();
+}
+
+class _PredepositMilestoneSheetState
+    extends State<_PredepositMilestoneSheet> {
+  late final TextEditingController _ctrl = TextEditingController(
+    text: widget.milestone.predepositRemainingCents > 0
+        ? (widget.milestone.predepositRemainingCents ~/ 100).toString()
+        : '',
+  );
+  bool _loading = false;
+  String? _error;
+
+  int get _amountCents {
+    final euros = int.tryParse(_ctrl.text) ?? 0;
+    return euros * 100;
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_amountCents <= 0) {
+      setState(() => _error = 'El importe debe ser positivo');
+      return;
+    }
+    if (_amountCents > widget.milestone.predepositRemainingCents) {
+      setState(() => _error =
+          'El importe excede lo pendiente (${AppFormatters.moneyShort(widget.milestone.predepositRemainingCents)})');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await PactActionsV2.predepositMilestone(
+        milestoneId: widget.milestone.id,
+        amountCents: _amountCents,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = widget.milestone;
+
+    return _SheetScaffold(
+      title: 'Pre-depositar Cert #${m.ordinal}',
+      icon: Icons.savings_outlined,
+      iconColor: AppColors.warning,
+      children: [
+        Text(
+          'Pre-deposita el neto para que el constructor pueda emitir la certificación oficialmente. El dinero queda custodiado en PactStream hasta la validación técnica.',
+          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // Desglose de la cert
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.ink50,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            border: Border.all(color: AppColors.ink200),
+          ),
+          child: Column(
+            children: [
+              _kvLine('Bruto certificado',
+                  AppFormatters.moneyLong(m.amountCents)),
+              _kvLine('Amortización del Adelanto',
+                  '− ${AppFormatters.moneyShort(m.advanceAmortizationCents)}',
+                  muted: true),
+              Divider(height: AppSpacing.sm, color: AppColors.ink200),
+              _kvLine('Neto a pre-depositar',
+                  AppFormatters.moneyLong(m.netAmountCents),
+                  emphasis: true),
+              if (m.predepositReceivedCents > 0)
+                _kvLine('Ya pre-depositado',
+                    '− ${AppFormatters.moneyShort(m.predepositReceivedCents)}',
+                    muted: true),
+              if (m.predepositReceivedCents > 0) ...[
+                Divider(height: AppSpacing.sm, color: AppColors.ink200),
+                _kvLine('Falta por pre-depositar',
+                    AppFormatters.moneyLong(m.predepositRemainingCents),
+                    emphasis: true,
+                    color: AppColors.warning),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        TextField(
+          controller: _ctrl,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: const InputDecoration(
+            labelText: 'Importe a pre-depositar',
+            suffixText: '€',
+          ),
+          onChanged: (_) => setState(() => _error = null),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Sugerido: ${AppFormatters.moneyShort(m.predepositRemainingCents)} (completar el neto)',
+          style: AppTypography.caption.copyWith(color: AppColors.ink500),
+        ),
+        if (_error != null) _ErrorBanner(message: _error!),
+        const SizedBox(height: AppSpacing.sm),
+        _PrimaryButton(
+          enabled: _amountCents > 0 && !_loading,
+          loading: _loading,
+          label: 'Pre-depositar ${AppFormatters.moneyShort(_amountCents)}',
+          onPressed: _submit,
+        ),
+      ],
+    );
+  }
+
+  Widget _kvLine(String k, String v,
+      {bool muted = false, bool emphasis = false, Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(k,
+                style: AppTypography.bodyS.copyWith(
+                  color: muted ? AppColors.ink500 : AppColors.ink600,
+                  fontWeight:
+                      emphasis ? FontWeight.w700 : FontWeight.w400,
+                )),
+          ),
+          Text(v,
+              style: AppTypography.body.copyWith(
+                fontWeight: emphasis ? FontWeight.w800 : FontWeight.w700,
+                color: color ?? AppColors.ink900,
+              )),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// 8 · v2.1 · Constructor avanza bajo su responsabilidad
+// =====================================================================
+
+Future<bool> showForceAdvanceSheet(
+  BuildContext context, {
+  required PactMilestone milestone,
+}) async {
+  return await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) => _ForceAdvanceSheet(milestone: milestone),
+      ) ??
+      false;
+}
+
+class _ForceAdvanceSheet extends StatefulWidget {
+  const _ForceAdvanceSheet({required this.milestone});
+  final PactMilestone milestone;
+
+  @override
+  State<_ForceAdvanceSheet> createState() => _ForceAdvanceSheetState();
+}
+
+class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
+  bool _accepted = false;
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _submit() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await PactActionsV2.forceAdvanceMilestone(
+        milestoneId: widget.milestone.id,
+        disclaimerAccepted: true,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = widget.milestone;
+    final gap = m.predepositRemainingCents;
+
+    return _SheetScaffold(
+      title: 'Avanzar bajo responsabilidad',
+      icon: Icons.warning_amber_rounded,
+      iconColor: AppColors.warning,
+      children: [
+        Text(
+          'Vas a reactivar la Certificación #${m.ordinal} sin esperar a que el promotor complete el pre-depósito. '
+          'Esto te permite seguir trabajando, pero el riesgo del importe pendiente recae sobre ti.',
+          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        // Card con el resumen del riesgo
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.warningBg,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            border: Border.all(color: AppColors.warning, width: 1),
+          ),
+          child: Column(
+            children: [
+              _miniRow('Cert #${m.ordinal}', m.name),
+              const SizedBox(height: 4),
+              _miniRow('Bruto certificado',
+                  AppFormatters.moneyShort(m.amountCents)),
+              _miniRow('Pre-depositado por el promotor',
+                  AppFormatters.moneyShort(m.predepositReceivedCents)),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                ),
+                child: Row(
+                  children: [
+                    Text('Importe en riesgo',
+                        style: AppTypography.bodyS
+                            .copyWith(fontWeight: FontWeight.w700)),
+                    const Spacer(),
+                    Text(AppFormatters.moneyLong(gap),
+                        style: AppTypography.body.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.warning)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        // Disclaimer con peso jurídico
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.errorBg,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            border: Border.all(color: AppColors.error, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.gavel,
+                      size: 16, color: AppColors.error),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text('Implicaciones legales',
+                      style: AppTypography.bodyS
+                          .copyWith(fontWeight: FontWeight.w800)),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '• PactStream queda liberada de responsabilidad sobre el dinero ejecutado mientras el pre-depósito no esté completo.\n\n'
+                '• La aseguradora no cubrirá un eventual impago del importe en riesgo.\n\n'
+                '• Esta acción se registra de forma inmutable en el audit log con marca temporal.\n\n'
+                '• El promotor sigue obligado contractualmente a pagar, pero deberás reclamarlo directamente si no lo hace.',
+                style: AppTypography.bodyS
+                    .copyWith(color: AppColors.ink900, height: 1.45),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          value: _accepted,
+          onChanged: _loading
+              ? null
+              : (v) => setState(() => _accepted = v ?? false),
+          title: Text(
+            'He leído las implicaciones y asumo el riesgo de ${AppFormatters.moneyShort(gap)} bajo mi propia responsabilidad.',
+            style: AppTypography.bodyS,
+          ),
+        ),
+        if (_error != null) _ErrorBanner(message: _error!),
+        const SizedBox(height: AppSpacing.sm),
+        ElevatedButton.icon(
+          icon: _loading
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.white),
+                )
+              : const Icon(Icons.warning_amber_rounded, size: 18),
+          onPressed: (_accepted && !_loading) ? _submit : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.warning,
+            foregroundColor: AppColors.white,
+          ),
+          label:
+              Text(_loading ? 'Procesando…' : 'Reactivar bajo mi responsabilidad'),
+        ),
+      ],
+    );
+  }
+
+  Widget _miniRow(String k, String v) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(k,
+                style: AppTypography.caption
+                    .copyWith(color: AppColors.ink600)),
+          ),
+          Text(v,
+              style: AppTypography.bodyS
+                  .copyWith(fontWeight: FontWeight.w700)),
+        ],
       ),
     );
   }

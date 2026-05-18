@@ -126,10 +126,10 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
     try {
       final client = SupabaseConfig.client;
 
-      // 1. Crear pact v2 (sin hitos predefinidos).
+      // 1. Crear pact v2.1 (Adelanto con doble garantía).
       // RPC devuelve TABLE(out_pact_id, out_display_id) → List<Map>.
       final pactRows = await client.rpc(
-        'sf_create_pact_v2',
+        'sf_create_pact_v21',
         params: {
           'p_title': _data.title.trim(),
           'p_obra_address_line': _data.addressLine.trim(),
@@ -148,7 +148,8 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
               _data.estimatedStartDate?.toIso8601String().substring(0, 10),
           'p_estimated_end_date':
               _data.estimatedEndDate?.toIso8601String().substring(0, 10),
-          'p_deposit_required_pct': _data.depositPct,
+          'p_advance_pct': _data.advancePct,
+          'p_advance_reserve_pct': PactCreationData.advanceReservePct,
           'p_certification_frequency':
               _data.certificationFrequency.trim().isEmpty
                   ? null
@@ -174,8 +175,8 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
 
       if (pactId == null || displayId == null) {
         throw Exception(
-          'Respuesta inválida de sf_create_pact_v2. Recibido: $firstRow. '
-          'Asegúrate de aplicar la migración 20260430000019_rpcs_v2.sql y '
+          'Respuesta inválida de sf_create_pact_v21. Recibido: $firstRow. '
+          'Asegúrate de aplicar las migraciones del Sprint 5 y '
           'ejecutar NOTIFY pgrst, \'reload schema\'.',
         );
       }
@@ -185,8 +186,8 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
         await client.rpc('sf_invite_party', params: invite.toRpcArgs(pactId));
       }
 
-      // 3. Finalizar borrador v2 → estado 'inviting'.
-      await client.rpc('sf_finalize_pact_v2', params: {'p_pact_id': pactId});
+      // 3. Finalizar borrador v2.1 → estado 'inviting'.
+      await client.rpc('sf_finalize_pact_v21', params: {'p_pact_id': pactId});
 
       // Drenar la cola de emails (notificaciones de invitación a las partes)
       ref.read(pactsRepositoryProvider).kickEmailSender();

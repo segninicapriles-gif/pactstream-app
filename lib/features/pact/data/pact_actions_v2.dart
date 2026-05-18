@@ -21,6 +21,69 @@ class PactActionsV2 {
     }
   }
 
+  /// v2.1 · Promotor configura el Adelanto.
+  /// Devuelve el desglose ejecutado (lo entregado al constructor + la reserva).
+  static Future<({int releasedCents, int reserveCents})> setupAdvance(
+      String pactId) async {
+    try {
+      final r = await SupabaseConfig.client
+          .rpc('sf_pact_setup_advance', params: {'p_pact_id': pactId});
+      if (r is Map<String, dynamic>) {
+        return (
+          releasedCents:
+              ((r['released_to_constructor_cents'] as num?) ?? 0).toInt(),
+          reserveCents: ((r['reserve_custody_cents'] as num?) ?? 0).toInt(),
+        );
+      }
+      return (releasedCents: 0, reserveCents: 0);
+    } catch (e) {
+      throw PactActionException('No se pudo configurar el Adelanto', e);
+    }
+  }
+
+  /// v2.1 · Promotor pre-deposita el neto de una certificación.
+  /// Devuelve si el pre-depósito quedó completo (cert pasa a `in_execution`).
+  static Future<bool> predepositMilestone({
+    required String milestoneId,
+    required int amountCents,
+  }) async {
+    try {
+      final r = await SupabaseConfig.client.rpc(
+        'sf_pact_predeposit_milestone',
+        params: {
+          'p_milestone_id': milestoneId,
+          'p_amount_cents': amountCents,
+        },
+      );
+      if (r is Map<String, dynamic>) {
+        return (r['completed'] as bool?) ?? false;
+      }
+      return false;
+    } catch (e) {
+      throw PactActionException('No se pudo pre-depositar', e);
+    }
+  }
+
+  /// v2.1 · Constructor activa "avanzar bajo responsabilidad".
+  /// Requiere disclaimerAccepted=true por seguridad.
+  static Future<void> forceAdvanceMilestone({
+    required String milestoneId,
+    required bool disclaimerAccepted,
+  }) async {
+    try {
+      await SupabaseConfig.client.rpc(
+        'sf_milestone_force_advance',
+        params: {
+          'p_milestone_id': milestoneId,
+          'p_disclaimer_accepted': disclaimerAccepted,
+        },
+      );
+    } catch (e) {
+      throw PactActionException(
+          'No se pudo activar el avance bajo responsabilidad', e);
+    }
+  }
+
   /// Promotor repone el depósito (importe libre, > 0).
   static Future<int> replenishDeposit({
     required String pactId,
@@ -46,16 +109,24 @@ class PactActionsV2 {
 
   /// Constructor crea una nueva certificación.
   /// Devuelve el id y display_id de la cert creada.
+  ///
+  /// Enruta automáticamente a la RPC correcta según `modelVersion`:
+  ///   - 'v2.1' → sf_constructor_create_cert_v21 (con amortización y deadline)
+  ///   - 'v2'   → sf_constructor_create_cert (v2.0 original)
   static Future<({String certId, String displayId, int ordinal})>
       createCertification({
     required String pactId,
     required String name,
     required int amountCents,
     String? description,
+    String modelVersion = 'v2',
   }) async {
+    final rpcName = modelVersion == 'v2.1'
+        ? 'sf_constructor_create_cert_v21'
+        : 'sf_constructor_create_cert';
     try {
       final rows = await SupabaseConfig.client.rpc(
-        'sf_constructor_create_cert',
+        rpcName,
         params: {
           'p_pact_id': pactId,
           'p_name': name.trim(),

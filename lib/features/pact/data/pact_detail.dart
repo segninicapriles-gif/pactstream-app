@@ -11,6 +11,7 @@ class PactDetail {
     required this.milestones,
     required this.addendums,
     required this.depositMovements,
+    this.suretyPolicy,
   });
 
   final PactCore pact;
@@ -18,6 +19,8 @@ class PactDetail {
   final List<PactMilestone> milestones;
   final List<PactAddendum> addendums;
   final List<DepositMovement> depositMovements;
+  /// Póliza de caución (v2.1). `null` para pacts v1/v2.0.
+  final SuretyPolicy? suretyPolicy;
 
   factory PactDetail.fromJson(Map<String, dynamic> json) {
     return PactDetail(
@@ -34,6 +37,9 @@ class PactDetail {
       depositMovements: (json['deposit_movements'] as List<dynamic>? ?? const [])
           .map((e) => DepositMovement.fromJson(e as Map<String, dynamic>))
           .toList(),
+      suretyPolicy: json['surety_policy'] != null
+          ? SuretyPolicy.fromJson(json['surety_policy'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -102,6 +108,20 @@ class PactDetail {
     if (!pact.isV2 || pact.depositRequiredCents == 0) return false;
     return pact.depositCurrentCents < pact.depositRequiredCents * 0.25;
   }
+
+  // === Helpers v2.1 ===
+
+  /// Certificaciones esperando pre-depósito del promotor (o paralizadas).
+  List<PactMilestone> get pendingPredepositMilestones =>
+      milestones.where((m) => m.needsPredeposit).toList();
+
+  /// Hay alguna certificación paralizada por falta de pre-depósito.
+  bool get hasPausedMilestones =>
+      milestones.any((m) => m.isPausedNoPredeposit);
+
+  /// Hay alguna certificación esperando pre-depósito (con tiempo aún).
+  bool get hasPendingPredepositMilestones =>
+      milestones.any((m) => m.isPendingPredeposit);
 }
 
 /// Información core del pacto.
@@ -134,6 +154,9 @@ class PactCore {
     this.estimatedEndDate,
     this.depositRequiredPct,
     this.certificationFrequencyText,
+    this.advanceReservePct,
+    this.advanceReleasedCents = 0,
+    this.advanceOutstandingCents = 0,
   });
 
   final String id;
@@ -171,13 +194,47 @@ class PactCore {
   /// Texto libre de la frecuencia de certificación acordada.
   final String? certificationFrequencyText;
 
-  bool get isV2 => modelVersion == 'v2';
+  // === Campos v2.1 (Adelanto con doble garantía) ===
+  /// % fijo de reserva de finiquito (típicamente 10).
+  final num? advanceReservePct;
+  /// Importe del Adelanto entregado al constructor el día 1 (parte variable).
+  final int advanceReleasedCents;
+  /// Saldo vivo del Adelanto (decrece con cada cert pagada vía amortización).
+  /// = cobertura activa de la póliza de caución.
+  final int advanceOutstandingCents;
 
-  /// Importe que el promotor tiene que mantener en custodia.
-  int get depositRequiredCents {
+  bool get isV2 => modelVersion == 'v2';
+  bool get isV21 => modelVersion == 'v2.1';
+  /// Cualquier modelo v2 (v2.0 o v2.1) — usar para gates genéricos.
+  bool get isV2OrLater => isV2 || isV21;
+
+  /// Importe TOTAL del Adelanto comprometido por el promotor.
+  /// (= reserva + parte entregada al constructor)
+  int get totalAdvanceCents {
     if (depositRequiredPct == null) return 0;
     return (totalAmountCents * depositRequiredPct! / 100).round();
   }
+
+  /// Alias retro-compatible · en v2.0 era "lo depositado", en v2.1 es el Adelanto total.
+  int get depositRequiredCents => totalAdvanceCents;
+
+  /// Importe en céntimos de la reserva (10 % típico del presupuesto).
+  int get advanceReserveCents {
+    if (advanceReservePct == null) return 0;
+    return (totalAmountCents * advanceReservePct! / 100).round();
+  }
+
+  /// % del Adelanto que se entrega al constructor (variable).
+  num get advanceVariablePct {
+    if (depositRequiredPct == null || advanceReservePct == null) return 0;
+    return depositRequiredPct! - advanceReservePct!;
+  }
+
+  /// Céntimos que se entregarán al constructor el día 1 (parte variable).
+  /// Útil para mostrar el valor antes de ejecutar sf_pact_setup_advance
+  /// (cuando advanceReleasedCents todavía es 0 en BD).
+  int get advanceVariableCents =>
+      (totalAmountCents * advanceVariablePct / 100).round();
 
   factory PactCore.fromJson(Map<String, dynamic> j) {
     return PactCore(
@@ -215,6 +272,12 @@ class PactCore {
       budgetConsumedCents:
           ((j['budget_consumed_cents'] as num?) ?? 0).toInt(),
       certificationFrequencyText: j['certification_frequency_text'] as String?,
+      // v2.1
+      advanceReservePct: j['advance_reserve_pct'] as num?,
+      advanceReleasedCents:
+          ((j['advance_released_cents'] as num?) ?? 0).toInt(),
+      advanceOutstandingCents:
+          ((j['advance_outstanding_cents'] as num?) ?? 0).toInt(),
     );
   }
 }
@@ -301,7 +364,13 @@ class PactMilestone {
     this.detailedDocSha256,
     this.detailedDocMimeType,
     this.detailedDocSizeBytes,
-  });
+    this.advanceAmortizationCents = 0,
+    int? netAmountCents,
+    this.predepositReceivedCents = 0,
+    this.predepositDeadlineAt,
+    this.forcedUnderResponsibility = false,
+    this.forcedUnderResponsibilityAt,
+  }) : netAmountCents = netAmountCents ?? amountCents;
 
   final String id;
   final String displayId;
@@ -334,9 +403,50 @@ class PactMilestone {
   final String? detailedDocMimeType;
   final int? detailedDocSizeBytes;
 
+  // === Campos v2.1 ===
+  /// Importe que esta cert amortiza del Adelanto entregado.
+  final int advanceAmortizationCents;
+  /// Importe neto a pagar al constructor (bruto - amortización).
+  final int netAmountCents;
+  /// Importe ya pre-depositado por el promotor.
+  final int predepositReceivedCents;
+  /// Plazo límite para completar el pre-depósito (3 días desde creación).
+  final DateTime? predepositDeadlineAt;
+  /// El constructor activó el toggle "avanzar bajo responsabilidad".
+  final bool forcedUnderResponsibility;
+  final DateTime? forcedUnderResponsibilityAt;
+
   bool get hasInvoice => invoiceStoragePath != null;
   bool get hasDetailedDoc => detailedDocStoragePath != null;
   bool get isEdited => version > 1;
+
+  // === Helpers v2.1 ===
+  /// Cert en espera de pre-depósito del promotor.
+  bool get isPendingPredeposit => state == 'pending_predeposit';
+  /// Cert paralizada por falta de pre-depósito tras los 3 días.
+  bool get isPausedNoPredeposit => state == 'paused_no_predeposit';
+  /// Cert que requiere acción del promotor (pre-depósito).
+  bool get needsPredeposit => isPendingPredeposit || isPausedNoPredeposit;
+
+  /// Lo que aún falta por pre-depositar.
+  int get predepositRemainingCents {
+    final remaining = netAmountCents - predepositReceivedCents;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  /// Progreso del pre-depósito (0.0 a 1.0).
+  double get predepositProgress {
+    if (netAmountCents <= 0) return 0;
+    return (predepositReceivedCents / netAmountCents).clamp(0.0, 1.0);
+  }
+
+  /// Tiempo restante para completar el pre-depósito antes del paro.
+  /// `null` si no hay deadline o si ya venció.
+  Duration? get predepositTimeLeft {
+    if (predepositDeadlineAt == null) return null;
+    final diff = predepositDeadlineAt!.difference(DateTime.now());
+    return diff.isNegative ? null : diff;
+  }
 
   factory PactMilestone.fromJson(Map<String, dynamic> j) {
     return PactMilestone(
@@ -368,6 +478,16 @@ class PactMilestone {
       detailedDocSha256: j['detailed_doc_sha256'] as String?,
       detailedDocMimeType: j['detailed_doc_mime_type'] as String?,
       detailedDocSizeBytes: (j['detailed_doc_size_bytes'] as num?)?.toInt(),
+      // v2.1
+      advanceAmortizationCents:
+          ((j['advance_amortization_cents'] as num?) ?? 0).toInt(),
+      netAmountCents: (j['net_amount_cents'] as num?)?.toInt(),
+      predepositReceivedCents:
+          ((j['predeposit_received_cents'] as num?) ?? 0).toInt(),
+      predepositDeadlineAt: _parseDt(j['predeposit_deadline_at']),
+      forcedUnderResponsibility:
+          (j['forced_under_responsibility'] as bool?) ?? false,
+      forcedUnderResponsibilityAt: _parseDt(j['forced_under_responsibility_at']),
     );
   }
 
@@ -514,6 +634,75 @@ class DepositMovement {
       balanceAfterCents: ((j['balance_after_cents'] as num?) ?? 0).toInt(),
       milestoneId: j['milestone_id'] as String?,
       triggeredByUserId: j['triggered_by_user_id'] as String,
+      notes: j['notes'] as String?,
+      createdAt: DateTime.parse(j['created_at'] as String),
+    );
+  }
+}
+
+/// Póliza de caución que respalda el Adelanto entregado al constructor (v2.1).
+class SuretyPolicy {
+  SuretyPolicy({
+    required this.id,
+    required this.insurerName,
+    required this.initialCoverageCents,
+    required this.currentCoverageCents,
+    required this.status,
+    required this.createdAt,
+    this.policyNumber,
+    this.premiumCents,
+    this.issuedAt,
+    this.releasedAt,
+    this.cancelledAt,
+    this.claims = const [],
+    this.notes,
+  });
+
+  final String id;
+  final String insurerName;
+  final String? policyNumber;
+  final int? premiumCents;
+  final int initialCoverageCents;
+  final int currentCoverageCents;
+  /// 'draft' | 'active' | 'claimed' | 'released' | 'cancelled'
+  final String status;
+  final DateTime? issuedAt;
+  final DateTime? releasedAt;
+  final DateTime? cancelledAt;
+  final List<dynamic> claims;
+  final String? notes;
+  final DateTime createdAt;
+
+  bool get isActive => status == 'active';
+  bool get isPendingAdmin =>
+      status == 'draft' || insurerName == 'PENDIENTE_ADMIN';
+  bool get isReleased => status == 'released';
+  bool get hasClaims => claims.isNotEmpty;
+
+  double get coverageProgress {
+    if (initialCoverageCents <= 0) return 0;
+    return (currentCoverageCents / initialCoverageCents).clamp(0.0, 1.0);
+  }
+
+  factory SuretyPolicy.fromJson(Map<String, dynamic> j) {
+    return SuretyPolicy(
+      id: j['id'] as String,
+      insurerName: j['insurer_name'] as String,
+      policyNumber: j['policy_number'] as String?,
+      premiumCents: (j['premium_cents'] as num?)?.toInt(),
+      initialCoverageCents: ((j['initial_coverage_cents'] as num?) ?? 0).toInt(),
+      currentCoverageCents: ((j['current_coverage_cents'] as num?) ?? 0).toInt(),
+      status: j['status'] as String? ?? 'draft',
+      issuedAt: j['issued_at'] != null
+          ? DateTime.parse(j['issued_at'] as String)
+          : null,
+      releasedAt: j['released_at'] != null
+          ? DateTime.parse(j['released_at'] as String)
+          : null,
+      cancelledAt: j['cancelled_at'] != null
+          ? DateTime.parse(j['cancelled_at'] as String)
+          : null,
+      claims: (j['claims'] as List<dynamic>?) ?? const [],
       notes: j['notes'] as String?,
       createdAt: DateTime.parse(j['created_at'] as String),
     );

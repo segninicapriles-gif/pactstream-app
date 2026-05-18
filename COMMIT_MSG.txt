@@ -1,44 +1,63 @@
-Sprint 2-4 · MVP v0.2.0 · Modelo v2.0 completo
+Sprint 5 (chunks 1-5) · Modelo v2.1 · Adelanto con doble garantia
 
-Acumula 2 semanas de trabajo en 3 sprints sin commit.
+Refactor del modelo de pago tras feedback de constructores:
+el modelo v2.0 (deposito en custodia liberado por validacion)
+dejaba al constructor expuesto en el finiquito porque el promotor
+podia decidir no pagar. v2.1 resuelve la simetria de garantias.
 
-SPRINT 2 · Stack pacts v1
-- Modelos de dominio + RPCs de creacion/firma/hitos
-- Wizard de creacion inicial (5 pasos)
-- Detalle del pacto con hitos
-- Flujo de evidencias + validacion tecnica
-- Generacion de contrato (preview + Signaturit sandbox)
+CONCEPTO
 
-SPRINT 3 · Distribucion + persistencia
-- Email transaccional con Resend (dominio pactstream.io con DKIM/SPF/DMARC)
-- Centro de notificaciones in-app con badge
-- PDF real del contrato (paquete pdf + printing)
-- Deploy a produccion en Cloudflare Pages (app.pactstream.io)
-- Manifest PWA + meta tags Open Graph
+  - Adelanto (10-40 %) que el promotor compromete el dia 1, desglosado en:
+      * 10 % fijo  -> reserva de finiquito custodiada hasta la ultima cert
+      * 0-30 % var -> entregado al constructor el dia 1 (asegurado con caucion)
+  - Por cada certificacion: pre-deposito OBLIGATORIO del neto (bruto -
+    amortizacion del adelanto) antes de que el constructor pueda emitirla.
+  - Si pasan 3 dias sin pre-deposito -> obra paralizada automaticamente.
+  - El constructor puede activar "avanzar bajo mi responsabilidad" con
+    disclaimer juridico explicito (libera a PactStream y aseguradora).
 
-SPRINT 4 · Modelo v2.0 (refactor mayor)
+CHUNKS APLICADOS
 
-Tras validar la idea con perfiles del sector, se rediseno el modelo:
-- Las certificaciones las crea el constructor por demanda (no se predefinen hitos)
-- El promotor deposita un porcentaje asegurado (15-40, default 30)
-- Factura obligatoria por certificacion
-- Anexos formales firmados por las partes para modificaciones
+  1. Migracion SQL 0029: schema v2.1 (advance_reserve_pct, advance_*_cents
+     en pacts, advance_amortization/net/predeposit_* en milestones,
+     nuevos estados pending_predeposit y paused_no_predeposit, tabla
+     surety_policies con RLS, trigger handle_milestone_paid_surety_decrement).
 
-Incluye:
-- Migraciones SQL: schema v2 + 10 RPCs (sf_create_pact_v2,
-  sf_pact_fund_initial, sf_constructor_create_cert, sf_addendum_create,
-  sf_addendum_sign, ...)
-- Wizard de creacion rediseñado a 4 pasos con slider del deposito
-- Detalle del pacto: widget de deposito (estado/alerta/CTAs), timeline
-  de certificaciones con badges de factura/doc/version, seccion de anexos
-- 5 bottom-sheets para acciones del modelo v2 (depositar inicial,
-  reponer, crear cert, proponer anexo, firmar anexo)
-- Dashboards conectados a datos reales con loading skeletons
-  (sf_get_dashboard_data)
-- 3 hotfixes de schema mismatch (activated_at -> finalized_at,
-  milestone_id -> related_milestone_id, validated_by_tech ->
-  approved_by_tech)
+  2. Migracion SQL 0030: 6 RPCs v2.1
+     sf_create_pact_v21 / sf_finalize_pact_v21 / sf_pact_setup_advance
+     sf_constructor_create_cert_v21 (estado pending_predeposit + deadline 3d)
+     sf_pact_predeposit_milestone (acepta pagos parciales)
+     sf_milestone_force_advance (con disclaimer obligatorio).
+
+  2b. Migracion SQL 0031: sf_get_pact_detail extendida (campos v2.1
+      + objeto surety_policy en el payload).
+
+  3. Wizard Flutter v2.1: paso 2 "Adelanto" con slider 10-40 + desglose
+     en tiempo real (Reserva 10 % + Anticipo al constructor variable).
+
+  4. Detalle del pacto v2.1: widget "Custodia activa" con bloques de
+     reserva + anticipo asegurado + pre-depositos en curso + estado de
+     poliza. Cards de pre-deposito pendiente con desglose bruto/amort/neto,
+     countdown del reloj de 3 dias y CTAs por rol. Modelo Dart con
+     SuretyPolicy y todos los getters del Adelanto.
+
+  5. Tres bottom-sheets reales:
+     showSetupAdvanceSheet -> sf_pact_setup_advance
+     showPredepositMilestoneSheet -> sf_pact_predeposit_milestone (parcial OK)
+     showForceAdvanceSheet -> sf_milestone_force_advance (disclaimer juridico)
 
 COMPATIBILIDAD
-Pacts v1 antiguos siguen funcionando: todos los campos v2 son nullable
-y la UI elige widget segun model_version.
+
+Pacts v1 y v2.0 antiguos siguen funcionando. El widget elige render
+segun model_version. Los campos v2.1 son nullable o tienen default 0/false
+para que no rompan nada existente.
+
+PROXIMO SPRINT
+
+Chunk 6: Edge Function predeposit-watchdog (cron horario que mueve a
+paused_no_predeposit las certs con deadline vencido). Chunk 7: panel
+admin para datos de poliza (plug-and-play cuando cerremos con aseguradora).
+
+Sprint 6: integracion IA (verificacion de imagenes + asistente
+conversacional para promotores con foco en dependencias entre fases
+de obra). Sprint 7: integracion real con aseguradora.
