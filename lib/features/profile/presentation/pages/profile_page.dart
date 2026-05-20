@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show UserAttributes;
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
@@ -213,7 +214,7 @@ class _ProfileHeader extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.psNavy, Color(0xFF14193D)],
+          colors: [AppColors.psNavy, AppColors.ink800],
         ),
       ),
       child: Column(
@@ -224,13 +225,7 @@ class _ProfileHeader extends StatelessWidget {
             decoration: BoxDecoration(
               color: roleColor,
               shape: BoxShape.circle,
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x33000000),
-                  offset: Offset(0, 4),
-                  blurRadius: 16,
-                ),
-              ],
+              boxShadow: AppShadows.medium,
             ),
             child: Center(
               child: Text(
@@ -892,6 +887,17 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
       ),
       child: Column(
         children: [
+          ListTile(
+            leading: const Icon(Icons.group_outlined, color: AppColors.psBlue),
+            title: const Text('Mi equipo'),
+            subtitle: Text(
+              'Invita jefes de obra o técnicos a tu organización',
+              style: AppTypography.caption.copyWith(color: AppColors.ink500),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.myTeam),
+          ),
+          const Divider(height: 1, indent: 56),
           ListTile(
             leading: const Icon(Icons.lock_outline),
             title: const Text('Cambiar contraseña'),

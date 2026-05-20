@@ -511,9 +511,9 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
             top: Radius.circular(AppSpacing.md),
           ),
         ),
-        child: const Center(
+        child: Center(
           child: Text('No se pudo cargar la imagen',
-              style: TextStyle(color: AppColors.error)),
+              style: AppTypography.bodyS.copyWith(color: AppColors.error)),
         ),
       );
     }
@@ -827,7 +827,7 @@ class _TechReviewCtaState extends ConsumerState<_TechReviewCta> {
         color: AppColors.tecnicoAccent,
         borderRadius: BorderRadius.circular(AppSpacing.md),
         gradient: const LinearGradient(
-          colors: [AppColors.tecnicoAccent, Color(0xFFA56423)],
+          colors: [AppColors.tecnicoAccent, AppColors.tecnicoAccentDark],
         ),
       ),
       child: Column(

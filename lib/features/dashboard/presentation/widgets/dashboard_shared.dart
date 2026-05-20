@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
@@ -38,7 +39,7 @@ class HeroKpiCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.psNavy, Color(0xFF14193D)],
+          colors: [AppColors.psNavy, AppColors.ink800],
         ),
       ),
       child: Column(
@@ -259,7 +260,7 @@ class WorkCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             ClipRRect(
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppRadius.xs),
               child: LinearProgressIndicator(
                 value: (pact.progressPct / 100).clamp(0.0, 1.0),
                 minHeight: 6,
@@ -409,7 +410,7 @@ class DashboardSkeleton extends StatelessWidget {
   }
 }
 
-class _SkBox extends StatelessWidget {
+class _SkBox extends StatefulWidget {
   const _SkBox({required this.height, this.radius = 8, this.width});
 
   final double height;
@@ -417,14 +418,49 @@ class _SkBox extends StatelessWidget {
   final double? width;
 
   @override
+  State<_SkBox> createState() => _SkBoxState();
+}
+
+class _SkBoxState extends State<_SkBox> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      width: width,
-      decoration: BoxDecoration(
-        color: AppColors.ink100,
-        borderRadius: BorderRadius.circular(radius),
-      ),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Container(
+          height: widget.height,
+          width: widget.width,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.radius),
+            gradient: LinearGradient(
+              begin: Alignment(-1.0 + 2.0 * _controller.value, 0),
+              end: Alignment(-0.5 + 2.0 * _controller.value, 0),
+              colors: const [
+                AppColors.ink100,
+                AppColors.ink50,
+                AppColors.ink100,
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

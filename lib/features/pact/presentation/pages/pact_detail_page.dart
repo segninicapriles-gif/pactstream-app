@@ -434,7 +434,7 @@ class _MoneySummary extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.psNavy, Color(0xFF14193D)],
+          colors: [AppColors.psNavy, AppColors.ink800],
         ),
       ),
       child: Column(

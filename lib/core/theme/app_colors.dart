@@ -54,6 +54,7 @@ abstract final class AppColors {
   // El header del técnico se cambió de verde (P0-13) a uno que no
   // colisiona con success. Se elige naranja arena.
   static const Color tecnicoAccent = Color(0xFFC97A2B);
+  static const Color tecnicoAccentDark = Color(0xFFA56423);
 
   // === MATERIALCOLOR del azul principal ===
   // Para ColorScheme.fromSeed

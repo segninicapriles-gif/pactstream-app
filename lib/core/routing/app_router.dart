@@ -11,12 +11,18 @@ import '../../features/dashboard/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_capture_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_intro_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_result_page.dart';
+import '../../features/organization/presentation/pages/accept_org_invite_page.dart';
+import '../../features/organization/presentation/pages/my_team_page.dart';
 import '../../features/pact/presentation/pages/contract_pdf_preview_page.dart';
 import '../../features/pact/presentation/pages/contract_signing_page.dart';
 import '../../features/pact/presentation/pages/milestone_detail_page.dart';
 import '../../features/pact/presentation/pages/new_pact_page.dart';
 import '../../features/pact/presentation/pages/pact_detail_page.dart';
 import '../../features/pact/presentation/pages/upload_evidence_page.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_typography.dart';
 
 /// Rutas de la app. Una constante por ruta para evitar typos.
 abstract final class AppRoutes {
@@ -56,6 +62,10 @@ abstract final class AppRoutes {
 
   // Notifications
   static const notifications = '/notifications';
+
+  // Organization (Sprint 6)
+  static const myTeam = '/profile/team';
+  static const acceptOrgInvite = '/org-invite';
 }
 
 /// GoRouter de la app con redirección por estado de auth + KYC.
@@ -65,12 +75,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: true,
     redirect: (context, state) {
       final user = SupabaseConfig.currentUser;
-      final isAuthRoute = state.matchedLocation == AppRoutes.splash ||
+      // Rutas accesibles sin sesión: auth + landing de invitación de
+      // organización (que internamente redirige a login conservando el
+      // token cuando hace falta).
+      final isPublicRoute = state.matchedLocation == AppRoutes.splash ||
           state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register ||
-          state.matchedLocation == AppRoutes.verifyEmail;
+          state.matchedLocation == AppRoutes.verifyEmail ||
+          state.matchedLocation == AppRoutes.acceptOrgInvite;
 
-      if (user == null && !isAuthRoute) {
+      if (user == null && !isPublicRoute) {
         return AppRoutes.login;
       }
       // Redirección a KYC si está logueado pero no verificado se gestiona
@@ -126,16 +140,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.pactDetail,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id']!;
-          return PactDetailPage(pactId: id);
+          return AppMotion.slideUpPage(child: PactDetailPage(pactId: id));
         },
       ),
       GoRoute(
         path: AppRoutes.pactSign,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id']!;
-          return ContractSigningPage(pactId: id);
+          return AppMotion.slideUpPage(
+            child: ContractSigningPage(pactId: id),
+          );
         },
       ),
       GoRoute(
@@ -149,10 +165,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // === MILESTONE ===
       GoRoute(
         path: AppRoutes.milestoneDetail,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final pactId = state.pathParameters['pactId']!;
           final id = state.pathParameters['id']!;
-          return MilestoneDetailPage(pactId: pactId, milestoneId: id);
+          return AppMotion.slideUpPage(
+            child: MilestoneDetailPage(pactId: pactId, milestoneId: id),
+          );
         },
       ),
       GoRoute(
@@ -164,28 +182,49 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // === ORGANIZATION (Sprint 6) ===
+      GoRoute(
+        path: AppRoutes.myTeam,
+        builder: (context, state) => const MyTeamPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.acceptOrgInvite,
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'] ?? '';
+          return AcceptOrgInvitePage(token: token);
+        },
+      ),
+
       // TODO(sprint-2): rutas de depósito, validación, decisión, disputa.
     ],
     errorBuilder: (context, state) => Scaffold(
-      appBar: AppBar(title: const Text('Página no encontrada')),
+      backgroundColor: AppColors.ink50,
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.ink900,
+        elevation: 0,
+        title: Text('Página no encontrada', style: AppTypography.h3),
+      ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
+              const Icon(Icons.error_outline,
+                  size: 64, color: AppColors.error),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 'No encontramos esta página',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: AppTypography.h2,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 state.matchedLocation,
-                style: Theme.of(context).textTheme.bodySmall,
+                style: AppTypography.mono
+                    .copyWith(color: AppColors.ink500),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               ElevatedButton(
                 onPressed: () => context.go(AppRoutes.home),
                 child: const Text('Volver a inicio'),

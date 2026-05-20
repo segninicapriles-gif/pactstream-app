@@ -1,63 +1,82 @@
-Sprint 5 (chunks 1-5) · Modelo v2.1 · Adelanto con doble garantia
+Sprint 6 (chunks 1-4) · Equipos · Organization members con invitacion por email
 
-Refactor del modelo de pago tras feedback de constructores:
-el modelo v2.0 (deposito en custodia liberado por validacion)
-dejaba al constructor expuesto en el finiquito porque el promotor
-podia decidir no pagar. v2.1 resuelve la simetria de garantias.
+Permite que un constructor o tecnico invite a jefes de obra u otros miembros
+para que puedan operar el dia a dia sin tener que pasar KYC ni desplazar al
+dueno a cada obra. La cadena de custodia forense se mantiene: cada upload de
+evidencia queda firmado por el user real que lo hace.
 
-CONCEPTO
+CHUNK 1 · Schema SQL Organizations + Members
 
-  - Adelanto (10-40 %) que el promotor compromete el dia 1, desglosado en:
-      * 10 % fijo  -> reserva de finiquito custodiada hasta la ultima cert
-      * 0-30 % var -> entregado al constructor el dia 1 (asegurado con caucion)
-  - Por cada certificacion: pre-deposito OBLIGATORIO del neto (bruto -
-    amortizacion del adelanto) antes de que el constructor pueda emitirla.
-  - Si pasan 3 dias sin pre-deposito -> obra paralizada automaticamente.
-  - El constructor puede activar "avanzar bajo mi responsabilidad" con
-    disclaimer juridico explicito (libera a PactStream y aseguradora).
+  - Extiende tabla `organizations` existente (KYB de empresa) con:
+      * owner_user_id (vinculo al user dueno)
+      * description, org_type ('constructor'|'tecnico'|'promotor'|'mixed')
+  - Nueva tabla `organization_members`:
+      * role: 'owner' | 'member'
+      * state: 'invited' | 'active' | 'revoked'
+      * can_view_economics (toggle de visibilidad financiera, default false)
+      * invitation_token (UUID para link de aceptacion)
+  - Trigger auto-crea miembro owner al crear org
+  - Trigger valida unico owner activo por org
+  - Helper fn_is_org_active_member para RLS
+  - RLS conservadora: miembros activos leen, admins escriben via RPCs
 
-CHUNKS APLICADOS
+CHUNK 2 · 7 RPCs de gestion
 
-  1. Migracion SQL 0029: schema v2.1 (advance_reserve_pct, advance_*_cents
-     en pacts, advance_amortization/net/predeposit_* en milestones,
-     nuevos estados pending_predeposit y paused_no_predeposit, tabla
-     surety_policies con RLS, trigger handle_milestone_paid_surety_decrement).
+  sf_create_organization        · crear org (caller queda owner)
+  sf_invite_org_member          · owner invita por email
+  sf_accept_org_invite          · valida que el email del user coincide con
+                                  el invitado, activa la membresia
+  sf_revoke_org_member          · DELETE fisico si era invited, soft delete
+                                  si era active (preserva trazabilidad)
+  sf_update_member_permissions  · owner cambia can_view_economics
+  sf_list_my_orgs               · lista mis orgs (owner o miembro) con stats
+  sf_get_org_members            · lista miembros, owner ve todos
 
-  2. Migracion SQL 0030: 6 RPCs v2.1
-     sf_create_pact_v21 / sf_finalize_pact_v21 / sf_pact_setup_advance
-     sf_constructor_create_cert_v21 (estado pending_predeposit + deadline 3d)
-     sf_pact_predeposit_milestone (acepta pagos parciales)
-     sf_milestone_force_advance (con disclaimer obligatorio).
+CHUNK 3 · Pantalla "Mi equipo" (Flutter)
 
-  2b. Migracion SQL 0031: sf_get_pact_detail extendida (campos v2.1
-      + objeto surety_policy en el payload).
+  - lib/features/organization/data/organization.dart           (modelos)
+  - lib/features/organization/data/organization_actions.dart   (service)
+  - lib/features/organization/data/organization_providers.dart (Riverpod)
+  - lib/features/organization/presentation/pages/my_team_page.dart
+  - lib/features/organization/presentation/sheets/org_action_sheets.dart
+      (4 sheets: crear org / invitar / revocar / cambiar permisos)
+  - Tile "Mi equipo" en perfil + ruta /profile/team
+  - Card de org con badge OWNER, chips de miembros, CTA invitar
+  - Lista de miembros con avatares + pills (rol, estado, ve economicos, TU)
+  - Empty state amigable cuando aun no hay organizacion
 
-  3. Wizard Flutter v2.1: paso 2 "Adelanto" con slider 10-40 + desglose
-     en tiempo real (Reserva 10 % + Anticipo al constructor variable).
+CHUNK 4 · Email transaccional + landing de aceptacion
 
-  4. Detalle del pacto v2.1: widget "Custodia activa" con bloques de
-     reserva + anticipo asegurado + pre-depositos en curso + estado de
-     poliza. Cards de pre-deposito pendiente con desglose bruto/amort/neto,
-     countdown del reloj de 3 dias y CTAs por rol. Modelo Dart con
-     SuretyPolicy y todos los getters del Adelanto.
+  - Edge Function send-org-invite (Deno + Resend)
+      * Lee miembro + org + datos del owner
+      * Construye HTML con branding PactStream (header navy, CTA azul)
+      * Envia via Resend al email invitado
+      * URL del link: /#/org-invite?token=xxx (hash routing de Flutter)
+  - Cliente Flutter: inviteMember() invoca la Edge Function tras crear
+    la fila. Best-effort: si el email falla, la invitacion queda en BD.
+  - lib/features/organization/presentation/pages/accept_org_invite_page.dart
+      * Procesa el token al cargar
+      * Si no hay sesion: redirige a login conservando el token
+      * Si hay sesion: llama sf_accept_org_invite y muestra exito/error
+  - Ruta /org-invite anadida al router (publica, no requiere sesion)
 
-  5. Tres bottom-sheets reales:
-     showSetupAdvanceSheet -> sf_pact_setup_advance
-     showPredepositMilestoneSheet -> sf_pact_predeposit_milestone (parcial OK)
-     showForceAdvanceSheet -> sf_milestone_force_advance (disclaimer juridico)
+PENDIENTES IMPORTANTES (Sprint polish)
+
+  - Registro simplificado para invitados (saltar rol/KYC/empresa si
+    vienen con invitation_token)
+  - Path-based routing en Flutter para que el link del email no necesite
+    /#/ (estetica)
+  - CIF obligatorio o auto-generado en creacion de org (constraint
+    NOT NULL UNIQUE heredado)
 
 COMPATIBILIDAD
 
-Pacts v1 y v2.0 antiguos siguen funcionando. El widget elige render
-segun model_version. Los campos v2.1 son nullable o tienen default 0/false
-para que no rompan nada existente.
+Las tablas y RPCs son aditivas: nada se rompe en sprints anteriores.
+La tabla `organizations` mantiene todos los campos KYB (cif, kyb_status,
+mangopay_user_id, etc.) y solo se le anaden 3 columnas nuevas.
 
-PROXIMO SPRINT
+PROXIMO
 
-Chunk 6: Edge Function predeposit-watchdog (cron horario que mueve a
-paused_no_predeposit las certs con deadline vencido). Chunk 7: panel
-admin para datos de poliza (plug-and-play cuando cerremos con aseguradora).
-
-Sprint 6: integracion IA (verificacion de imagenes + asistente
-conversacional para promotores con foco en dependencias entre fases
-de obra). Sprint 7: integracion real con aseguradora.
+Chunk 5: upload de evidencias firmado por miembro real (que las fotos
+queden vinculadas al jefe de obra que las capturo, no al owner).
+Chunk 6: notificaciones diferenciadas por rol.
