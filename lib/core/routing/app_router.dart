@@ -103,11 +103,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.register,
-        builder: (context, state) => const RegisterPage(),
+        builder: (context, state) {
+          // Sprint 6 polish · soporte para link de invitación a org.
+          final token = state.uri.queryParameters['invite_token'];
+          return RegisterPage(inviteToken: token);
+        },
       ),
       GoRoute(
         path: AppRoutes.verifyEmail,
-        builder: (context, state) => const VerifyEmailPage(),
+        builder: (context, state) {
+          // Sprint 6 polish · si venimos del flow de invitación, pasamos
+          // el token para que verify-email haga redirect a /org-invite.
+          final token = state.uri.queryParameters['invite_token'];
+          return VerifyEmailPage(inviteToken: token);
+        },
       ),
 
       // === ONBOARDING ===

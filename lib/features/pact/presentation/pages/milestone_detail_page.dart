@@ -429,26 +429,73 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                       style: AppTypography.body),
                 ],
                 const SizedBox(height: AppSpacing.sm),
-                Row(
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    const Icon(Icons.person_outline,
-                        size: 12, color: AppColors.ink500),
-                    const SizedBox(width: 4),
-                    Text(ev.uploadedByName ?? 'Sin nombre',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.ink500,
-                          letterSpacing: 0,
-                        )),
-                    const SizedBox(width: AppSpacing.sm),
-                    const Icon(Icons.access_time,
-                        size: 12, color: AppColors.ink500),
-                    const SizedBox(width: 4),
-                    Text(
-                      AppFormatters.timeRelative(ev.serverTimestamp),
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.ink500,
-                        letterSpacing: 0,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.person_outline,
+                            size: 12, color: AppColors.ink500),
+                        const SizedBox(width: 4),
+                        Text(
+                          ev.uploadedByName ??
+                              ev.uploadedByEmail ??
+                              'Sin nombre',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.ink500,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Sprint 6 · Chip "Vía equipo · NombreOrg" cuando el
+                    // autor subió la evidencia siendo miembro (no owner).
+                    if (ev.isUploadedByTeam)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.psNavy.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: AppColors.psNavy.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.groups_2_outlined,
+                                size: 10, color: AppColors.psNavy),
+                            const SizedBox(width: 3),
+                            Text(
+                              'Vía ${ev.uploaderViaOrgName!}',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.psNavy,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.access_time,
+                            size: 12, color: AppColors.ink500),
+                        const SizedBox(width: 4),
+                        Text(
+                          AppFormatters.timeRelative(ev.serverTimestamp),
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.ink500,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

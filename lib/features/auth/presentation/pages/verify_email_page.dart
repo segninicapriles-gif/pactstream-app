@@ -16,7 +16,12 @@ import '../../../../data/datasources/supabase/supabase_client.dart';
 /// Detecta automáticamente la verificación vía onAuthStateChange.
 /// NO incluye botón "Ya lo verifiqué" (corrección P0-21 del Design Handoff).
 class VerifyEmailPage extends ConsumerStatefulWidget {
-  const VerifyEmailPage({super.key});
+  const VerifyEmailPage({super.key, this.inviteToken});
+
+  /// Sprint 6 polish · Token de invitación a organización. Si está
+  /// presente, al verificar el email se redirige a /org-invite en lugar
+  /// del flujo normal de KYC.
+  final String? inviteToken;
 
   @override
   ConsumerState<VerifyEmailPage> createState() => _VerifyEmailPageState();
@@ -67,6 +72,14 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
     _authSub?.cancel();
     _pollingTimer?.cancel();
     if (!mounted) return;
+    // Sprint 6 polish · Si venimos del flow de invitación, vamos a
+    // aceptar la invitación en lugar del onboarding/KYC normal.
+    if (widget.inviteToken != null && widget.inviteToken!.isNotEmpty) {
+      context.go(
+        '${AppRoutes.acceptOrgInvite}?token=${widget.inviteToken}',
+      );
+      return;
+    }
     context.go(AppRoutes.kycIntro);
   }
 
@@ -172,7 +185,19 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                       onPressed: () async {
                         await SupabaseConfig.client.auth.signOut();
                         if (!context.mounted) return;
-                        context.go(AppRoutes.login);
+                        // Si traemos token de invitación, preservamos el
+                        // destino para que el login redirija a /org-invite
+                        // tras autenticar.
+                        final token = widget.inviteToken;
+                        if (token != null && token.isNotEmpty) {
+                          final redirect =
+                              '${AppRoutes.acceptOrgInvite}?token=$token';
+                          context.go(
+                            '${AppRoutes.login}?redirect=${Uri.encodeComponent(redirect)}',
+                          );
+                        } else {
+                          context.go(AppRoutes.login);
+                        }
                       },
                       label: const Text('Continuar al login'),
                     ),

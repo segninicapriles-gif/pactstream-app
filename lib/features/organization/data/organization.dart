@@ -55,15 +55,19 @@ class Organization {
   factory Organization.fromJson(Map<String, dynamic> j) {
     return Organization(
       id: j['id'] as String,
-      legalName: j['legal_name'] as String,
+      // Acepta tanto `legal_name` (schema real) como `name` (versiones
+      // antiguas de la RPC), con fallback a 'Sin nombre' para no romper UI.
+      legalName: (j['legal_name'] as String?) ??
+          (j['name'] as String?) ??
+          'Sin nombre',
       tradeName: j['trade_name'] as String?,
-      cif: j['cif'] as String?,
+      cif: (j['cif'] as String?) ?? (j['vat_id'] as String?),
       description: j['description'] as String?,
       orgType: (j['org_type'] as String?) ?? 'constructor',
       kybStatus: j['kyb_status'] as String?,
       isOwner: (j['is_owner'] as bool?) ?? false,
       canViewEconomics: (j['can_view_economics'] as bool?) ?? false,
-      memberId: j['member_id'] as String,
+      memberId: (j['member_id'] as String?) ?? '',
       joinedAt: j['joined_at'] != null
           ? DateTime.parse(j['joined_at'] as String)
           : null,
@@ -81,10 +85,12 @@ class OrganizationMember {
     required this.role,
     required this.state,
     required this.canViewEconomics,
-    required this.invitedAt,
+    required this.receiveNotifications,
+    required this.receiveEconomicNotifications,
     required this.isMe,
     this.userId,
     this.fullName,
+    this.invitedAt,
     this.acceptedAt,
     this.revokedAt,
   });
@@ -99,7 +105,13 @@ class OrganizationMember {
   /// 'invited' | 'active' | 'revoked'
   final String state;
   final bool canViewEconomics;
-  final DateTime invitedAt;
+  /// Sprint 6 · ¿Recibe notificaciones (operativas) de pactos donde su org
+  /// es parte? Default true para miembros nuevos.
+  final bool receiveNotifications;
+  /// Sprint 6 · ¿Recibe notificaciones de eventos económicos? Sólo se
+  /// aplica si además tiene `can_view_economics=true`.
+  final bool receiveEconomicNotifications;
+  final DateTime? invitedAt;
   final DateTime? acceptedAt;
   final DateTime? revokedAt;
   /// `true` si este miembro es el user autenticado.
@@ -117,15 +129,26 @@ class OrganizationMember {
     return OrganizationMember(
       id: j['id'] as String,
       userId: j['user_id'] as String?,
-      email: j['email'] as String,
+      // El backend puede mandar email o invited_email; tomamos lo que haya.
+      email: (j['email'] as String?) ??
+          (j['invited_email'] as String?) ??
+          '',
       fullName: j['full_name'] as String?,
       role: (j['role'] as String?) ?? 'member',
       state: (j['state'] as String?) ?? 'invited',
       canViewEconomics: (j['can_view_economics'] as bool?) ?? false,
-      invitedAt: DateTime.parse(j['invited_at'] as String),
+      receiveNotifications: (j['receive_notifications'] as bool?) ?? true,
+      receiveEconomicNotifications:
+          (j['receive_economic_notifications'] as bool?) ?? true,
+      invitedAt: j['invited_at'] != null
+          ? DateTime.parse(j['invited_at'] as String)
+          : null,
+      // El RPC nuevo expone activated_at; el viejo accepted_at.
       acceptedAt: j['accepted_at'] != null
           ? DateTime.parse(j['accepted_at'] as String)
-          : null,
+          : (j['activated_at'] != null
+              ? DateTime.parse(j['activated_at'] as String)
+              : null),
       revokedAt: j['revoked_at'] != null
           ? DateTime.parse(j['revoked_at'] as String)
           : null,
@@ -137,13 +160,14 @@ class OrganizationMember {
 /// Wrapper del resultado de `sf_get_org_members()`.
 class OrgMembersResult {
   OrgMembersResult({
-    required this.organizationId,
-    required this.isOwnerView,
+    this.organizationId,
+    this.isOwnerView = false,
     required this.members,
   });
 
-  final String organizationId;
-  /// `true` si el caller es el owner (ve también miembros revocados).
+  /// Opcional · el RPC del Sprint 6c ya no lo devuelve, lo dejamos por
+  /// compatibilidad con consumidores antiguos.
+  final String? organizationId;
   final bool isOwnerView;
   final List<OrganizationMember> members;
 
@@ -161,7 +185,7 @@ class OrgMembersResult {
 
   factory OrgMembersResult.fromJson(Map<String, dynamic> j) {
     return OrgMembersResult(
-      organizationId: j['organization_id'] as String,
+      organizationId: j['organization_id'] as String?,
       isOwnerView: (j['is_owner_view'] as bool?) ?? false,
       members: (j['members'] as List<dynamic>? ?? const [])
           .map((e) => OrganizationMember.fromJson(e as Map<String, dynamic>))

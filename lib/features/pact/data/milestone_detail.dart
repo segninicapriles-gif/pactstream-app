@@ -111,7 +111,8 @@ class MilestoneFull {
       ordinal: (j['ordinal'] as num).toInt(),
       name: j['name'] as String,
       description: j['description'] as String?,
-      amountCents: (j['amount_cents'] as num).toInt(),
+      // Puede venir null para miembros sin can_view_economics.
+      amountCents: ((j['amount_cents'] as num?) ?? 0).toInt(),
       targetDate: _parseDt(j['target_date']),
       state: j['state'] as String,
       stateUpdatedAt: DateTime.parse(j['state_updated_at'] as String),
@@ -148,6 +149,9 @@ class MilestoneEvidence {
     this.gpsAccuracyMeters,
     this.clientTimestamp,
     this.uploadedByName,
+    this.uploadedByEmail,
+    this.uploaderViaOrgName,
+    this.uploaderViaOrgRole,
   });
 
   final String id;
@@ -164,8 +168,21 @@ class MilestoneEvidence {
   final DateTime serverTimestamp;
   final String uploadedByUserId;
   final String? uploadedByName;
+  /// Email del autor real de la evidencia. Útil cuando no hay full_name.
+  final String? uploadedByEmail;
+  /// Sprint 6 · Si el autor subió la evidencia siendo miembro de una
+  /// organización (no party directo), aquí el nombre de la org.
+  final String? uploaderViaOrgName;
+  /// Sprint 6 · Rol del autor dentro de la organización ('owner'|'member').
+  final String? uploaderViaOrgRole;
+  /// True si esta evidencia la subió el usuario actualmente autenticado.
   final bool isMine;
+  /// True si ha sido reemplazada por una versión posterior.
   final bool isSuperseded;
+
+  /// True si la evidencia fue subida por un jefe de obra / técnico del
+  /// equipo (no por el dueño directo).
+  bool get isUploadedByTeam => uploaderViaOrgName != null;
 
   bool get isImage =>
       evidenceType == 'photo' ||
@@ -206,6 +223,9 @@ class MilestoneEvidence {
       serverTimestamp: DateTime.parse(j['server_timestamp'] as String),
       uploadedByUserId: j['uploaded_by_user_id'] as String,
       uploadedByName: j['uploaded_by_name'] as String?,
+      uploadedByEmail: j['uploaded_by_email'] as String?,
+      uploaderViaOrgName: j['uploader_via_org_name'] as String?,
+      uploaderViaOrgRole: j['uploader_via_org_role'] as String?,
       isMine: j['is_mine'] as bool? ?? false,
       isSuperseded: j['is_superseded'] as bool? ?? false,
     );

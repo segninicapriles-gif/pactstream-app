@@ -157,6 +157,10 @@ class PactCore {
     this.advanceReservePct,
     this.advanceReleasedCents = 0,
     this.advanceOutstandingCents = 0,
+    // Sprint 6: contexto de acceso del caller
+    this.isMemberViaOrg = false,
+    this.canViewEconomics = true,
+    this.canMoveMoney = true,
   });
 
   final String id;
@@ -202,6 +206,16 @@ class PactCore {
   /// Saldo vivo del Adelanto (decrece con cada cert pagada vía amortización).
   /// = cobertura activa de la póliza de caución.
   final int advanceOutstandingCents;
+
+  // === Sprint 6 · Organizations + Members ===
+  /// El user accede a este pacto vía organización (no es party directo).
+  final bool isMemberViaOrg;
+  /// El user puede ver importes (parties directos siempre true; miembros
+  /// dependen del toggle can_view_economics en organization_members).
+  final bool canViewEconomics;
+  /// El user puede mover dinero (depositar, validar pago…). Sólo true
+  /// para parties directos (owners). Miembros nunca mueven dinero.
+  final bool canMoveMoney;
 
   bool get isV2 => modelVersion == 'v2';
   bool get isV21 => modelVersion == 'v2.1';
@@ -250,10 +264,11 @@ class PactCore {
       obraCity: j['obra_city'] as String?,
       obraProvince: j['obra_province'] as String?,
       obraType: j['obra_type'] as String?,
-      totalAmountCents: (j['total_amount_cents'] as num).toInt(),
+      // Importes pueden venir NULL si el miembro no tiene can_view_economics.
+      totalAmountCents: ((j['total_amount_cents'] as num?) ?? 0).toInt(),
       ivaRatePct: j['iva_rate_pct'] as num?,
       ivaIncluded: j['iva_included'] as bool?,
-      platformFeePct: j['platform_fee_pct'] as num,
+      platformFeePct: (j['platform_fee_pct'] as num?) ?? 0,
       estimatedStartDate: j['estimated_start_date'] != null
           ? DateTime.parse(j['estimated_start_date'] as String)
           : null,
@@ -278,6 +293,10 @@ class PactCore {
           ((j['advance_released_cents'] as num?) ?? 0).toInt(),
       advanceOutstandingCents:
           ((j['advance_outstanding_cents'] as num?) ?? 0).toInt(),
+      // Sprint 6
+      isMemberViaOrg: (j['is_member_via_org'] as bool?) ?? false,
+      canViewEconomics: (j['can_view_economics'] as bool?) ?? true,
+      canMoveMoney: (j['can_move_money'] as bool?) ?? true,
     );
   }
 }
@@ -455,7 +474,7 @@ class PactMilestone {
       ordinal: (j['ordinal'] as num).toInt(),
       name: j['name'] as String,
       description: j['description'] as String?,
-      amountCents: (j['amount_cents'] as num).toInt(),
+      amountCents: ((j['amount_cents'] as num?) ?? 0).toInt(),
       targetDate: j['target_date'] != null
           ? DateTime.parse(j['target_date'] as String)
           : null,
@@ -572,7 +591,7 @@ class PactAddendum {
       ordinal: (j['ordinal'] as num).toInt(),
       title: j['title'] as String,
       description: j['description'] as String?,
-      extraAmountCents: (j['extra_amount_cents'] as num).toInt(),
+      extraAmountCents: ((j['extra_amount_cents'] as num?) ?? 0).toInt(),
       extraDays: ((j['extra_days'] as num?) ?? 0).toInt(),
       justification: j['justification'] as String?,
       detailedDocStoragePath: j['detailed_doc_storage_path'] as String?,
@@ -629,7 +648,7 @@ class DepositMovement {
     return DepositMovement(
       id: j['id'] as String,
       movementType: j['movement_type'] as String,
-      amountCents: (j['amount_cents'] as num).toInt(),
+      amountCents: ((j['amount_cents'] as num?) ?? 0).toInt(),
       balanceBeforeCents: ((j['balance_before_cents'] as num?) ?? 0).toInt(),
       balanceAfterCents: ((j['balance_after_cents'] as num?) ?? 0).toInt(),
       milestoneId: j['milestone_id'] as String?,

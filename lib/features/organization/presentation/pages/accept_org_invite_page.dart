@@ -41,11 +41,41 @@ class _AcceptOrgInvitePageState extends ConsumerState<AcceptOrgInvitePage> {
   Future<void> _processInvite() async {
     final user = SupabaseConfig.currentUser;
     if (user == null) {
-      // No logueado: redirige a login conservando el token
-      if (!mounted) return;
-      context.go(
-        '${AppRoutes.login}?redirect=${Uri.encodeComponent('${AppRoutes.acceptOrgInvite}?token=${widget.token}')}',
-      );
+      // No logueado: previsualizamos la invitación con la RPC pública
+      // para decidir el destino del redirect.
+      try {
+        final preview = await SupabaseConfig.client.rpc(
+          'sf_get_invite_preview',
+          params: {'p_token': widget.token},
+        );
+
+        final data = (preview is Map)
+            ? Map<String, dynamic>.from(preview as Map)
+            : <String, dynamic>{};
+        final valid = (data['valid'] as bool?) ?? false;
+
+        if (!mounted) return;
+
+        if (valid) {
+          // Invitación válida y pendiente → wizard de registro modo
+          // invitación (email pre-rellenado, sin paso de rol/empresa).
+          context.go(
+            '${AppRoutes.register}?invite_token=${widget.token}',
+          );
+        } else {
+          setState(() {
+            _loading = false;
+            _error = 'La invitación ya no es válida (puede haber sido '
+                'aceptada o revocada). Pide a tu equipo que te envíe una nueva.';
+          });
+        }
+      } catch (e) {
+        // Si la preview falla por red, caemos al login tradicional.
+        if (!mounted) return;
+        context.go(
+          '${AppRoutes.login}?redirect=${Uri.encodeComponent('${AppRoutes.acceptOrgInvite}?token=${widget.token}')}',
+        );
+      }
       return;
     }
 

@@ -128,10 +128,13 @@ class OrganizationActions {
     }
   }
 
-  /// Owner cambia `can_view_economics` de un miembro activo.
+  /// Owner cambia permisos de un miembro activo. Cualquier parámetro
+  /// que se pase como `null` conserva su valor actual en BD.
   static Future<void> updateMemberPermissions({
     required String memberId,
-    required bool canViewEconomics,
+    bool? canViewEconomics,
+    bool? receiveNotifications,
+    bool? receiveEconomicNotifications,
   }) async {
     try {
       await SupabaseConfig.client.rpc(
@@ -139,6 +142,8 @@ class OrganizationActions {
         params: {
           'p_member_id': memberId,
           'p_can_view_economics': canViewEconomics,
+          'p_receive_notifications': receiveNotifications,
+          'p_receive_economic_notifications': receiveEconomicNotifications,
         },
       );
     } catch (e) {

@@ -42,11 +42,13 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
   /// Handlers de las acciones v2.0. Cada uno abre su sheet y, si la
   /// acción se ejecutó con éxito, refresca el detalle del pacto.
   Future<void> _handleFundInitial(PactDetail detail) async {
+    if (!_assertCanMoveMoney(detail)) return;
     final ok = await showFundInitialDepositSheet(context, detail: detail);
     if (ok && mounted) await _refresh();
   }
 
   Future<void> _handleReplenish(PactDetail detail) async {
+    if (!_assertCanMoveMoney(detail)) return;
     final ok = await showReplenishDepositSheet(context, detail: detail);
     if (ok && mounted) await _refresh();
   }
@@ -57,8 +59,26 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
   }
 
   Future<void> _handleProposeAddendum(PactDetail detail) async {
+    if (!_assertCanMoveMoney(detail)) return;
     final ok = await showProposeAddendumSheet(context, detail: detail);
     if (ok && mounted) await _refresh();
+  }
+
+  /// Bloquea acciones financieras para miembros via-org. Devuelve true si
+  /// el caller puede continuar; muestra SnackBar y devuelve false si no.
+  bool _assertCanMoveMoney(PactDetail detail) {
+    if (detail.pact.canMoveMoney) return true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.psNavy,
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          'Sólo el dueño de la organización puede mover dinero en este pacto.',
+          style: AppTypography.bodyS.copyWith(color: AppColors.white),
+        ),
+      ),
+    );
+    return false;
   }
 
   Future<void> _handleSignAddendum(
@@ -76,16 +96,19 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
   // === v2.1 · handlers reales (chunk 5) ===
 
   Future<void> _handleSetupAdvance(PactDetail detail) async {
+    if (!_assertCanMoveMoney(detail)) return;
     final ok = await showSetupAdvanceSheet(context, detail: detail);
     if (ok && mounted) await _refresh();
   }
 
-  Future<void> _handlePredeposit(PactMilestone m) async {
+  Future<void> _handlePredeposit(PactDetail detail, PactMilestone m) async {
+    if (!_assertCanMoveMoney(detail)) return;
     final ok = await showPredepositMilestoneSheet(context, milestone: m);
     if (ok && mounted) await _refresh();
   }
 
-  Future<void> _handleForceAdvance(PactMilestone m) async {
+  Future<void> _handleForceAdvance(PactDetail detail, PactMilestone m) async {
+    if (!_assertCanMoveMoney(detail)) return;
     final ok = await showForceAdvanceSheet(context, milestone: m);
     if (ok && mounted) await _refresh();
   }
@@ -184,10 +207,22 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
+              // Sprint 6 · Banner cuando accedes vía organización.
+              if (detail.pact.isMemberViaOrg) ...[
+                _ViaOrgBanner(
+                  canViewEconomics: detail.pact.canViewEconomics,
+                  canMoveMoney: detail.pact.canMoveMoney,
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
               _Header(detail: detail),
               const SizedBox(height: AppSpacing.md),
               // Resumen económico clásico (v1) o widget de depósito (v2/v2.1).
-              if (detail.pact.isV2OrLater)
+              // Sprint 6 · Si el miembro no tiene economics, mostramos
+              // placeholder en lugar del bloque financiero.
+              if (!detail.pact.canViewEconomics)
+                const _EconomicsHidden()
+              else if (detail.pact.isV2OrLater)
                 DepositWidget(
                   detail: detail,
                   onFundInitial: () => _handleFundInitial(detail),
@@ -207,8 +242,8 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
                     child: PredepositPendingCard(
                       milestone: m,
                       myRole: detail.me?.role,
-                      onPredeposit: () => _handlePredeposit(m),
-                      onForceAdvance: () => _handleForceAdvance(m),
+                      onPredeposit: () => _handlePredeposit(detail, m),
+                      onForceAdvance: () => _handleForceAdvance(detail, m),
                     ),
                   ),
               ],
@@ -1036,6 +1071,20 @@ class _NextStepCtaState extends ConsumerState<_NextStepCta> {
   String? _error;
 
   Future<void> _mockFund() async {
+    // Sprint 6 · Bloqueo de mover dinero para miembros vía organización.
+    if (!widget.detail.pact.canMoveMoney) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.psNavy,
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            'Sólo el dueño de la organización puede activar la obra.',
+            style: AppTypography.bodyS.copyWith(color: AppColors.white),
+          ),
+        ),
+      );
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1334,6 +1383,133 @@ class _InfoCard extends StatelessWidget {
                 Text(description,
                     style: AppTypography.bodyS
                         .copyWith(color: AppColors.ink700)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// SPRINT 6 · Acceso vía organización
+// =====================================================================
+
+/// Banner sutil que indica que el usuario llega a este pacto a través de
+/// una organización (no es parte directa). Resume sus permisos en una
+/// línea legible.
+class _ViaOrgBanner extends StatelessWidget {
+  const _ViaOrgBanner({
+    required this.canViewEconomics,
+    required this.canMoveMoney,
+  });
+
+  final bool canViewEconomics;
+  final bool canMoveMoney;
+
+  @override
+  Widget build(BuildContext context) {
+    // Resumen del nivel de acceso para el badge.
+    final String accessLine;
+    if (canMoveMoney && canViewEconomics) {
+      accessLine = 'Acceso completo (operativa y economía)';
+    } else if (canViewEconomics) {
+      accessLine = 'Lectura completa · Sin movimientos de dinero';
+    } else {
+      accessLine = 'Sólo operativa de obra · Sin acceso a importes';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.psNavy.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+        border: Border.all(
+          color: AppColors.psNavy.withValues(alpha: 0.18),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.psNavy,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.groups_2_outlined,
+                color: AppColors.psCyan, size: 18),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Accedes a esta obra vía tu equipo',
+                    style: AppTypography.body
+                        .copyWith(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text(
+                  accessLine,
+                  style: AppTypography.bodyS
+                      .copyWith(color: AppColors.ink600),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Placeholder que sustituye al bloque económico cuando el miembro no
+/// tiene permiso `can_view_economics`. El dueño de la organización puede
+/// activarlo desde "Mi equipo" → permisos.
+class _EconomicsHidden extends StatelessWidget {
+  const _EconomicsHidden();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.ink50,
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+        border: Border.all(color: AppColors.ink200, width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.lock_outline,
+                color: AppColors.ink500, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Datos económicos restringidos',
+                    style: AppTypography.body
+                        .copyWith(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text(
+                  'Tu rol no incluye visibilidad de importes. Puedes gestionar '
+                  'la operativa de la obra y subir evidencias normalmente. '
+                  'Si necesitas ver las cifras, pide a tu equipo que active el '
+                  'permiso económico.',
+                  style: AppTypography.bodyS
+                      .copyWith(color: AppColors.ink600),
+                ),
               ],
             ),
           ),

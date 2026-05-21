@@ -11,15 +11,23 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
 import '../../data/registration_data.dart';
 
-/// Wizard de registro en 3 pasos.
+/// Wizard de registro en 3 pasos (o 2 en modo invitación).
 ///
 /// Step 1: datos personales (nombre, email, teléfono, contraseña).
 /// Step 2: rol + datos profesionales/empresa (campos adaptados).
+///         OMITIDO si se entra con [inviteToken] (modo invitación).
 /// Step 3: consentimientos legales + crear cuenta.
 ///
 /// Tras éxito → /verify-email donde se detecta verificación automáticamente.
+/// En modo invitación, /verify-email recibe ?invite_token=xxx y al verificar
+/// redirige a /org-invite?token=xxx para aceptar la invitación.
 class RegisterPage extends ConsumerStatefulWidget {
-  const RegisterPage({super.key});
+  const RegisterPage({super.key, this.inviteToken});
+
+  /// Token de invitación de organización. Si está presente, el wizard
+  /// arranca en "modo invitación": email pre-rellenado y bloqueado, sin
+  /// paso de rol/empresa.
+  final String? inviteToken;
 
   @override
   ConsumerState<RegisterPage> createState() => _RegisterPageState();
@@ -32,6 +40,73 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _loading = false;
   String? _errorMessage;
 
+  // Sprint 6 polish · Modo invitación.
+  bool _previewLoading = false;
+  Map<String, dynamic>? _invitePreview;
+  String? _previewError;
+
+  /// True si la página se abrió con `?invite_token=xxx` válido.
+  bool get _inviteMode => _invitePreview != null;
+
+  /// Número total de pasos del wizard (3 normal, 2 en modo invitación).
+  int get _totalSteps => _inviteMode ? 2 : 3;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.inviteToken != null && widget.inviteToken!.isNotEmpty) {
+      _loadInvitePreview();
+    }
+  }
+
+  Future<void> _loadInvitePreview() async {
+    setState(() {
+      _previewLoading = true;
+      _previewError = null;
+    });
+    try {
+      final res = await SupabaseConfig.client.rpc(
+        'sf_get_invite_preview',
+        params: {'p_token': widget.inviteToken},
+      );
+      final data = (res is Map)
+          ? Map<String, dynamic>.from(res as Map)
+          : <String, dynamic>{};
+      if (!mounted) return;
+
+      final valid = (data['valid'] as bool?) ?? false;
+      if (!valid) {
+        setState(() {
+          _previewLoading = false;
+          _previewError = 'La invitación ya no es válida (puede que la '
+              'hayan revocado o ya la hayas aceptado).';
+        });
+        return;
+      }
+
+      // Pre-rellenar datos del invitado.
+      _data.email = (data['invited_email'] as String?) ?? '';
+      final fullName = (data['full_name'] as String?) ?? '';
+      if (fullName.isNotEmpty) {
+        _data.fullName = fullName;
+      }
+      // En modo invitación no recoge rol/empresa: forzamos valores
+      // mínimos para que las validaciones step2 ya no apliquen.
+      // step1Valid sólo exige email+phone+pass; el rol queda null.
+      setState(() {
+        _previewLoading = false;
+        _invitePreview = data;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _previewLoading = false;
+        _previewError = 'No se pudo cargar la invitación. Vuelve a hacer '
+            'clic en el link del email o pide una nueva invitación.';
+      });
+    }
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -39,7 +114,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   }
 
   void _nextStep() {
-    if (_currentStep < 2) {
+    // En modo invitación sólo hay 2 pasos visibles (step1 y step3); el
+    // PageView sigue teniendo 2 hijos, así que el índice se mueve
+    // linealmente. En modo normal son 3.
+    final lastIndex = _totalSteps - 1;
+    if (_currentStep < lastIndex) {
       setState(() {
         _currentStep++;
         _errorMessage = null;
@@ -75,15 +154,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
 
     try {
-      // Sign up con Supabase Auth pasando TODA la metadata. El trigger
-      // on_auth_user_created en la BD lee esta metadata y crea
-      // automáticamente public.users + legal_consents.
-      final response = await SupabaseConfig.client.auth.signUp(
-        email: _data.email.trim(),
-        password: _data.password,
-        data: <String, dynamic>{
-          'full_name': _data.fullName.trim(),
-          'phone_e164': _data.phoneE164,
+      // En modo invitación los datos profesionales no aplican; sólo
+      // mandamos lo esencial. La propia metadata incluye el token para
+      // que verify-email pueda redirigir a /org-invite tras verificar.
+      final metadata = <String, dynamic>{
+        'full_name': _data.fullName.trim(),
+        'phone_e164': _data.phoneE164,
+        'terms_version': RegistrationData.termsVersion,
+        'privacy_version': RegistrationData.privacyVersion,
+      };
+
+      if (_inviteMode) {
+        metadata['invitation_token'] = widget.inviteToken;
+        metadata['signup_origin'] = 'org_invite';
+      } else {
+        metadata.addAll(<String, dynamic>{
           'primary_role': _data.role,
           'organization_name': _data.organizationName.trim().isEmpty
               ? null
@@ -99,9 +184,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           'num_colegiacion': _data.numColegiacion.trim().isEmpty
               ? null
               : _data.numColegiacion.trim(),
-          'terms_version': RegistrationData.termsVersion,
-          'privacy_version': RegistrationData.privacyVersion,
-        },
+        });
+      }
+
+      final response = await SupabaseConfig.client.auth.signUp(
+        email: _data.email.trim(),
+        password: _data.password,
+        data: metadata,
       );
 
       if (response.user == null) {
@@ -109,7 +198,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       }
 
       if (!mounted) return;
-      context.go(AppRoutes.verifyEmail);
+      // En modo invitación pasamos el token a verify-email para que tras
+      // confirmar el correo se vaya directo a /org-invite.
+      if (_inviteMode) {
+        context.go(
+          '${AppRoutes.verifyEmail}?invite_token=${widget.inviteToken}',
+        );
+      } else {
+        context.go(AppRoutes.verifyEmail);
+      }
     } catch (e) {
       // Mostrar el error real para facilitar debugging en desarrollo.
       // En producción, sustituir por _humanizeError(e.toString()).
@@ -119,22 +216,50 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     }
   }
 
-  bool get _canContinue => switch (_currentStep) {
+  bool get _canContinue {
+    if (_inviteMode) {
+      // En modo invitación: step1 (datos personales) + step3 (consents).
+      // El índice del PageView en modo invitación va 0 → 1.
+      return switch (_currentStep) {
         0 => _data.step1Valid,
-        1 => _data.step2Valid,
-        2 => _data.step3Valid,
+        1 => _data.step3Valid,
         _ => false,
       };
+    }
+    return switch (_currentStep) {
+      0 => _data.step1Valid,
+      1 => _data.step2Valid,
+      2 => _data.step3Valid,
+      _ => false,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Si todavía cargamos la preview de la invitación, mostramos loader.
+    if (_previewLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.ink50,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    // Si la preview falló o la invitación no es válida, mostramos error
+    // con CTA a registro normal.
+    if (widget.inviteToken != null && _previewError != null) {
+      return _InvalidInviteScreen(
+        message: _previewError!,
+        onGoToNormalRegister: () => context.go(AppRoutes.register),
+        onGoToLogin: () => context.go(AppRoutes.login),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: _previousStep,
         ),
-        title: Text('Paso ${_currentStep + 1} de 3'),
+        title: Text('Paso ${_currentStep + 1} de $_totalSteps'),
         backgroundColor: AppColors.white,
         foregroundColor: AppColors.ink900,
         elevation: 0,
@@ -142,17 +267,20 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Progress bar de 3 segmentos
+            // Banner contextual en modo invitación
+            if (_inviteMode) _InviteContextBanner(preview: _invitePreview!),
+            // Progress bar
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               child: Row(
-                children: List.generate(3, (i) {
+                children: List.generate(_totalSteps, (i) {
                   final active = i <= _currentStep;
                   return Expanded(
                     child: Container(
                       height: 4,
-                      margin: EdgeInsets.only(right: i < 2 ? 6 : 0),
+                      margin: EdgeInsets.only(
+                          right: i < _totalSteps - 1 ? 6 : 0),
                       decoration: BoxDecoration(
                         color: active ? AppColors.psCyan : AppColors.ink200,
                         borderRadius: BorderRadius.circular(2),
@@ -166,11 +294,26 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _Step1PersonalInfo(data: _data, onChanged: () => setState(() {})),
-                  _Step2RoleAndProfessional(data: _data, onChanged: () => setState(() {})),
-                  _Step3LegalConsents(data: _data, onChanged: () => setState(() {})),
-                ],
+                children: _inviteMode
+                    ? [
+                        _Step1PersonalInfo(
+                          data: _data,
+                          onChanged: () => setState(() {}),
+                          emailLocked: true,
+                        ),
+                        _Step3LegalConsents(
+                            data: _data, onChanged: () => setState(() {})),
+                      ]
+                    : [
+                        _Step1PersonalInfo(
+                            data: _data,
+                            onChanged: () => setState(() {})),
+                        _Step2RoleAndProfessional(
+                            data: _data,
+                            onChanged: () => setState(() {})),
+                        _Step3LegalConsents(
+                            data: _data, onChanged: () => setState(() {})),
+                      ],
               ),
             ),
             if (_errorMessage != null)
@@ -214,10 +357,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 // =====================================================================
 
 class _Step1PersonalInfo extends StatelessWidget {
-  const _Step1PersonalInfo({required this.data, required this.onChanged});
+  const _Step1PersonalInfo({
+    required this.data,
+    required this.onChanged,
+    this.emailLocked = false,
+  });
 
   final RegistrationData data;
   final VoidCallback onChanged;
+
+  /// En modo invitación el email viene fijado por la fila de
+  /// organization_members y no debe editarse para que no rompa la
+  /// validación de `sf_accept_org_invite`.
+  final bool emailLocked;
 
   @override
   Widget build(BuildContext context) {
@@ -249,19 +401,30 @@ class _Step1PersonalInfo extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           TextFormField(
+            key: ValueKey('email-${data.email}-$emailLocked'),
             initialValue: data.email,
-            decoration: const InputDecoration(
+            readOnly: emailLocked,
+            enabled: !emailLocked,
+            decoration: InputDecoration(
               labelText: 'Email',
               hintText: 'tu@email.com',
-              prefixIcon: Icon(Icons.mail_outline),
+              prefixIcon: const Icon(Icons.mail_outline),
+              suffixIcon: emailLocked
+                  ? const Icon(Icons.lock_outline, size: 18)
+                  : null,
+              helperText: emailLocked
+                  ? 'Tu equipo te invitó con este email; no se puede cambiar.'
+                  : null,
             ),
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.email],
-            onChanged: (v) {
-              data.email = v.trim();
-              onChanged();
-            },
+            onChanged: emailLocked
+                ? null
+                : (v) {
+                    data.email = v.trim();
+                    onChanged();
+                  },
           ),
           const SizedBox(height: AppSpacing.lg),
           Row(
@@ -758,6 +921,135 @@ class _ConsentRow extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// Sprint 6 polish · Widgets de modo invitación
+// =====================================================================
+
+/// Banner contextual que aparece en la parte superior del wizard cuando
+/// el usuario llegó por un link de invitación válido.
+class _InviteContextBanner extends StatelessWidget {
+  const _InviteContextBanner({required this.preview});
+
+  final Map<String, dynamic> preview;
+
+  @override
+  Widget build(BuildContext context) {
+    final orgName = (preview['org_name'] as String?) ?? 'una organización';
+    final inviter = (preview['inviter_name'] as String?) ?? 'tu equipo';
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.psNavy.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppSpacing.md),
+        border: Border.all(
+          color: AppColors.psNavy.withValues(alpha: 0.18),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.psNavy,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.groups_2_outlined,
+                color: AppColors.psCyan, size: 18),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Te uniste como miembro de equipo',
+                    style: AppTypography.body
+                        .copyWith(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text(
+                  '$inviter te invitó al equipo de $orgName. '
+                  'Sólo necesitas tus datos personales — la empresa y el rol '
+                  'ya están definidos por tu equipo.',
+                  style: AppTypography.bodyS
+                      .copyWith(color: AppColors.ink600),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pantalla a mostrar cuando llegamos con un invite_token pero la preview
+/// dice que ya no es válido.
+class _InvalidInviteScreen extends StatelessWidget {
+  const _InvalidInviteScreen({
+    required this.message,
+    required this.onGoToNormalRegister,
+    required this.onGoToLogin,
+  });
+
+  final String message;
+  final VoidCallback onGoToNormalRegister;
+  final VoidCallback onGoToLogin;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.ink50,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 88,
+                  height: 88,
+                  decoration: const BoxDecoration(
+                    color: AppColors.errorBg,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.link_off,
+                      color: AppColors.error, size: 48),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text('Invitación no disponible',
+                    style: AppTypography.h2, textAlign: TextAlign.center),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.body.copyWith(color: AppColors.ink600),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                ElevatedButton(
+                  onPressed: onGoToNormalRegister,
+                  child: const Text('Crear cuenta normal'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextButton(
+                  onPressed: onGoToLogin,
+                  child: const Text('Ya tengo cuenta · Iniciar sesión'),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

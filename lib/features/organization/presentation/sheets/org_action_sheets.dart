@@ -519,6 +519,9 @@ class _UpdatePermissionsSheet extends StatefulWidget {
 
 class _UpdatePermissionsSheetState extends State<_UpdatePermissionsSheet> {
   late bool _canViewEconomics = widget.member.canViewEconomics;
+  late bool _receiveNotifications = widget.member.receiveNotifications;
+  late bool _receiveEconomicNotifications =
+      widget.member.receiveEconomicNotifications;
   bool _loading = false;
   String? _error;
 
@@ -531,6 +534,8 @@ class _UpdatePermissionsSheetState extends State<_UpdatePermissionsSheet> {
       await OrganizationActions.updateMemberPermissions(
         memberId: widget.member.id,
         canViewEconomics: _canViewEconomics,
+        receiveNotifications: _receiveNotifications,
+        receiveEconomicNotifications: _receiveEconomicNotifications,
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -550,32 +555,72 @@ class _UpdatePermissionsSheetState extends State<_UpdatePermissionsSheet> {
       icon: Icons.shield_outlined,
       iconColor: AppColors.psBlue,
       children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.ink50,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
-            border: Border.all(color: AppColors.ink200),
-          ),
-          child: SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            value: _canViewEconomics,
-            onChanged: _loading
+        // ── Visibilidad económica ───────────────────────────────────
+        _PermissionTile(
+          icon: Icons.payments_outlined,
+          title: 'Ver datos económicos',
+          subtitle: _canViewEconomics
+              ? 'Verá importes, presupuestos, certificaciones y movimientos.'
+              : 'Solo verá información operativa: evidencias, certificaciones (sin importes), plazos.',
+          value: _canViewEconomics,
+          onChanged: _loading
+              ? null
+              : (v) => setState(() {
+                    _canViewEconomics = v;
+                    // Si desactivamos economics, las notificaciones
+                    // económicas también dejan de tener sentido.
+                    if (!v) _receiveEconomicNotifications = false;
+                  }),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+
+        // ── Notificaciones operativas ───────────────────────────────
+        _PermissionTile(
+          icon: Icons.notifications_active_outlined,
+          title: 'Recibir notificaciones',
+          subtitle: _receiveNotifications
+              ? 'Recibirá avisos cuando se suban evidencias, se envíen hitos a revisión y novedades operativas.'
+              : 'No recibirá ningún tipo de aviso de los pactos donde participa la organización.',
+          value: _receiveNotifications,
+          onChanged: _loading
+              ? null
+              : (v) => setState(() {
+                    _receiveNotifications = v;
+                    if (!v) _receiveEconomicNotifications = false;
+                  }),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+
+        // ── Notificaciones económicas ───────────────────────────────
+        // Sólo es relevante si tiene visibilidad económica Y recibe
+        // notificaciones operativas. Si no, queda deshabilitado.
+        Opacity(
+          opacity: (_canViewEconomics && _receiveNotifications) ? 1.0 : 0.5,
+          child: _PermissionTile(
+            icon: Icons.account_balance_outlined,
+            title: 'Avisos económicos',
+            subtitle: !_canViewEconomics
+                ? 'Requiere haber activado "Ver datos económicos".'
+                : !_receiveNotifications
+                    ? 'Requiere recibir notificaciones para activarse.'
+                    : _receiveEconomicNotifications
+                        ? 'Recibirá avisos de pre-depósitos, pagos liberados y movimientos económicos.'
+                        : 'No recibirá avisos económicos pero sí los operativos.',
+            value: _receiveEconomicNotifications &&
+                _canViewEconomics &&
+                _receiveNotifications,
+            onChanged: (_loading ||
+                    !_canViewEconomics ||
+                    !_receiveNotifications)
                 ? null
-                : (v) => setState(() => _canViewEconomics = v),
-            title: Text('Ver datos económicos',
-                style: AppTypography.body
-                    .copyWith(fontWeight: FontWeight.w700)),
-            subtitle: Text(
-              _canViewEconomics
-                  ? 'Verá importes, presupuestos, certificaciones y movimientos.'
-                  : 'Solo verá información operativa: evidencias, certificaciones (sin importes), plazos.',
-              style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
-            ),
+                : (v) => setState(() => _receiveEconomicNotifications = v),
           ),
         ),
-        if (_error != null) _ErrorBanner(message: _error!),
-        const SizedBox(height: AppSpacing.sm),
+        if (_error != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _ErrorBanner(message: _error!),
+        ],
+        const SizedBox(height: AppSpacing.md),
         _PrimaryButton(
           enabled: !_loading,
           loading: _loading,
@@ -583,6 +628,63 @@ class _UpdatePermissionsSheetState extends State<_UpdatePermissionsSheet> {
           onPressed: _submit,
         ),
       ],
+    );
+  }
+}
+
+/// Tarjeta visual reutilizable para un permiso con switch.
+class _PermissionTile extends StatelessWidget {
+  const _PermissionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.ink50,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        border: Border.all(color: AppColors.ink200),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Icon(icon, size: 18, color: AppColors.psNavy),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: AppTypography.body
+                        .copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(subtitle,
+                    style: AppTypography.bodyS
+                        .copyWith(color: AppColors.ink600)),
+              ],
+            ),
+          ),
+          Switch(value: value, onChanged: onChanged),
+        ],
+      ),
     );
   }
 }
