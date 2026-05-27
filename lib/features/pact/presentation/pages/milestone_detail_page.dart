@@ -3,12 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../ai/presentation/widgets/ai_verification_card.dart';
 import '../../data/milestone_detail.dart';
 import '../../data/pact_providers.dart';
 import '../widgets/pact_state_badge.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 
 /// Detalle de un hito + evidencias.
 ///
@@ -35,10 +40,14 @@ class MilestoneDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.ink50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Hito', style: AppTypography.h3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
+        title: Text('Hito',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -48,10 +57,12 @@ class MilestoneDetailPage extends ConsumerWidget {
         ],
       ),
       body: detailAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorView(
+        loading: () => const DetailSkeleton(),
+        error: (e, _) => ErrorStateView(
+          title: 'No se pudo cargar el hito',
           message: e.toString(),
           onRetry: () => ref.invalidate(milestoneDetailProvider(milestoneId)),
+          scrollable: false,
         ),
         data: (detail) => RefreshIndicator(
           onRefresh: () async {
@@ -70,6 +81,13 @@ class MilestoneDetailPage extends ConsumerWidget {
                           '/pacts/$pactId/milestones/$milestoneId/evidences/upload',
                         )
                     : null,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              // === IA: Dictamen de evidencias ===
+              AiVerificationCard(
+                pactId: pactId,
+                milestoneId: milestoneId,
+                evidenceCount: detail.evidences.length,
               ),
               const SizedBox(height: AppSpacing.md),
               if (detail.milestone.canSubmitForReview &&
@@ -97,38 +115,7 @@ class MilestoneDetailPage extends ConsumerWidget {
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline,
-                color: AppColors.error, size: 48),
-            const SizedBox(height: AppSpacing.md),
-            Text('No se pudo cargar el hito',
-                textAlign: TextAlign.center, style: AppTypography.h3),
-            const SizedBox(height: AppSpacing.xs),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyS
-                    .copyWith(color: AppColors.ink500)),
-            const SizedBox(height: AppSpacing.lg),
-            OutlinedButton(onPressed: onRetry, child: const Text('Reintentar')),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// _ErrorView ahora usa ErrorStateView de core/widgets/empty_state_view.dart.
 
 // =====================================================================
 // HEADER
@@ -146,7 +133,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +181,7 @@ class _Header extends StatelessWidget {
                     horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.psNavy,
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  borderRadius: AppRadius.smAll,
                 ),
                 child: Text(
                   AppFormatters.moneyLong(milestone.amountCents),
@@ -255,7 +242,7 @@ class _EvidencesSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -306,7 +293,7 @@ class _EmptyEvidences extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.ink50,
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        borderRadius: AppRadius.smAll,
         border: Border.all(color: AppColors.ink200),
       ),
       child: Column(
@@ -380,8 +367,9 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -411,7 +399,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.successBg,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: AppRadius.microAll,
                         ),
                         child: Text('TÚ',
                             style: AppTypography.caption.copyWith(
@@ -459,7 +447,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                             horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
                           color: AppColors.psNavy.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: AppRadius.microAll,
                           border: Border.all(
                             color: AppColors.psNavy.withValues(alpha: 0.2),
                           ),
@@ -701,7 +689,7 @@ class _SubmitForReviewCtaState
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: AppColors.psGradientDeep,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -872,7 +860,7 @@ class _TechReviewCtaState extends ConsumerState<_TechReviewCta> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.tecnicoAccent,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         gradient: const LinearGradient(
           colors: [AppColors.tecnicoAccent, AppColors.tecnicoAccentDark],
         ),
@@ -1087,7 +1075,7 @@ class _PromotorDecideCtaState extends ConsumerState<_PromotorDecideCta> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: AppColors.psGradientDeep,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1193,7 +1181,7 @@ class _ReworkBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: rejected ? AppColors.errorBg : AppColors.warningBg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(
           color: rejected ? AppColors.error : AppColors.warning,
           width: 1,
@@ -1252,7 +1240,7 @@ class _PaidBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.successBg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.success, width: 1),
       ),
       child: Row(
@@ -1305,7 +1293,7 @@ class _DisputeBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.errorBg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.error, width: 1),
       ),
       child: Row(

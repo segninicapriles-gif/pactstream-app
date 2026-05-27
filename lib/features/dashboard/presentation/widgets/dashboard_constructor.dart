@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/animated_list_item.dart';
 import '../../data/dashboard_data.dart';
 import '../../data/dashboard_providers.dart';
 import 'dashboard_shared.dart';
@@ -21,10 +21,14 @@ class DashboardConstructor extends ConsumerWidget {
     super.key,
     required this.userName,
     this.organizationName,
+    this.onViewAllPacts,
   });
 
   final String userName;
   final String? organizationName;
+
+  /// Callback invocado por "Ver todas" — cambia al tab Obras en HomePage.
+  final VoidCallback? onViewAllPacts;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,21 +42,17 @@ class DashboardConstructor extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          Text('Hola, ${userName.split(' ').first}', style: AppTypography.h1),
-          Text(
-            organizationName != null
-                ? 'Resumen de actividad para $organizationName'
-                : 'Resumen de actividad como Constructor',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.sm),
           async.when(
             loading: () => const DashboardSkeleton(),
             error: (e, _) => DashboardErrorBlock(
               message: e.toString(),
               onRetry: () => ref.invalidate(dashboardDataProvider),
             ),
-            data: (data) => _Content(data: data),
+            data: (data) => _Content(
+              data: data,
+              onViewAllPacts: onViewAllPacts,
+            ),
           ),
         ],
       ),
@@ -61,90 +61,139 @@ class DashboardConstructor extends ConsumerWidget {
 }
 
 class _Content extends StatelessWidget {
-  const _Content({required this.data});
+  const _Content({required this.data, this.onViewAllPacts});
   final DashboardData data;
+  final VoidCallback? onViewAllPacts;
 
   @override
   Widget build(BuildContext context) {
     final next = data.nextRelease;
 
+    // Index counter for staggered animations across all sections.
+    var animIdx = 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // HERO · Próxima liberación = lo que cobra el constructor a continuación
-        HeroKpiCard(
-          eyebrow: 'PRÓXIMA LIBERACIÓN',
-          amount: next != null
-              ? AppFormatters.moneyShort(next.amountCents)
-              : '—',
-          subtitle: next != null
-              ? '${next.pactTitle} · ${_dateLabel(next.targetDate)}'
-              : 'Ninguna certificación validada todavía',
-          subtitleColor: next != null
-              ? AppColors.success
-              : AppColors.psCyan,
-          icon: Icons.payments_outlined,
+        // HERO · Proxima liberacion + Trust Score del constructor
+        AnimatedListItem(
+          index: animIdx++,
+          child: HeroKpiScoreCard(
+            eyebrow: 'PRÓXIMA LIBERACIÓN',
+            amount: next != null
+                ? AppFormatters.moneyShort(next.amountCents)
+                : '—',
+            subtitle: next != null
+                ? '${next.pactTitle} · ${_dateLabel(next.targetDate)}'
+                : 'Ninguna certificación validada todavía',
+            subtitleColor: next != null
+                ? AppColors.success
+                : AppColors.psCyan,
+            icon: Icons.payments_outlined,
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
 
-        Row(
-          children: [
-            Expanded(
-              child: MiniKpiCard(
-                label: 'OBRAS ACTIVAS',
-                value: data.activeWorks.toString(),
-                subtitle: data.newWorksThisMonth > 0
-                    ? '+${data.newWorksThisMonth} este mes'
-                    : null,
-                subtitleColor: AppColors.success,
+        AnimatedListItem(
+          index: animIdx++,
+          child: Row(
+            children: [
+              Expanded(
+                child: MiniKpiCard(
+                  label: 'OBRAS ACTIVAS',
+                  value: data.activeWorks.toString(),
+                  accentColor: AppColors.success,
+                  subtitle: data.newWorksThisMonth > 0
+                      ? '+${data.newWorksThisMonth} este mes'
+                      : null,
+                  subtitleColor: AppColors.success,
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: MiniKpiCard(
-                label: 'POR FIRMAR',
-                value: data.urgentTasks.length.toString(),
-                subtitle: data.urgentTasks.isEmpty
-                    ? 'Sin pendientes'
-                    : 'Anexos / contratos',
-                subtitleColor: data.urgentTasks.isEmpty
-                    ? AppColors.success
-                    : AppColors.warning,
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: MiniKpiCard(
+                  label: 'POR FIRMAR',
+                  value: data.urgentTasks.length.toString(),
+                  accentColor: data.urgentTasks.isEmpty
+                      ? AppColors.success
+                      : AppColors.warning,
+                  subtitle: data.urgentTasks.isEmpty
+                      ? 'Sin pendientes'
+                      : 'Anexos / contratos',
+                  subtitleColor: data.urgentTasks.isEmpty
+                      ? AppColors.success
+                      : AppColors.warning,
+                ),
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+
+        // CTA principal — el constructor es quien típicamente crea obras
+        AnimatedListItem(
+          index: animIdx++,
+          child: SizedBox(
+            height: 52,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.add_circle_outline),
+              onPressed: () => context.push('/pacts/new'),
+              label: const Text('Crear nueva obra'),
             ),
-          ],
+          ),
         ),
         const SizedBox(height: AppSpacing.xl),
 
         if (data.urgentTasks.isNotEmpty) ...[
-          DashboardSectionHeader(title: 'Tareas urgentes'),
+          AnimatedListItem(
+            index: animIdx++,
+            child: DashboardSectionHeader(
+              title: 'Tareas urgentes',
+              onViewAll: onViewAllPacts,
+            ),
+          ),
           const SizedBox(height: AppSpacing.sm),
-          for (final t in data.urgentTasks)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: UrgentTaskCard(
-                task: t,
-                onTap: () => context.push('/pacts/${t.pactId}'),
+          for (final t in data.urgentTasks.take(3))
+            AnimatedListItem(
+              index: animIdx++,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: UrgentTaskCard(
+                  task: t,
+                  onTap: () => context.push('/pacts/${t.pactId}'),
+                ),
               ),
             ),
           const SizedBox(height: AppSpacing.lg),
         ],
 
-        DashboardSectionHeader(title: 'Mis obras activas'),
+        AnimatedListItem(
+          index: animIdx++,
+          child: DashboardSectionHeader(
+            title: 'Mis obras activas',
+            onViewAll: onViewAllPacts,
+          ),
+        ),
         const SizedBox(height: AppSpacing.sm),
         if (data.activePacts.isEmpty)
-          const EmptyWorksCard(
-            message:
-                'Todavía no estás en ninguna obra. Cuando un promotor te invite, '
-                'verás aquí las obras donde participas.',
+          AnimatedListItem(
+            index: animIdx++,
+            child: const EmptyWorksCard(
+              message:
+                  'Todavía no estás en ninguna obra. Cuando un promotor te invite, '
+                  'verás aquí las obras donde participas.',
+            ),
           )
         else
           for (final p in data.activePacts)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: WorkCard(
-                pact: p,
-                onTap: () => context.push('/pacts/${p.id}'),
+            AnimatedListItem(
+              index: animIdx++,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: WorkCard(
+                  pact: p,
+                  onTap: () => context.push('/pacts/${p.id}'),
+                ),
               ),
             ),
         const SizedBox(height: AppSpacing.xl),

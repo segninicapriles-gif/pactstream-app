@@ -3,14 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/app_router.dart';
+import '../../../../core/theme/app_breakpoints.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/app_haptics.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
 import '../../../notifications/data/notifications_providers.dart';
 import '../../../notifications/presentation/pages/notifications_page.dart';
 import '../../../pact/presentation/pages/pacts_list_page.dart';
+import '../../../profile/data/profile_providers.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../widgets/dashboard_constructor.dart';
 import '../widgets/dashboard_promotor.dart';
 import '../widgets/dashboard_tecnico.dart';
@@ -30,35 +35,13 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   int _selectedIndex = 0;
-  Map<String, dynamic>? _profile;
-  bool _loadingProfile = true;
 
-  static const List<({IconData icon, String label})> _tabs = [
-    (icon: Icons.home_outlined, label: 'Inicio'),
-    (icon: Icons.folder_outlined, label: 'Obras'),
-    (icon: Icons.notifications_outlined, label: 'Avisos'),
-    (icon: Icons.person_outline, label: 'Perfil'),
+  static const List<({IconData icon, IconData activeIcon, String label})> _tabs = [
+    (icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Inicio'),
+    (icon: Icons.folder_outlined, activeIcon: Icons.folder_rounded, label: 'Obras'),
+    (icon: Icons.notifications_outlined, activeIcon: Icons.notifications_rounded, label: 'Avisos'),
+    (icon: Icons.person_outline, activeIcon: Icons.person_rounded, label: 'Perfil'),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
-    try {
-      final rows = await SupabaseConfig.client.rpc('sf_get_my_profile');
-      if (!mounted) return;
-      if (rows is List && rows.isNotEmpty) {
-        setState(() => _profile = rows.first as Map<String, dynamic>);
-      }
-    } catch (_) {
-      // Silenciar
-    } finally {
-      if (mounted) setState(() => _loadingProfile = false);
-    }
-  }
 
   Future<void> _signOut() async {
     await SupabaseConfig.client.auth.signOut();
@@ -66,51 +49,140 @@ class _HomePageState extends ConsumerState<HomePage> {
     context.go(AppRoutes.login);
   }
 
-  String get _kycStatus =>
-      _profile?['kyc_status'] as String? ?? 'not_started';
-  String get _userName => _profile?['full_name'] as String? ?? 'usuario';
-  String get _userRole => _profile?['primary_role'] as String? ?? '';
+  // Helpers to extract from the reactive profile data.
+  static String _kycStatusFrom(Map<String, dynamic>? p) =>
+      p?['kyc_status'] as String? ?? 'not_started';
+  static String _userNameFrom(Map<String, dynamic>? p) =>
+      p?['full_name'] as String? ?? 'usuario';
+  static String _userRoleFrom(Map<String, dynamic>? p) =>
+      p?['primary_role'] as String? ?? '';
 
   @override
   Widget build(BuildContext context) {
+    final profileAsync = ref.watch(myProfileProvider);
     final unread =
         ref.watch(unreadNotificationsProvider).maybeWhen(
               data: (n) => n,
               orElse: () => 0,
             );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('PactStream'),
-        actions: [
-          IconButton(
-            icon: _BadgedIcon(
-              icon: Icons.notifications_outlined,
-              count: unread,
+    final isLoading = profileAsync.isLoading;
+    final profile = profileAsync.valueOrNull;
+    final userName = _userNameFrom(profile);
+    final userRole = _userRoleFrom(profile);
+    // Los 3 roles principales pueden crear obras:
+    //   - Constructor: crea el proyecto, sube documentación y contrato
+    //   - Promotor: puede crear obras que encarga a un constructor
+    //   - Técnico: puede crear obras que supervisa
+    final canCreate =
+        userRole == 'constructor' || userRole == 'promotor' || userRole == 'tecnico';
+
+    // Títulos del AppBar por tab
+    const tabTitles = ['Inicio', 'Mis obras', 'Avisos', 'Mi perfil'];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useRail =
+            AppBreakpoints.shouldShowRail(constraints.maxWidth);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: _selectedIndex == 0 && !isLoading
+                ? Text(
+                    'Hola, ${userName.split(' ').first}',
+                    style: AppTypography.h2.copyWith(color: AppColors.white),
+                  )
+                : Text(
+                    isLoading
+                        ? 'PactStream'
+                        : tabTitles[_selectedIndex],
+                    style: AppTypography.h3.copyWith(color: AppColors.white),
+                  ),
+            centerTitle: _selectedIndex != 0,
+            backgroundColor: Colors.transparent,
+            foregroundColor: AppColors.white,
+            elevation: 0,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.psGradientDeep,
+              ),
             ),
-            onPressed: () => setState(() => _selectedIndex = 2),
-            tooltip: unread > 0 ? '$unread sin leer' : 'Avisos',
+            actions: [
+              if (_selectedIndex == 0 || _selectedIndex == 2)
+                IconButton(
+                  icon: _BadgedIcon(
+                    icon: Icons.notifications_outlined,
+                    count: unread,
+                  ),
+                  onPressed: () => setState(() => _selectedIndex = 2),
+                  tooltip: unread > 0 ? '$unread sin leer' : 'Avisos',
+                ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _signOut,
-            tooltip: 'Cerrar sesión',
+          body: isLoading
+              ? const DetailSkeleton()
+              : useRail
+                  ? Row(
+                      children: [
+                        _AdaptiveNavigationRail(
+                          selectedIndex: _selectedIndex,
+                          unread: unread,
+                          onDestinationSelected: _onTabSelected,
+                        ),
+                        const VerticalDivider(
+                          thickness: 1,
+                          width: 1,
+                          color: AppColors.ink200,
+                        ),
+                        Expanded(child: _buildTabContent(profile)),
+                      ],
+                    )
+                  : _buildTabContent(profile),
+          // FAB para crear obra — visible en Inicio y Obras cuando
+          // el usuario tiene permisos (promotor / técnico).
+          floatingActionButton:
+              canCreate && (_selectedIndex == 0 || _selectedIndex == 1)
+                  ? FloatingActionButton.extended(
+                      onPressed: () => context.push(AppRoutes.pactNew),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Nueva obra'),
+                      backgroundColor: AppColors.psBlue,
+                      foregroundColor: AppColors.white,
+                    )
+                  : null,
+          bottomNavigationBar:
+              useRail ? null : _buildBottomNav(unread),
+        );
+      },
+    );
+  }
+
+  void _onTabSelected(int index) {
+    AppHaptics.selection();
+    setState(() => _selectedIndex = index);
+    if (index == 2) {
+      ref.invalidate(unreadNotificationsProvider);
+      ref.invalidate(notificationsListProvider);
+    }
+  }
+
+  Widget _buildBottomNav(int unread) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: const Border(
+            top: BorderSide(color: AppColors.ink200, width: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.psNavy.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
-      body: _loadingProfile
-          ? const Center(child: CircularProgressIndicator())
-          : _buildTabContent(),
-      bottomNavigationBar: BottomNavigationBar(
+      child: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() => _selectedIndex = index);
-          // Refrescar contador al entrar al tab Avisos
-          if (index == 2) {
-            ref.invalidate(unreadNotificationsProvider);
-            ref.invalidate(notificationsListProvider);
-          }
-        },
+        onTap: _onTabSelected,
         items: _tabs.asMap().entries.map((entry) {
           final i = entry.key;
           final tab = entry.value;
@@ -119,6 +191,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             icon: showBadge
                 ? _BadgedIcon(icon: tab.icon, count: unread)
                 : Icon(tab.icon),
+            activeIcon: showBadge
+                ? _BadgedIcon(icon: tab.activeIcon, count: unread)
+                : _ActiveNavIcon(icon: tab.activeIcon),
             label: tab.label,
           );
         }).toList(),
@@ -126,22 +201,30 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildTabContent() {
+  Widget _buildTabContent(Map<String, dynamic>? profile) {
+    final kycStatus = _kycStatusFrom(profile);
+    final userRole = _userRoleFrom(profile);
+
     // Si el KYC no está verificado, mostrar el badge en la parte superior
     // de cualquier tab para recordar al usuario que debe completarlo.
-    final kycBadge = _kycStatus != 'verified'
+    final kycBadge = kycStatus != 'verified'
         ? Padding(
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
-            child: _KycStatusBadge(status: _kycStatus),
+            child: _KycStatusBadge(status: kycStatus),
           )
         : null;
 
     // Solo promotor y técnico pueden crear obras (P0 spec).
-    final canCreate = _userRole == 'promotor' || _userRole == 'tecnico';
+    // Los 3 roles principales pueden crear obras:
+    //   - Constructor: crea el proyecto, sube documentación y contrato
+    //   - Promotor: puede crear obras que encarga a un constructor
+    //   - Técnico: puede crear obras que supervisa
+    final canCreate =
+        userRole == 'constructor' || userRole == 'promotor' || userRole == 'tecnico';
 
     final dashboard = switch (_selectedIndex) {
-      0 => _buildDashboardForRole(),
+      0 => _buildDashboardForRole(profile),
       1 => PactsListPage(canCreate: canCreate),
       2 => const NotificationsPage(),
       3 => const ProfilePage(),
@@ -159,16 +242,31 @@ class _HomePageState extends ConsumerState<HomePage> {
     return dashboard;
   }
 
-  Widget _buildDashboardForRole() {
-    final orgName = _profile?['organization_id'] != null
-        ? null // TODO(sprint-1): cargar nombre de org real desde JOIN
-        : null;
+  /// Callback para "Ver todas" en los dashboards — cambia al tab Obras.
+  void _goToObrasTab() {
+    AppHaptics.selection();
+    setState(() => _selectedIndex = 1);
+  }
 
-    return switch (_userRole) {
-      'promotor' => DashboardPromotor(userName: _userName),
-      'tecnico' => DashboardTecnico(userName: _userName),
-      'constructor' =>
-        DashboardConstructor(userName: _userName, organizationName: orgName),
+  Widget _buildDashboardForRole(Map<String, dynamic>? profile) {
+    final userRole = _userRoleFrom(profile);
+    final userName = _userNameFrom(profile);
+    final orgName = profile?['organization_name'] as String?;
+
+    return switch (userRole) {
+      'promotor' => DashboardPromotor(
+          userName: userName,
+          onViewAllPacts: _goToObrasTab,
+        ),
+      'tecnico' => DashboardTecnico(
+          userName: userName,
+          onViewAllPacts: _goToObrasTab,
+        ),
+      'constructor' => DashboardConstructor(
+          userName: userName,
+          organizationName: orgName,
+          onViewAllPacts: _goToObrasTab,
+        ),
       _ => Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.xl),
@@ -239,28 +337,104 @@ class _BadgedIcon extends StatelessWidget {
         Positioned(
           right: -6,
           top: -4,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-            decoration: BoxDecoration(
-              color: AppColors.error,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.white, width: 1.5),
-            ),
-            child: Center(
-              child: Text(
-                count > 9 ? '9+' : '$count',
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
-                  height: 1,
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                borderRadius: AppRadius.smAll,
+                border: Border.all(color: AppColors.white, width: 1.5),
+              ),
+              child: Center(
+                child: Text(
+                  count > 9 ? '9+' : '$count',
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Active state icon for bottom navigation — filled icon inside a subtle
+/// colored pill background, giving a clear selection indicator.
+class _ActiveNavIcon extends StatelessWidget {
+  const _ActiveNavIcon({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.psBlue.withValues(alpha: 0.1),
+        borderRadius: AppRadius.pillAll,
+      ),
+      child: Icon(icon),
+    );
+  }
+}
+
+// =====================================================================
+// NAVIGATION RAIL · tablet / desktop adaptive navigation
+// =====================================================================
+
+class _AdaptiveNavigationRail extends StatelessWidget {
+  const _AdaptiveNavigationRail({
+    required this.selectedIndex,
+    required this.unread,
+    required this.onDestinationSelected,
+  });
+
+  final int selectedIndex;
+  final int unread;
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return NavigationRail(
+      selectedIndex: selectedIndex,
+      onDestinationSelected: onDestinationSelected,
+      labelType: NavigationRailLabelType.all,
+      backgroundColor: AppColors.white,
+      indicatorColor: AppColors.psBlue.withValues(alpha: 0.1),
+      selectedIconTheme: const IconThemeData(color: AppColors.psBlue),
+      unselectedIconTheme: const IconThemeData(color: AppColors.ink500),
+      selectedLabelTextStyle: AppTypography.caption.copyWith(
+        color: AppColors.psBlue,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
+      ),
+      unselectedLabelTextStyle: AppTypography.caption.copyWith(
+        color: AppColors.ink500,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0,
+      ),
+      destinations: _HomePageState._tabs.asMap().entries.map((entry) {
+        final i = entry.key;
+        final tab = entry.value;
+        final showBadge = i == 2 && unread > 0;
+        return NavigationRailDestination(
+          icon: showBadge
+              ? _BadgedIcon(icon: tab.icon, count: unread)
+              : Icon(tab.icon),
+          selectedIcon: showBadge
+              ? _BadgedIcon(icon: tab.activeIcon, count: unread)
+              : Icon(tab.activeIcon),
+          label: Text(tab.label),
+        );
+      }).toList(),
     );
   }
 }
@@ -298,11 +472,14 @@ class _KycStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spec = _spec;
-    return Container(
+    return Semantics(
+      liveRegion: true,
+      label: spec.label,
+      child: Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: spec.bg,
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        borderRadius: AppRadius.smAll,
         border: Border.all(color: spec.fg.withValues(alpha: 0.3)),
       ),
       child: Row(
@@ -332,6 +509,7 @@ class _KycStatusBadge extends StatelessWidget {
             ),
         ],
       ),
+    ),  // close Semantics
     );
   }
 }

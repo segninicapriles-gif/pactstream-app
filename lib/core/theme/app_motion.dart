@@ -69,4 +69,41 @@ abstract final class AppMotion {
       transitionsBuilder: slideUpTransition,
     );
   }
+
+  // === SLIDE FROM RIGHT (iOS-style push) ===
+  static Widget slideRightTransition(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final tween = Tween(
+      begin: const Offset(1.0, 0),
+      end: Offset.zero,
+    ).chain(CurveTween(curve: emphasize));
+
+    final fadeTween = Tween(begin: 0.8, end: 1.0)
+        .chain(CurveTween(curve: standard));
+
+    return SlideTransition(
+      position: tween.animate(animation),
+      child: FadeTransition(
+        opacity: fadeTween.animate(animation),
+        child: child,
+      ),
+    );
+  }
+
+  static CustomTransitionPage<T> slideRightPage<T>({
+    required Widget child,
+    LocalKey? key,
+  }) {
+    return CustomTransitionPage<T>(
+      key: key,
+      child: child,
+      transitionDuration: normal,
+      reverseTransitionDuration: fast,
+      transitionsBuilder: slideRightTransition,
+    );
+  }
 }

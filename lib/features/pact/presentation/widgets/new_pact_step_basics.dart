@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/pact_creation_data.dart';
@@ -114,7 +115,7 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.warningBg,
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
+              borderRadius: AppRadius.smAll,
               border: Border.all(color: AppColors.warning, width: 1),
             ),
             child: Column(
@@ -252,12 +253,12 @@ class _PactTypeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.md),
+      borderRadius: AppRadius.mdAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: selected ? AppColors.infoBg : AppColors.white,
-          borderRadius: BorderRadius.circular(AppSpacing.md),
+          borderRadius: AppRadius.mdAll,
           border: Border.all(
             color: selected ? AppColors.psBlue : AppColors.ink200,
             width: selected ? 2 : 1,
@@ -271,7 +272,7 @@ class _PactTypeCard extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 color: selected ? AppColors.psBlue : AppColors.ink100,
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                borderRadius: AppRadius.smAll,
               ),
               child: Icon(
                 icon,

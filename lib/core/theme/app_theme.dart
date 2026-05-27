@@ -106,7 +106,8 @@ abstract final class AppTheme {
         ),
         cardTheme: CardThemeData(
           color: AppColors.white,
-          elevation: 0,
+          elevation: 1,
+          shadowColor: AppColors.psNavy.withValues(alpha: 0.08),
           shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
           margin: const EdgeInsets.symmetric(vertical: 6),
         ),
@@ -115,7 +116,7 @@ abstract final class AppTheme {
           thickness: 1,
           space: 1,
         ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: AppColors.white,
           selectedItemColor: AppColors.psBlue,
           unselectedItemColor: AppColors.ink500,
@@ -123,6 +124,16 @@ abstract final class AppTheme {
           elevation: 0,
           showSelectedLabels: true,
           showUnselectedLabels: true,
+          selectedLabelStyle: GoogleFonts.nunito(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            height: 1.5,
+          ),
+          unselectedLabelStyle: GoogleFonts.nunito(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            height: 1.5,
+          ),
         ),
         chipTheme: ChipThemeData(
           backgroundColor: AppColors.ink100,

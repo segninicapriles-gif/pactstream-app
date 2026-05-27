@@ -18,10 +18,14 @@ class KycIntroPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Verifica tu identidad', style: AppTypography.h3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
+        title: Text('Verifica tu identidad',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
       ),
       body: SafeArea(
         child: Padding(

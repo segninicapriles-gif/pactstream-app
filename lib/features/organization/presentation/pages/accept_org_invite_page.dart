@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
@@ -31,6 +32,7 @@ class _AcceptOrgInvitePageState extends ConsumerState<AcceptOrgInvitePage> {
   bool _loading = true;
   String? _error;
   Map<String, dynamic>? _success;
+  Map<String, dynamic>? _invitePreview; // válida pero usuario no autenticado
 
   @override
   void initState() {
@@ -57,11 +59,13 @@ class _AcceptOrgInvitePageState extends ConsumerState<AcceptOrgInvitePage> {
         if (!mounted) return;
 
         if (valid) {
-          // Invitación válida y pendiente → wizard de registro modo
-          // invitación (email pre-rellenado, sin paso de rol/empresa).
-          context.go(
-            '${AppRoutes.register}?invite_token=${widget.token}',
-          );
+          // Invitación válida: mostrar pantalla de bienvenida para elegir
+          // entre crear cuenta nueva o iniciar sesión con cuenta existente.
+          if (!mounted) return;
+          setState(() {
+            _loading = false;
+            _invitePreview = data;
+          });
         } else {
           setState(() {
             _loading = false;
@@ -113,12 +117,14 @@ class _AcceptOrgInvitePageState extends ConsumerState<AcceptOrgInvitePage> {
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: _loading
                 ? _LoadingView()
-                : (_error != null
-                    ? _ErrorView(
-                        message: _error!,
-                        onRetry: _processInvite,
-                      )
-                    : _SuccessView(success: _success!)),
+                : _error != null
+                    ? _ErrorView(message: _error!, onRetry: _processInvite)
+                    : _invitePreview != null
+                        ? _WelcomeView(
+                            preview: _invitePreview!,
+                            token: widget.token,
+                          )
+                        : _SuccessView(success: _success!),
           ),
         ),
       ),
@@ -182,6 +188,70 @@ class _SuccessView extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Vista de bienvenida para usuarios no autenticados con invitación válida.
+// Ofrece crear cuenta nueva O iniciar sesión si ya tienen una.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _WelcomeView extends StatelessWidget {
+  const _WelcomeView({required this.preview, required this.token});
+  final Map<String, dynamic> preview;
+  final String token;
+
+  @override
+  Widget build(BuildContext context) {
+    final orgName = (preview['org_name'] as String?) ?? 'la organización';
+    final inviterName = (preview['inviter_name'] as String?) ?? 'tu equipo';
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: const BoxDecoration(
+            color: AppColors.psCyan,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.group_add_outlined,
+              color: AppColors.white, size: 44),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Text('¡Te han invitado!',
+            style: AppTypography.h1, textAlign: TextAlign.center),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          '$inviterName te invita a unirte a $orgName en PactStream.',
+          textAlign: TextAlign.center,
+          style: AppTypography.body.copyWith(color: AppColors.ink600),
+        ),
+        const SizedBox(height: AppSpacing.xxl),
+        // CTA principal: crear cuenta nueva (flujo simplificado)
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () => context.go(
+              '${AppRoutes.register}?invite_token=$token',
+            ),
+            child: const Text('Crear mi cuenta'),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // CTA secundario: ya tengo cuenta
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => context.go(
+              '${AppRoutes.login}?redirect=${Uri.encodeComponent('${AppRoutes.acceptOrgInvite}?token=$token')}',
+            ),
+            child: const Text('Ya tengo cuenta — Iniciar sesión'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ErrorView extends StatelessWidget {
   const _ErrorView({required this.message, required this.onRetry});
   final String message;
@@ -210,7 +280,7 @@ class _ErrorView extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.errorBg,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            borderRadius: AppRadius.smAll,
           ),
           child: Text(
             message,

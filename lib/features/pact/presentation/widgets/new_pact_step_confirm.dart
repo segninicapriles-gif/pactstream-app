@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
@@ -154,7 +155,7 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: AppColors.errorBg,
-                      borderRadius: BorderRadius.circular(AppSpacing.sm),
+                      borderRadius: AppRadius.smAll,
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,7 +231,7 @@ class _SummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.ink50,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
       ),
       child: Column(

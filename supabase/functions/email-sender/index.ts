@@ -21,7 +21,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') ?? 'PactStream <onboarding@resend.dev>';
-const APP_BASE_URL = Deno.env.get('APP_BASE_URL') ?? 'http://localhost:51055/#';
+const APP_BASE_URL = Deno.env.get('APP_BASE_URL') ?? 'http://localhost:51055';
 const BATCH_SIZE = 50;
 
 const corsHeaders: Record<string, string> = {

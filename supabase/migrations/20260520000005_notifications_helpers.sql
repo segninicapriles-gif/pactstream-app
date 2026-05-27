@@ -124,8 +124,8 @@ GRANT EXECUTE ON FUNCTION public.fn_create_notifications TO authenticated;
 
 DROP FUNCTION IF EXISTS public.sf_list_my_notifications;
 CREATE OR REPLACE FUNCTION public.sf_list_my_notifications(
-  p_limit  int DEFAULT 50,
-  p_unread_only boolean DEFAULT false
+  p_limit       int     DEFAULT 50,
+  p_only_unread boolean DEFAULT false
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -134,7 +134,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_user_id uuid;
-  v_result  jsonb;
+  v_items   jsonb;
 BEGIN
   SELECT u.id INTO v_user_id
   FROM public.users u
@@ -144,37 +144,36 @@ BEGIN
     RAISE EXCEPTION 'Perfil no encontrado';
   END IF;
 
-  SELECT jsonb_build_object(
-    'items', coalesce(jsonb_agg(jsonb_build_object(
-      'id', n.id,
-      'pact_id', n.pact_id,
-      'milestone_id', n.milestone_id,
-      'notification_type', n.notification_type,
-      'priority', n.priority::text,
-      'title', n.title,
-      'body', n.body,
-      'cta_url', n.cta_url,
-      'read_at', n.read_at,
-      'sent_at', n.sent_at,
-      'created_at', n.created_at
-    ) ORDER BY n.created_at DESC), '[]'::jsonb),
-    'unread_count', (
-      SELECT count(*) FROM public.notifications nn
-      WHERE nn.user_id = v_user_id
-        AND nn.channel = 'in_app'
-        AND nn.read_at IS NULL
-    )
-  ) INTO v_result
+  SELECT jsonb_agg(payload ORDER BY ord_at DESC)
+    INTO v_items
   FROM (
-    SELECT n.* FROM public.notifications n
+    SELECT
+      n.created_at AS ord_at,
+      jsonb_build_object(
+        'id', n.id,
+        'pact_id', n.pact_id,
+        'milestone_id', n.milestone_id,
+        'notification_type', n.notification_type,
+        'priority', n.priority::text,
+        'title', n.title,
+        'body', n.body,
+        'cta_url', n.cta_url,
+        'read_at', n.read_at,
+        'sent_at', n.sent_at,
+        'created_at', n.created_at
+      ) AS payload
+    FROM public.notifications n
     WHERE n.user_id = v_user_id
       AND n.channel = 'in_app'
-      AND (NOT p_unread_only OR n.read_at IS NULL)
+      AND (NOT p_only_unread OR n.read_at IS NULL)
     ORDER BY n.created_at DESC
     LIMIT p_limit
-  ) n;
+  ) t;
 
-  RETURN v_result;
+  -- Array plano (no envuelto en objeto) por compatibilidad con el
+  -- cliente Flutter del Sprint 3. El contador de no-leídas se obtiene
+  -- aparte con sf_count_unread_notifications.
+  RETURN coalesce(v_items, '[]'::jsonb);
 END;
 $$;
 GRANT EXECUTE ON FUNCTION public.sf_list_my_notifications TO authenticated;

@@ -59,6 +59,9 @@ dependencies:
   pdf: ^3.11.0
   printing: ^5.13.0
 
+  # Web platform interop (iframe PDF viewer en Flutter Web)
+  web: ^1.1.0
+
   # Logging y errores
   logger: ^2.5.0
   sentry_flutter: ^8.11.0
@@ -92,3 +95,6 @@ flutter:
   assets:
     - .env
     - assets/images/pactstream_logo.png
+    - assets/images/pactstream_logo.svg
+    - assets/images/pactstream_logo_white.svg
+    - assets/images/pactstream_icon.svg

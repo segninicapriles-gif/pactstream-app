@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/organization.dart';
@@ -22,7 +23,7 @@ Future<bool> showCreateOrgSheet(BuildContext context) async {
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => Padding(
           padding: EdgeInsets.only(
@@ -48,7 +49,12 @@ class _CreateOrgSheetState extends State<_CreateOrgSheet> {
   bool _loading = false;
   String? _error;
 
-  bool get _isValid => _nameCtrl.text.trim().length >= 2;
+  // CIF/NIF español: 9 caracteres, letra inicial (CIF) o 8 dígitos + letra (NIF).
+  static final _cifRegex = RegExp(r'^[A-Z]\d{7}[A-Z0-9]$|^\d{8}[A-Z]$');
+
+  bool get _cifValid => _cifRegex.hasMatch(_cifCtrl.text.trim().toUpperCase());
+  bool get _isValid =>
+      _nameCtrl.text.trim().length >= 2 && _cifValid;
 
   @override
   void dispose() {
@@ -106,14 +112,19 @@ class _CreateOrgSheetState extends State<_CreateOrgSheet> {
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _cifCtrl,
-          decoration: const InputDecoration(
-            labelText: 'CIF',
+          decoration: InputDecoration(
+            labelText: 'CIF / NIF *',
             hintText: 'Ej: B86800372',
+            errorText: _cifCtrl.text.isNotEmpty && !_cifValid
+                ? 'Formato no válido (9 caracteres: ej. B86800372 o 12345678Z)'
+                : null,
           ),
           inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
+            FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
             LengthLimitingTextInputFormatter(9),
+            _UpperCaseFormatter(),
           ],
+          onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: AppSpacing.md),
         DropdownButtonFormField<String>(
@@ -162,7 +173,7 @@ Future<bool> showInviteMemberSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => Padding(
           padding: EdgeInsets.only(
@@ -301,7 +312,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
           padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             color: AppColors.ink50,
-            borderRadius: BorderRadius.circular(AppSpacing.xs),
+            borderRadius: AppRadius.microAll,
           ),
           child: SwitchListTile(
             contentPadding: EdgeInsets.zero,
@@ -344,7 +355,7 @@ Future<bool> showRevokeMemberSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => Padding(
           padding: EdgeInsets.only(
@@ -420,7 +431,7 @@ class _RevokeMemberSheetState extends State<_RevokeMemberSheet> {
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.warningBg,
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderRadius: AppRadius.microAll,
             ),
             child: Row(
               children: [
@@ -501,7 +512,7 @@ Future<bool> showUpdatePermissionsSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => _UpdatePermissionsSheet(member: member),
       ) ??
@@ -657,7 +668,7 @@ class _PermissionTile extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.ink50,
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        borderRadius: AppRadius.smAll,
         border: Border.all(color: AppColors.ink200),
       ),
       child: Row(
@@ -723,7 +734,7 @@ class _SheetScaffold extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.ink200,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: AppRadius.xxsAll,
                   ),
                 ),
               ),
@@ -795,21 +806,36 @@ class _ErrorBanner extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           color: AppColors.errorBg,
-          borderRadius: BorderRadius.circular(AppSpacing.xs),
+          borderRadius: AppRadius.smAll,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.error_outline,
-                size: 16, color: AppColors.error),
+            const Icon(Icons.error_outline, size: 16, color: AppColors.error),
             const SizedBox(width: AppSpacing.xs),
             Expanded(
-              child: Text(message,
-                  style: AppTypography.bodyS.copyWith(color: AppColors.error)),
+              child: Text(
+                message,
+                style: AppTypography.bodyS.copyWith(color: AppColors.error),
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Convierte la entrada a mayúsculas en tiempo real.
+class _UpperCaseFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    return newValue.copyWith(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
     );
   }
 }

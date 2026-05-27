@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
@@ -169,22 +170,28 @@ class PactStateBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 8 : 10,
-        vertical: compact ? 2 : 3,
-      ),
-      decoration: BoxDecoration(
-        color: style.bg,
-        borderRadius: BorderRadius.circular(AppSpacing.xl),
-      ),
-      child: Text(
-        style.label.toUpperCase(),
-        style: AppTypography.caption.copyWith(
-          color: style.fg,
-          fontSize: compact ? 9 : 10,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.5,
+    return Semantics(
+      label: style.label,
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.3,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 8 : 10,
+            vertical: compact ? 2 : 3,
+          ),
+          decoration: BoxDecoration(
+            color: style.bg,
+            borderRadius: AppRadius.pillAll,
+          ),
+          child: Text(
+            style.label.toUpperCase(),
+            style: AppTypography.caption.copyWith(
+              color: style.fg,
+              fontSize: compact ? 9 : 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
         ),
       ),
     );

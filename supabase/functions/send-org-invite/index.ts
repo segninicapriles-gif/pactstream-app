@@ -103,10 +103,8 @@ serve(async (req: Request) => {
     return json({ error: 'Datos de organización o invitador incompletos' }, 500);
   }
 
-  // Flutter web usa hash routing (#/org-invite). Si en el futuro habilitamos
-  // path-based routing en main.dart con usePathUrlStrategy(), simplemente
-  // cambia esta línea a `${APP_BASE_URL}/org-invite?token=...`.
-  const inviteUrl = `${APP_BASE_URL}/#/org-invite?token=${m.invitation_token}`;
+  // Path-based routing activo (usePathUrlStrategy en main.dart).
+  const inviteUrl = `${APP_BASE_URL}/org-invite?token=${m.invitation_token}`;
   const orgName = org.trade_name || org.legal_name;
   const inviterName = inviter.full_name || inviter.email;
 

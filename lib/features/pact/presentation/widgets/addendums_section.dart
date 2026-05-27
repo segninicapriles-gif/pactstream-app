@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
@@ -67,7 +68,7 @@ class AddendumsSection extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.ink50,
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
+              borderRadius: AppRadius.smAll,
               border: Border.all(color: AppColors.ink200),
             ),
             child: Row(
@@ -148,7 +149,7 @@ class _AddendumCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
+        borderRadius: AppRadius.smAll,
         border: Border.all(color: accent.withValues(alpha: 0.5), width: 1),
       ),
       child: Column(
@@ -167,7 +168,7 @@ class _AddendumCard extends StatelessWidget {
                     horizontal: AppSpacing.xs, vertical: 2),
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.smAll,
                 ),
                 child: Text(stateLabel,
                     style: AppTypography.caption
@@ -225,7 +226,7 @@ class _AddendumCard extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.white,
-                borderRadius: BorderRadius.circular(AppSpacing.xs),
+                borderRadius: AppRadius.microAll,
               ),
               child: Text(addendum.justification!,
                   style:
@@ -269,7 +270,7 @@ class _Badge extends StatelessWidget {
           horizontal: AppSpacing.xs, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.smAll,
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
@@ -330,7 +331,7 @@ class _SignaturePill extends StatelessWidget {
           horizontal: AppSpacing.sm, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: color),
       ),
       child: Row(

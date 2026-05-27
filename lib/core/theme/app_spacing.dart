@@ -1,6 +1,7 @@
-/// Sistema de espaciado de 4 puntos (Design System v1.0).
+/// Sistema de espaciado del Design System v1.0.
 ///
-/// Cualquier valor que no sea múltiplo de 4 es un bug.
+/// Base de 4pt con un escalón intermedio de 12pt (md) heredado de
+/// Material Design. Cualquier valor fuera de esta escala es un bug.
 abstract final class AppSpacing {
   AppSpacing._();
 

@@ -4,9 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/animated_list_item.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/pressable_card.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../data/pact_providers.dart';
 import '../../data/pact_summary.dart';
 import '../widgets/pact_state_badge.dart';
@@ -34,14 +40,23 @@ class PactsListPage extends ConsumerWidget {
         await ref.read(myPactsProvider.future);
       },
       child: pactsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorView(
+        loading: () => const ListSkeleton(),
+        error: (e, _) => ErrorStateView(
+          title: 'No se pudieron cargar tus obras',
           message: e.toString(),
           onRetry: () => ref.invalidate(myPactsProvider),
         ),
         data: (pacts) {
           if (pacts.isEmpty) {
-            return _EmptyState(canCreate: canCreate);
+            return EmptyStateView(
+              icon: Icons.folder_outlined,
+              title: canCreate ? 'Aún no tienes obras' : 'Sin obras asignadas',
+              subtitle: canCreate
+                  ? 'Crea tu primera obra para empezar a gestionar pagos por hitos con custodia.'
+                  : 'Cuando un promotor o técnico te invite a una obra, aparecerá aquí.',
+              actionLabel: canCreate ? 'Crear nueva obra' : null,
+              onAction: canCreate ? () => context.push(AppRoutes.pactNew) : null,
+            );
           }
           return ListView.separated(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -49,11 +64,20 @@ class PactsListPage extends ConsumerWidget {
             separatorBuilder: (_, __) =>
                 const SizedBox(height: AppSpacing.md),
             itemBuilder: (ctx, i) {
-              if (canCreate && i == 0) return const _CreateCta();
-              final pact = pacts[i - (canCreate ? 1 : 0)];
-              return _PactCard(
-                pact: pact,
-                onTap: () => context.push('/pacts/${pact.pactId}'),
+              if (canCreate && i == 0) {
+                return AnimatedListItem(
+                  index: 0,
+                  child: const _CreateCta(),
+                );
+              }
+              final idx = i - (canCreate ? 1 : 0);
+              final pact = pacts[idx];
+              return AnimatedListItem(
+                index: i,
+                child: _PactCard(
+                  pact: pact,
+                  onTap: () => context.push('/pacts/${pact.pactId}'),
+                ),
               );
             },
           );
@@ -79,86 +103,8 @@ class _CreateCta extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.canCreate});
-
-  final bool canCreate;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      // ListView para que funcione el RefreshIndicator
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      children: [
-        const SizedBox(height: 60),
-        Center(
-          child: Container(
-            width: 96,
-            height: 96,
-            decoration: const BoxDecoration(
-              color: AppColors.infoBg,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.folder_outlined,
-                color: AppColors.psBlue, size: 48),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(
-          canCreate ? 'Aún no tienes obras' : 'Sin obras asignadas',
-          textAlign: TextAlign.center,
-          style: AppTypography.h2,
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          canCreate
-              ? 'Crea tu primera obra para empezar a gestionar pagos por hitos con custodia.'
-              : 'Cuando un promotor o técnico te invite a una obra, aparecerá aquí.',
-          textAlign: TextAlign.center,
-          style: AppTypography.body.copyWith(color: AppColors.ink500),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        if (canCreate)
-          ElevatedButton.icon(
-            icon: const Icon(Icons.add_circle_outline),
-            onPressed: () => context.push(AppRoutes.pactNew),
-            label: const Text('Crear nueva obra'),
-          ),
-      ],
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      children: [
-        const SizedBox(height: 80),
-        const Icon(Icons.error_outline,
-            color: AppColors.error, size: 48),
-        const SizedBox(height: AppSpacing.md),
-        Text('No se pudieron cargar tus obras',
-            textAlign: TextAlign.center, style: AppTypography.h3),
-        const SizedBox(height: AppSpacing.xs),
-        Text(message,
-            textAlign: TextAlign.center,
-            style: AppTypography.bodyS
-                .copyWith(color: AppColors.ink500)),
-        const SizedBox(height: AppSpacing.lg),
-        OutlinedButton(onPressed: onRetry, child: const Text('Reintentar')),
-      ],
-    );
-  }
-}
+// _EmptyState y _ErrorView ahora usan los widgets reutilizables
+// EmptyStateView y ErrorStateView de core/widgets/empty_state_view.dart.
 
 class _PactCard extends StatelessWidget {
   const _PactCard({required this.pact, required this.onTap});
@@ -169,16 +115,25 @@ class _PactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stateStyle = PactStateStyle.forPactState(pact.state);
+    final progress = pact.milestonesTotal > 0
+        ? '${pact.milestonesPaid} de ${pact.milestonesTotal} hitos pagados'
+        : '';
+    final amount = AppFormatters.moneyShort(pact.totalAmountCents);
 
-    return InkWell(
+    return Semantics(
+      button: true,
+      label: '${pact.title}. ${stateStyle.label}. $amount. '
+          '${pact.locationShort}. $progress',
+      child: PressableCard(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.md),
+      borderRadius: AppRadius.mdAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppSpacing.md),
+          borderRadius: AppRadius.mdAll,
           border: Border.all(color: AppColors.ink200),
+          boxShadow: AppShadows.soft,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +206,7 @@ class _PactCard extends StatelessWidget {
             if (pact.milestonesTotal > 0) ...[
               const SizedBox(height: AppSpacing.sm),
               ClipRRect(
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: AppRadius.xxsAll,
                 child: LinearProgressIndicator(
                   value: pact.progress,
                   minHeight: 4,
@@ -294,7 +249,7 @@ class _PactCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: AppColors.ink50,
-                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  borderRadius: AppRadius.microAll,
                 ),
                 child: Row(
                   children: [
@@ -324,6 +279,7 @@ class _PactCard extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -340,7 +296,7 @@ class _TypePill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.ink100,
-        borderRadius: BorderRadius.circular(AppSpacing.xl),
+        borderRadius: AppRadius.xlAll,
       ),
       child: Text(
         isMenor ? 'Obra menor' : 'Obra mayor',
@@ -381,7 +337,7 @@ class _RolePill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: spec.color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppSpacing.xl),
+        borderRadius: AppRadius.xlAll,
       ),
       child: Text(
         spec.label,

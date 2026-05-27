@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
@@ -120,7 +121,7 @@ class _NewPactStepTeamState extends State<NewPactStepTeam> {
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.warningBg,
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
+              borderRadius: AppRadius.smAll,
             ),
             child: Row(
               children: [
@@ -152,7 +153,7 @@ class _MyselfCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.successBg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.success, width: 1),
       ),
       child: Row(
@@ -233,7 +234,7 @@ class _InviteCardState extends State<_InviteCard> {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
       ),
       child: Column(
@@ -246,7 +247,7 @@ class _InviteCardState extends State<_InviteCard> {
                 height: 36,
                 decoration: BoxDecoration(
                   color: AppColors.infoBg,
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  borderRadius: AppRadius.smAll,
                 ),
                 child: Icon(_iconFor(widget.invite.role),
                     color: AppColors.psBlue, size: 18),

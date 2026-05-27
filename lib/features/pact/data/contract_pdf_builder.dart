@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -27,6 +28,19 @@ class ContractPdfBuilder {
 
   final PactDetail detail;
 
+  /// Intenta descargar una fuente de Google Fonts con timeout.
+  /// Si falla o tarda más de [timeout], devuelve null.
+  static Future<pw.Font?> _tryGoogleFont(
+    Future<pw.Font> Function() loader, {
+    Duration timeout = const Duration(seconds: 8),
+  }) async {
+    try {
+      return await loader().timeout(timeout);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Construye el PDF y devuelve los bytes listos para descargar/preview.
   Future<Uint8List> buildBytes() async {
     final pdf = pw.Document(
@@ -36,10 +50,20 @@ class ContractPdfBuilder {
       subject: 'Contrato de ejecución de obra con custodia por hitos',
     );
 
-    final font = await PdfGoogleFonts.merriweatherRegular();
-    final fontBold = await PdfGoogleFonts.merriweatherBold();
-    final fontItalic = await PdfGoogleFonts.merriweatherItalic();
-    final fontMono = await PdfGoogleFonts.jetBrainsMonoRegular();
+    // Intentar descargar Google Fonts con timeout. Si falla, usar fuentes
+    // integradas del PDF (Helvetica / Courier) para que el contrato siempre
+    // se genere, aunque sin la tipografía ideal.
+    final results = await Future.wait([
+      _tryGoogleFont(PdfGoogleFonts.merriweatherRegular),
+      _tryGoogleFont(PdfGoogleFonts.merriweatherBold),
+      _tryGoogleFont(PdfGoogleFonts.merriweatherItalic),
+      _tryGoogleFont(PdfGoogleFonts.jetBrainsMonoRegular),
+    ]);
+
+    final font = results[0] ?? pw.Font.helvetica();
+    final fontBold = results[1] ?? pw.Font.helveticaBold();
+    final fontItalic = results[2] ?? pw.Font.helvetica();
+    final fontMono = results[3] ?? pw.Font.courier();
 
     final theme = pw.ThemeData.withFont(
       base: font,

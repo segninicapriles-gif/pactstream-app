@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../scoring/data/scoring_providers.dart';
 import '../../data/pact_detail.dart';
 import '../../data/pact_providers.dart';
 import '../sheets/pact_action_sheets.dart';
@@ -13,6 +17,9 @@ import '../widgets/addendums_section.dart';
 import '../widgets/deposit_widget.dart';
 import '../widgets/pact_state_badge.dart';
 import '../widgets/predeposit_pending_card.dart';
+import '../../../../core/widgets/animated_list_item.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 
 /// Detalle completo del pacto.
 ///
@@ -151,11 +158,27 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
     return Scaffold(
       backgroundColor: AppColors.ink50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Detalle de obra', style: AppTypography.h3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
+        title: Text('Detalle de obra',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
         actions: [
+          // Sprint 7 · Asistente IA (solo cuando el pacto ha cargado)
+          detailAsync.maybeWhen(
+            data: (d) => IconButton(
+              icon: const Icon(Icons.smart_toy_outlined),
+              tooltip: 'Asistente IA',
+              onPressed: () => context.push(
+                '/pacts/$pactId/assistant'
+                '?title=${Uri.encodeComponent(d.pact.title)}',
+              ),
+            ),
+            orElse: () => const SizedBox.shrink(),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refrescar',
@@ -165,102 +188,94 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
       ),
       floatingActionButton: fab,
       body: detailAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline,
-                    color: AppColors.error, size: 48),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  'No se pudo cargar el pacto',
-                  textAlign: TextAlign.center,
-                  style: AppTypography.h3,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  e.toString(),
-                  textAlign: TextAlign.center,
-                  style: AppTypography.bodyS
-                      .copyWith(color: AppColors.ink500),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                OutlinedButton(
-                  onPressed: () =>
-                      ref.invalidate(pactDetailProvider(pactId)),
-                  child: const Text('Reintentar'),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                TextButton(
-                  onPressed: () => context.pop(),
-                  child: const Text('Volver'),
-                ),
-              ],
-            ),
-          ),
+        loading: () => const DetailSkeleton(),
+        error: (e, _) => ErrorStateView(
+          title: 'No se pudo cargar el pacto',
+          message: e.toString(),
+          onRetry: () => ref.invalidate(pactDetailProvider(pactId)),
+          scrollable: false,
         ),
-        data: (detail) => RefreshIndicator(
+        data: (detail) {
+          var _ai = 0; // animation index
+          return RefreshIndicator(
           onRefresh: _refresh,
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
-              // Sprint 6 · Banner cuando accedes vía organización.
+              // Sprint 6 · Banner cuando accedes via organizacion.
               if (detail.pact.isMemberViaOrg) ...[
-                _ViaOrgBanner(
-                  canViewEconomics: detail.pact.canViewEconomics,
-                  canMoveMoney: detail.pact.canMoveMoney,
+                AnimatedListItem(
+                  index: _ai++,
+                  child: _ViaOrgBanner(
+                    canViewEconomics: detail.pact.canViewEconomics,
+                    canMoveMoney: detail.pact.canMoveMoney,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
               ],
-              _Header(detail: detail),
+              AnimatedListItem(index: _ai++, child: _Header(detail: detail)),
+              const SizedBox(height: AppSpacing.md),
+              // Trust Score del pacto
+              AnimatedListItem(
+                index: _ai++,
+                child: _InlineTrustScoreCard(pactId: pactId, pactTitle: detail.pact.title),
+              ),
               const SizedBox(height: AppSpacing.md),
               // Resumen económico clásico (v1) o widget de depósito (v2/v2.1).
               // Sprint 6 · Si el miembro no tiene economics, mostramos
               // placeholder en lugar del bloque financiero.
-              if (!detail.pact.canViewEconomics)
-                const _EconomicsHidden()
-              else if (detail.pact.isV2OrLater)
-                DepositWidget(
-                  detail: detail,
-                  onFundInitial: () => _handleFundInitial(detail),
-                  onReplenish: () => _handleReplenish(detail),
-                  onSetupAdvance: () => _handleSetupAdvance(detail),
-                )
-              else
-                _MoneySummary(detail: detail),
+              AnimatedListItem(
+                index: _ai++,
+                child: !detail.pact.canViewEconomics
+                    ? const _EconomicsHidden()
+                    : detail.pact.isV2OrLater
+                        ? DepositWidget(
+                            detail: detail,
+                            onFundInitial: () => _handleFundInitial(detail),
+                            onReplenish: () => _handleReplenish(detail),
+                            onSetupAdvance: () => _handleSetupAdvance(detail),
+                          )
+                        : _MoneySummary(detail: detail),
+              ),
 
-              // v2.1 · Pre-depósitos pendientes (cards específicas)
+              // v2.1 · Pre-depositos pendientes (cards especificas)
               if (detail.pact.isV21 &&
                   detail.pendingPredepositMilestones.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.md),
                 for (final m in detail.pendingPredepositMilestones)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: PredepositPendingCard(
-                      milestone: m,
-                      myRole: detail.me?.role,
-                      onPredeposit: () => _handlePredeposit(detail, m),
-                      onForceAdvance: () => _handleForceAdvance(detail, m),
+                  AnimatedListItem(
+                    index: _ai++,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: PredepositPendingCard(
+                        milestone: m,
+                        myRole: detail.me?.role,
+                        onPredeposit: () => _handlePredeposit(detail, m),
+                        onForceAdvance: () => _handleForceAdvance(detail, m),
+                      ),
                     ),
                   ),
               ],
               const SizedBox(height: AppSpacing.md),
-              _PartiesSection(
-                parties: detail.parties,
-                isCreator: detail.pact.isCreator,
+              AnimatedListItem(
+                index: _ai++,
+                child: _PartiesSection(
+                  parties: detail.parties,
+                  isCreator: detail.pact.isCreator,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
-              _MilestonesSection(detail: detail),
+              AnimatedListItem(
+                index: _ai++,
+                child: _MilestonesSection(detail: detail),
+              ),
               if (detail.pact.isV2OrLater) ...[
                 const SizedBox(height: AppSpacing.md),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
                     color: AppColors.white,
-                    borderRadius: BorderRadius.circular(AppSpacing.md),
+                    borderRadius: AppRadius.mdAll,
                   ),
                   child: AddendumsSection(
                     detail: detail,
@@ -276,11 +291,15 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
                 _ContractPdfLink(pactId: detail.pact.id),
               if (_contractAvailable(detail.pact.state))
                 const SizedBox(height: AppSpacing.md),
-              _NextStepCta(detail: detail),
+              AnimatedListItem(
+                index: _ai++,
+                child: _NextStepCta(detail: detail),
+              ),
               const SizedBox(height: AppSpacing.xl),
             ],
           ),
-        ),
+        );
+        },
       ),
     );
   }
@@ -292,6 +311,7 @@ bool _contractAvailable(String state) {
     'signing',
     'signed',
     'funded',
+    'active',
     'in_execution',
     'disputed',
     'completed',
@@ -308,13 +328,14 @@ class _ContractPdfLink extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => context.push('/pacts/$pactId/contract-pdf'),
-      borderRadius: BorderRadius.circular(AppSpacing.md),
+      borderRadius: AppRadius.mdAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppSpacing.md),
+          borderRadius: AppRadius.mdAll,
           border: Border.all(color: AppColors.ink200),
+          boxShadow: AppShadows.soft,
         ),
         child: Row(
           children: [
@@ -323,7 +344,7 @@ class _ContractPdfLink extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 color: AppColors.errorBg,
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                borderRadius: AppRadius.smAll,
               ),
               child: const Icon(Icons.picture_as_pdf,
                   color: AppColors.error, size: 22),
@@ -369,7 +390,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,7 +405,7 @@ class _Header extends StatelessWidget {
                     horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.ink100,
-                  borderRadius: BorderRadius.circular(AppSpacing.xl),
+                  borderRadius: AppRadius.xlAll,
                 ),
                 child: Text(
                   isMenor ? 'OBRA MENOR' : 'OBRA MAYOR',
@@ -465,7 +486,7 @@ class _MoneySummary extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.psNavy,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -546,7 +567,7 @@ class _PartiesSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -649,7 +670,7 @@ class _PartyTile extends StatelessWidget {
                             horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
                           color: AppColors.successBg,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: AppRadius.microAll,
                         ),
                         child: Text('TÚ',
                             style: AppTypography.caption.copyWith(
@@ -795,7 +816,7 @@ class _MilestonesSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -812,7 +833,7 @@ class _MilestonesSection extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: AppColors.ink50,
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                borderRadius: AppRadius.smAll,
                 border: Border.all(color: AppColors.ink200),
               ),
               child: Row(
@@ -869,7 +890,7 @@ class _MilestoneTile extends StatelessWidget {
     return InkWell(
       onTap: () =>
           context.push('/pacts/$pactId/milestones/${milestone.id}'),
-      borderRadius: BorderRadius.circular(AppSpacing.sm),
+      borderRadius: AppRadius.smAll,
       child: IntrinsicHeight(
         child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1036,7 +1057,7 @@ class _MilestoneBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: AppRadius.xsAll,
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
@@ -1292,7 +1313,7 @@ class _PrimaryActionCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: AppColors.psGradientDeep,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1363,7 +1384,7 @@ class _InfoCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.infoBg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.psBlue, width: 1),
       ),
       child: Row(
@@ -1424,7 +1445,7 @@ class _ViaOrgBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.psNavy.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(
           color: AppColors.psNavy.withValues(alpha: 0.18),
           width: 1,
@@ -1438,7 +1459,7 @@ class _ViaOrgBanner extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: AppColors.psNavy,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.smAll,
             ),
             child: const Icon(Icons.groups_2_outlined,
                 color: AppColors.psCyan, size: 18),
@@ -1478,7 +1499,7 @@ class _EconomicsHidden extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.ink50,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200, width: 1),
       ),
       child: Row(
@@ -1498,22 +1519,199 @@ class _EconomicsHidden extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Datos económicos restringidos',
-                    style: AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w800)),
+                Text(
+                  'Información económica restringida',
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink700,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
-                  'Tu rol no incluye visibilidad de importes. Puedes gestionar '
-                  'la operativa de la obra y subir evidencias normalmente. '
-                  'Si necesitas ver las cifras, pide a tu equipo que active el '
-                  'permiso económico.',
-                  style: AppTypography.bodyS
-                      .copyWith(color: AppColors.ink600),
+                  'El dueño de la organización puede activar este permiso desde Mi equipo.',
+                  style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ==========================================================================
+// INLINE TRUST SCORE CARD (Sprint 8)
+// ==========================================================================
+
+/// Card compacta que muestra el Trust Score del pacto en el detalle.
+/// Al tocar, navega a la página completa de TrustScorePage.
+class _InlineTrustScoreCard extends ConsumerWidget {
+  const _InlineTrustScoreCard({
+    required this.pactId,
+    required this.pactTitle,
+  });
+
+  final String pactId;
+  final String pactTitle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final healthAsync = ref.watch(pactHealthProvider(pactId));
+
+    return GestureDetector(
+      onTap: () => context.push(
+        '/pacts/$pactId/trust-score'
+        '?title=${Uri.encodeComponent(pactTitle)}',
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.lgAll,
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Color(0xFFEFF6FF), AppColors.white],
+          ),
+          border: Border.all(color: AppColors.psBlue, width: 1.2),
+          boxShadow: AppShadows.soft,
+        ),
+        child: ClipRRect(
+          borderRadius: AppRadius.lgAll,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Accent bar izquierdo azul
+                Container(width: 4, color: AppColors.psBlue),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        // Score circle
+                        healthAsync.when(
+                          loading: () =>
+                              _ScoreCircle(score: null, color: AppColors.ink300),
+                          error: (_, __) =>
+                              _ScoreCircle(score: null, color: AppColors.ink300),
+                          data: (h) => _ScoreCircle(score: h.score, color: h.color),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'TRUST SCORE',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.psBlue,
+                                  letterSpacing: 1.2,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              healthAsync.when(
+                                loading: () => Text(
+                                  'Calculando...',
+                                  style: AppTypography.bodyS
+                                      .copyWith(color: AppColors.ink400),
+                                ),
+                                error: (_, __) => Text(
+                                  'No disponible',
+                                  style: AppTypography.bodyS
+                                      .copyWith(color: AppColors.ink400),
+                                ),
+                                data: (h) => Row(
+                                  children: [
+                                    Container(
+                                      width: 7,
+                                      height: 7,
+                                      decoration: BoxDecoration(
+                                        color: h.color,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      h.label,
+                                      style: AppTypography.bodyS.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: h.color,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Ver factores detallados →',
+                                style: AppTypography.caption
+                                    .copyWith(color: AppColors.psBlue),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: AppColors.psBlue,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreCircle extends StatelessWidget {
+  const _ScoreCircle({required this.score, required this.color});
+
+  final int? score;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: color, width: 3),
+        color: color.withValues(alpha: 0.08),
+      ),
+      child: Center(
+        child: score == null
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$score',
+                    style: AppTypography.body.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      height: 1.0,
+                    ),
+                  ),
+                  Text(
+                    '/100',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.ink500,
+                      fontSize: 8,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

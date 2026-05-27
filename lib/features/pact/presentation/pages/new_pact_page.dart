@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
@@ -228,14 +229,18 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
       child: Scaffold(
         backgroundColor: AppColors.white,
         appBar: AppBar(
-          backgroundColor: AppColors.white,
-          foregroundColor: AppColors.ink900,
+          backgroundColor: Colors.transparent,
+          foregroundColor: AppColors.white,
           elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: _previous,
           ),
-          title: Text(_titleForStep(_currentStep), style: AppTypography.h3),
+          title: Text(_titleForStep(_currentStep),
+              style: AppTypography.h3.copyWith(color: AppColors.white)),
         ),
         body: SafeArea(
           child: Column(
@@ -339,7 +344,7 @@ class _StepProgressBar extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: filled ? AppColors.psBlue : AppColors.ink200,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: AppRadius.xxsAll,
                   ),
                 ),
               );
@@ -400,7 +405,7 @@ class _SuccessScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.infoBg,
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  borderRadius: AppRadius.smAll,
                   border: Border.all(color: AppColors.psBlue, width: 1),
                 ),
                 child: Row(

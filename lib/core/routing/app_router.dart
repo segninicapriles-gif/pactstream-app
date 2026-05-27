@@ -11,6 +11,8 @@ import '../../features/dashboard/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_capture_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_intro_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_result_page.dart';
+import '../../features/ai/presentation/pages/ai_assistant_page.dart';
+import '../../features/scoring/presentation/pages/trust_score_page.dart';
 import '../../features/organization/presentation/pages/accept_org_invite_page.dart';
 import '../../features/organization/presentation/pages/my_team_page.dart';
 import '../../features/pact/presentation/pages/contract_pdf_preview_page.dart';
@@ -66,6 +68,12 @@ abstract final class AppRoutes {
   // Organization (Sprint 6)
   static const myTeam = '/profile/team';
   static const acceptOrgInvite = '/org-invite';
+
+  // AI (Sprint 7)
+  static const pactAssistant = '/pacts/:id/assistant';
+
+  // Scoring (Sprint 8)
+  static const pactTrustScore = '/pacts/:id/trust-score';
 }
 
 /// GoRouter de la app con redirección por estado de auth + KYC.
@@ -99,53 +107,59 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const LoginPage(),
+        pageBuilder: (context, state) =>
+            AppMotion.fadePage(child: const LoginPage()),
       ),
       GoRoute(
         path: AppRoutes.register,
-        builder: (context, state) {
-          // Sprint 6 polish · soporte para link de invitación a org.
+        pageBuilder: (context, state) {
           final token = state.uri.queryParameters['invite_token'];
-          return RegisterPage(inviteToken: token);
+          return AppMotion.slideRightPage(
+            child: RegisterPage(inviteToken: token),
+          );
         },
       ),
       GoRoute(
         path: AppRoutes.verifyEmail,
-        builder: (context, state) {
-          // Sprint 6 polish · si venimos del flow de invitación, pasamos
-          // el token para que verify-email haga redirect a /org-invite.
+        pageBuilder: (context, state) {
           final token = state.uri.queryParameters['invite_token'];
-          return VerifyEmailPage(inviteToken: token);
+          return AppMotion.fadePage(
+            child: VerifyEmailPage(inviteToken: token),
+          );
         },
       ),
 
       // === ONBOARDING ===
       GoRoute(
         path: AppRoutes.kycIntro,
-        builder: (context, state) => const KycIntroPage(),
+        pageBuilder: (context, state) =>
+            AppMotion.slideRightPage(child: const KycIntroPage()),
       ),
       GoRoute(
         path: AppRoutes.kycCapture,
-        builder: (context, state) => const KycCapturePage(),
+        pageBuilder: (context, state) =>
+            AppMotion.slideRightPage(child: const KycCapturePage()),
       ),
       GoRoute(
         path: AppRoutes.kycResult,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final status = state.uri.queryParameters['status'] ?? 'verified';
-          return KycResultPage(status: status);
+          return AppMotion.fadePage(child: KycResultPage(status: status));
         },
       ),
 
       // === MAIN ===
       GoRoute(
         path: AppRoutes.home,
-        builder: (context, state) => const HomePage(),
+        pageBuilder: (context, state) =>
+            AppMotion.fadePage(child: const HomePage()),
       ),
 
       // === PACT ===
       GoRoute(
         path: AppRoutes.pactNew,
-        builder: (context, state) => const NewPactPage(),
+        pageBuilder: (context, state) =>
+            AppMotion.slideUpPage(child: const NewPactPage()),
       ),
       GoRoute(
         path: AppRoutes.pactDetail,
@@ -165,9 +179,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/pacts/:id/contract-pdf',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id']!;
-          return ContractPdfPreviewPage(pactId: id);
+          return AppMotion.slideUpPage(
+            child: ContractPdfPreviewPage(pactId: id),
+          );
         },
       ),
 
@@ -184,23 +200,52 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/pacts/:pactId/milestones/:id/evidences/upload',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final pactId = state.pathParameters['pactId']!;
           final id = state.pathParameters['id']!;
-          return UploadEvidencePage(pactId: pactId, milestoneId: id);
+          return AppMotion.slideUpPage(
+            child: UploadEvidencePage(pactId: pactId, milestoneId: id),
+          );
+        },
+      ),
+
+      // === AI ASSISTANT (Sprint 7) ===
+      GoRoute(
+        path: AppRoutes.pactAssistant,
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final title = state.uri.queryParameters['title'] ?? '';
+          return AppMotion.slideUpPage(
+            child: AiAssistantPage(pactId: id, pactTitle: title),
+          );
+        },
+      ),
+
+      // === TRUST SCORE (Sprint 8) ===
+      GoRoute(
+        path: AppRoutes.pactTrustScore,
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final title = state.uri.queryParameters['title'] ?? '';
+          return AppMotion.slideUpPage(
+            child: TrustScorePage(pactId: id, pactTitle: title),
+          );
         },
       ),
 
       // === ORGANIZATION (Sprint 6) ===
       GoRoute(
         path: AppRoutes.myTeam,
-        builder: (context, state) => const MyTeamPage(),
+        pageBuilder: (context, state) =>
+            AppMotion.slideRightPage(child: const MyTeamPage()),
       ),
       GoRoute(
         path: AppRoutes.acceptOrgInvite,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final token = state.uri.queryParameters['token'] ?? '';
-          return AcceptOrgInvitePage(token: token);
+          return AppMotion.fadePage(
+            child: AcceptOrgInvitePage(token: token),
+          );
         },
       ),
 
@@ -209,10 +254,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     errorBuilder: (context, state) => Scaffold(
       backgroundColor: AppColors.ink50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Página no encontrada', style: AppTypography.h3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
+        title: Text('Página no encontrada',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
       ),
       body: Center(
         child: Padding(

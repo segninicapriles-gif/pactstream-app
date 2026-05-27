@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
@@ -168,10 +169,14 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Verificación de identidad', style: AppTypography.h3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
+        title: Text('Verificación de identidad',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
       ),
       body: SafeArea(
         child: Padding(
@@ -285,7 +290,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.errorBg,
-              borderRadius: BorderRadius.circular(AppSpacing.sm),
+              borderRadius: AppRadius.smAll,
             ),
             child: Text(_errorMessage!,
                 style: AppTypography.bodyS.copyWith(color: AppColors.error)),

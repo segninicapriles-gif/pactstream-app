@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/pressable_card.dart';
+import '../../../../core/widgets/shimmer_box.dart';
+import '../../../scoring/data/scoring_models.dart';
+import '../../../scoring/data/scoring_providers.dart';
+import '../../../scoring/presentation/widgets/pact_score_shields.dart';
 import '../../data/dashboard_data.dart';
 
 /// Widgets compartidos por los 3 dashboards (promotor / constructor / técnico).
@@ -31,11 +38,13 @@ class HeroKpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Semantics(
+      label: '$eyebrow: $amount. $subtitle',
+      child: Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.psNavy,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -64,6 +73,250 @@ class HeroKpiCard extends StatelessWidget {
           ),
         ],
       ),
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// Hero KPI card CON Trust Score (split: financiero izq. | score der.)
+// =====================================================================
+
+/// Versión del HeroKpiCard que integra el Trust Score del usuario
+/// en un panel derecho dentro del mismo bloque navy.
+class HeroKpiScoreCard extends ConsumerWidget {
+  const HeroKpiScoreCard({
+    super.key,
+    required this.eyebrow,
+    required this.amount,
+    required this.subtitle,
+    required this.subtitleColor,
+    this.secondaryLabel,
+    this.secondaryValue,
+    this.icon = Icons.shield_outlined,
+  });
+
+  final String eyebrow;
+  final String amount;
+  final String subtitle;
+  final Color subtitleColor;
+  /// Etiqueta de un segundo dato (ej. "PRÓXIMA LIBERACIÓN")
+  final String? secondaryLabel;
+  final String? secondaryValue;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repAsync = ref.watch(myReputationProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.mdAll,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.psNavy, AppColors.ink800],
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // ─── Panel izquierdo: KPI financiero ───
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  eyebrow,
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.psCyan, letterSpacing: 1.0),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  amount,
+                  style: AppTypography.displayL.copyWith(
+                    color: AppColors.white,
+                    fontSize: 30,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  children: [
+                    Icon(icon, size: 13, color: subtitleColor),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        subtitle,
+                        style:
+                            AppTypography.bodyS.copyWith(color: subtitleColor),
+                      ),
+                    ),
+                  ],
+                ),
+                if (secondaryLabel != null && secondaryValue != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    secondaryLabel!,
+                    style: AppTypography.caption.copyWith(
+                      color: Colors.white.withValues(alpha:0.45),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  Text(
+                    secondaryValue!,
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // ─── Divisor ───
+          Container(
+            width: 1,
+            height: 80,
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            color: Colors.white.withValues(alpha:0.15),
+          ),
+
+          // ─── Panel derecho: Trust Score ───
+          repAsync.when(
+            loading: () => _ScorePanel.loading(),
+            error: (_, __) => _ScorePanel.empty(),
+            data: (rep) => _ScorePanel(rep: rep),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScorePanel extends StatelessWidget {
+  const _ScorePanel({required this.rep}) : _loading = false;
+  const _ScorePanel.loading() : rep = null, _loading = true;
+  const _ScorePanel.empty() : rep = null, _loading = false;
+
+  final UserReputation? rep;
+  final bool _loading;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const SizedBox(
+        width: 64,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white54,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (rep == null) {
+      return SizedBox(
+        width: 64,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'SCORE',
+              style: AppTypography.caption.copyWith(
+                color: Colors.white54,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Icon(Icons.shield_outlined, color: Colors.white38, size: 28),
+          ],
+        ),
+      );
+    }
+
+    final color = rep!.tier.color;
+    final isElite = rep!.tier == ReputationTier.elite;
+
+    return SizedBox(
+      width: 72,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'TRUST SCORE',
+            style: AppTypography.caption.copyWith(
+              color: Colors.white54,
+              fontSize: 7,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          // Score ring
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 2.5),
+              color: color.withValues(alpha:0.12),
+            ),
+            child: Center(
+              child: isElite
+                  ? ShaderMask(
+                      shaderCallback: (b) => LinearGradient(
+                        colors: [
+                          AppColors.tierElite1,
+                          AppColors.tierElite2,
+                        ],
+                      ).createShader(b),
+                      child: Text(
+                        '${rep!.score}',
+                        style: AppTypography.body.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          height: 1,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      '${rep!.score}',
+                      style: AppTypography.body.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        height: 1,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            rep!.tier.label.toUpperCase(),
+            style: AppTypography.caption.copyWith(
+              color: color,
+              fontSize: 8,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          PactScoreShields(
+            filled: rep!.shieldsFilled,
+            tier: rep!.tier,
+            size: 11,
+            spacing: 2,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -79,37 +332,59 @@ class MiniKpiCard extends StatelessWidget {
     required this.value,
     this.subtitle,
     this.subtitleColor,
+    this.accentColor,
   });
 
   final String label;
   final String value;
   final String? subtitle;
   final Color? subtitleColor;
+  /// Optional left accent bar color for quick visual identification.
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+    return Semantics(
+      label: '$label: $value${subtitle != null ? '. $subtitle' : ''}',
+      child: Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
+        boxShadow: AppShadows.soft,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style:
-                  AppTypography.caption.copyWith(color: AppColors.ink500)),
-          const SizedBox(height: AppSpacing.xs),
-          Text(value, style: AppTypography.h2.copyWith(fontSize: 22)),
-          if (subtitle != null) ...[
-            const SizedBox(height: 2),
-            Text(subtitle!,
-                style: AppTypography.bodyS
-                    .copyWith(color: subtitleColor ?? AppColors.ink500)),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (accentColor != null)
+              Container(width: 4, color: accentColor),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.ink500)),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(value,
+                        style: AppTypography.h2.copyWith(fontSize: 22)),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(subtitle!,
+                          style: AppTypography.bodyS.copyWith(
+                              color: subtitleColor ?? AppColors.ink500)),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ],
-        ],
+        ),
+      ),
       ),
     );
   }
@@ -120,13 +395,41 @@ class MiniKpiCard extends StatelessWidget {
 // =====================================================================
 
 class DashboardSectionHeader extends StatelessWidget {
-  const DashboardSectionHeader({super.key, required this.title});
+  const DashboardSectionHeader({
+    super.key,
+    required this.title,
+    this.onViewAll,
+    this.viewAllLabel = 'Ver todas →',
+  });
 
   final String title;
+  /// Si se pasa, aparece el link "Ver todas →" a la derecha.
+  final VoidCallback? onViewAll;
+  final String viewAllLabel;
 
   @override
   Widget build(BuildContext context) {
-    return Text(title, style: AppTypography.h3.copyWith(fontSize: 18));
+    if (onViewAll == null) {
+      return Text(title, style: AppTypography.h3.copyWith(fontSize: 18));
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(title, style: AppTypography.h3.copyWith(fontSize: 18)),
+        GestureDetector(
+          onTap: onViewAll,
+          child: Text(
+            viewAllLabel,
+            style: AppTypography.bodyS.copyWith(
+              color: AppColors.psBlue,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -147,49 +450,54 @@ class UrgentTaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = _iconForKind(task.kind);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.md),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppSpacing.md),
-          border: Border.all(color: AppColors.ink200),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.infoBg,
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
+    return Semantics(
+      button: true,
+      label: '${task.title}. ${task.subtitle}. ${task.badgeLabel}',
+      child: PressableCard(
+        onTap: onTap,
+        borderRadius: AppRadius.mdAll,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(color: AppColors.ink200),
+            boxShadow: AppShadows.soft,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.infoBg,
+                  borderRadius: AppRadius.smAll,
+                ),
+                child: Icon(icon, color: AppColors.psBlue, size: 20),
               ),
-              child: Icon(icon, color: AppColors.psBlue, size: 20),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(task.title,
-                      style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 2),
-                  Text(task.subtitle,
-                      style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink500)),
-                ],
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(task.title,
+                        style: AppTypography.body
+                            .copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(task.subtitle,
+                        style: AppTypography.bodyS
+                            .copyWith(color: AppColors.ink500)),
+                  ],
+                ),
               ),
-            ),
-            StatusPill(
-              label: task.badgeLabel,
-              color: task.badgeLabel == 'URGENTE'
-                  ? AppColors.warning
-                  : AppColors.psBlue,
-            ),
-          ],
+              StatusPill(
+                label: task.badgeLabel,
+                color: task.badgeLabel == 'URGENTE'
+                    ? AppColors.warning
+                    : AppColors.psBlue,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -213,35 +521,55 @@ class UrgentTaskCard extends StatelessWidget {
 // Work card
 // =====================================================================
 
-class WorkCard extends StatelessWidget {
+class WorkCard extends ConsumerWidget {
   const WorkCard({super.key, required this.pact, required this.onTap});
 
   final DashboardActivePact pact;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final config = _stateConfig(pact.state);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.md),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppSpacing.md),
-          border: Border.all(color: AppColors.ink200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(pact.title,
-                      style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w700)),
+    // Dot de salud: obtener score de pact_health para mostrar indicador
+    final healthAsync = ref.watch(pactHealthProvider(pact.id));
+    final healthColor = healthAsync.maybeWhen(
+      data: (h) => h.color,
+      orElse: () => null,
+    );
+    final healthScore = healthAsync.maybeWhen(
+      data: (h) => h.score,
+      orElse: () => null,
+    );
+
+    return Semantics(
+      button: true,
+      label: '${pact.title}. ${pact.city}. Progreso ${pact.progressPct}%',
+      child: PressableCard(
+        onTap: onTap,
+        borderRadius: AppRadius.mdAll,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(color: AppColors.ink200),
+            boxShadow: AppShadows.soft,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(pact.title,
+                        style: AppTypography.body
+                            .copyWith(fontWeight: FontWeight.w700)),
                 ),
+                // Dot de salud (solo cuando hay datos)
+                if (healthColor != null) ...[
+                  _HealthDot(color: healthColor, score: healthScore),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
                 StatusPill(label: config.label, color: config.color),
               ],
             ),
@@ -260,12 +588,14 @@ class WorkCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.xs),
+              borderRadius: AppRadius.xsAll,
               child: LinearProgressIndicator(
                 value: (pact.progressPct / 100).clamp(0.0, 1.0),
                 minHeight: 6,
                 backgroundColor: AppColors.ink200,
-                valueColor: const AlwaysStoppedAnimation(AppColors.psBlue),
+                valueColor: AlwaysStoppedAnimation(
+                  healthColor ?? AppColors.psBlue,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -283,6 +613,7 @@ class WorkCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -309,6 +640,51 @@ class WorkCard extends StatelessWidget {
   }
 }
 
+/// Pequeño dot de color con el score numérico del pacto.
+class _HealthDot extends StatelessWidget {
+  const _HealthDot({required this.color, this.score});
+
+  final Color color;
+  final int? score;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: score != null ? 'Trust Score: $score/100' : 'Trust Score',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha:0.12),
+          borderRadius: AppRadius.xlAll,
+          border: Border.all(color: color.withValues(alpha:0.4), width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            if (score != null) ...[
+              const SizedBox(width: 3),
+              Text(
+                '$score',
+                style: AppTypography.caption.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // =====================================================================
 // Status pill
 // =====================================================================
@@ -330,7 +706,7 @@ class StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.pillAll,
       ),
       child: Text(
         label,
@@ -359,7 +735,7 @@ class EmptyWorksCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.ink50,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
       ),
       child: Row(
@@ -387,80 +763,25 @@ class DashboardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SkBox(height: 124, radius: AppSpacing.md),
-        const SizedBox(height: AppSpacing.md),
+        ShimmerBox(height: 124, radius: AppRadius.md),
+        SizedBox(height: AppSpacing.md),
         Row(
-          children: const [
-            Expanded(child: _SkBox(height: 86, radius: AppSpacing.md)),
+          children: [
+            Expanded(child: ShimmerBox(height: 86, radius: AppRadius.md)),
             SizedBox(width: AppSpacing.md),
-            Expanded(child: _SkBox(height: 86, radius: AppSpacing.md)),
+            Expanded(child: ShimmerBox(height: 86, radius: AppRadius.md)),
           ],
         ),
-        const SizedBox(height: AppSpacing.xl),
-        _SkBox(height: 18, radius: 4, width: 140),
-        const SizedBox(height: AppSpacing.sm),
-        _SkBox(height: 72, radius: AppSpacing.md),
-        const SizedBox(height: AppSpacing.sm),
-        _SkBox(height: 72, radius: AppSpacing.md),
+        SizedBox(height: AppSpacing.xl),
+        ShimmerBox(height: 18, radius: 4, width: 140),
+        SizedBox(height: AppSpacing.sm),
+        ShimmerBox(height: 72, radius: AppRadius.md),
+        SizedBox(height: AppSpacing.sm),
+        ShimmerBox(height: 72, radius: AppRadius.md),
       ],
-    );
-  }
-}
-
-class _SkBox extends StatefulWidget {
-  const _SkBox({required this.height, this.radius = 8, this.width});
-
-  final double height;
-  final double radius;
-  final double? width;
-
-  @override
-  State<_SkBox> createState() => _SkBoxState();
-}
-
-class _SkBoxState extends State<_SkBox> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Container(
-          height: widget.height,
-          width: widget.width,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(widget.radius),
-            gradient: LinearGradient(
-              begin: Alignment(-1.0 + 2.0 * _controller.value, 0),
-              end: Alignment(-0.5 + 2.0 * _controller.value, 0),
-              colors: const [
-                AppColors.ink100,
-                AppColors.ink50,
-                AppColors.ink100,
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
@@ -485,7 +806,7 @@ class DashboardErrorBlock extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.errorBg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         children: [

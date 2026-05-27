@@ -1,24 +1,27 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show UserAttributes;
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions, UserAttributes;
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
+import '../../data/profile_providers.dart';
+import '../../../scoring/presentation/widgets/user_reputation_card.dart';
 
 /// Tab "Perfil" de PactStream.
 ///
-/// Muestra datos del usuario, estado KYC, secciones específicas por rol
-/// (P1-50/51/52 del Design Handoff), preferencias de notificación,
-/// cambio de contraseña y eliminación de cuenta (RGPD · P1-54).
-///
-/// El historial de obras y rating real se construyen en Sprint 2.
+/// Edición inline de nombre y teléfono, subida de foto de perfil vía
+/// image_picker + Supabase Storage (bucket `avatars`).
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
@@ -29,8 +32,8 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   Map<String, dynamic>? _profile;
   bool _loading = true;
+  bool _uploadingAvatar = false;
 
-  // Preferencias de notificación (UI only por ahora — backend en V2)
   bool _notifyMilestones = true;
   bool _notifyPayments = true;
   bool _notifyMessages = true;
@@ -73,10 +76,116 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         _ => AppColors.psBlue,
       };
 
+  // ── Edit profile (nombre + teléfono) ──────────────────────────────────
+
+  Future<void> _showEditSheet() async {
+    final nameCtrl =
+        TextEditingController(text: _profile?['full_name'] as String? ?? '');
+    final phoneCtrl =
+        TextEditingController(text: _profile?['phone_e164'] as String? ?? '');
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => _EditProfileSheet(
+        nameController: nameCtrl,
+        phoneController: phoneCtrl,
+        onSave: (name, phone) async {
+          Navigator.of(ctx).pop();
+          await _saveProfile(name, phone);
+        },
+      ),
+    );
+  }
+
+  Future<void> _saveProfile(String name, String phone) async {
+    try {
+      await SupabaseConfig.client.rpc('sf_update_my_profile', params: {
+        'p_full_name': name.trim().isEmpty ? null : name.trim(),
+        'p_phone_e164': phone.trim().isEmpty ? null : phone.trim(),
+      });
+      await _load();
+      // Invalidar el provider compartido para que el saludo del HomePage
+      // se actualice con el nuevo nombre.
+      ref.invalidate(myProfileProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Perfil actualizado')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo guardar: $e')),
+      );
+    }
+  }
+
+  // ── Foto de perfil ─────────────────────────────────────────────────────
+
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    setState(() => _uploadingAvatar = true);
+
+    try {
+      final authUid = SupabaseConfig.currentUser!.id;
+      final bytes = await picked.readAsBytes(); // XFile.readAsBytes() — cross-platform
+      final ext = picked.path.split('.').last.toLowerCase();
+      final mime = ext == 'png' ? 'image/png' : 'image/jpeg';
+      final path = '$authUid/$authUid.$ext';
+
+      await SupabaseConfig.client.storage.from('avatars').uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(contentType: mime, upsert: true),
+          );
+
+      final url =
+          SupabaseConfig.client.storage.from('avatars').getPublicUrl(path);
+
+      // Añadir cache-buster para forzar recarga en CachedNetworkImage
+      final cacheBustedUrl = '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+
+      await SupabaseConfig.client.rpc('sf_update_my_profile', params: {
+        'p_avatar_url': cacheBustedUrl,
+      });
+
+      setState(() {
+        _profile = {...?_profile, 'avatar_url': cacheBustedUrl};
+      });
+      ref.invalidate(myProfileProvider);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto de perfil actualizada')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al subir foto: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _uploadingAvatar = false);
+    }
+  }
+
+  // ── Build ──────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const ProfileSkeleton();
     }
     if (_profile == null) {
       return Center(
@@ -90,83 +199,104 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ),
       );
     }
+
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.zero,
       children: [
+        // ── Header edge-to-edge (sin padding del ListView) ──────────
         _ProfileHeader(
           fullName: _profile!['full_name'] as String? ?? '',
           email: _profile!['email'] as String? ?? '',
           roleLabel: _roleLabel,
           roleColor: _roleAccentColor,
           organizationName: _profile!['organization_name'] as String?,
+          avatarUrl: _profile!['avatar_url'] as String?,
+          uploadingAvatar: _uploadingAvatar,
+          onEditTap: _showEditSheet,
+          onAvatarTap: _pickAndUploadAvatar,
         ),
-        const SizedBox(height: AppSpacing.xl),
 
-        // KYC status
-        _SectionTitle(title: 'Verificación de identidad'),
-        const SizedBox(height: AppSpacing.sm),
-        _KycSection(status: _kycStatus, profile: _profile!),
-        const SizedBox(height: AppSpacing.xl),
-
-        // Datos por rol (aplicando P1-51/P1-52 del Design Handoff)
-        _SectionTitle(title: 'Información ${_roleSpecificSection()}'),
-        const SizedBox(height: AppSpacing.sm),
-        _RoleDataCard(role: _role, profile: _profile!),
-        const SizedBox(height: AppSpacing.xl),
-
-        // Reputación PactStream (placeholder, real en Sprint 2)
-        _SectionTitle(title: 'Reputación PactStream'),
-        const SizedBox(height: AppSpacing.sm),
-        const _ReputationCard(),
-        const SizedBox(height: AppSpacing.xl),
-
-        // Ajustes de notificación
-        _SectionTitle(title: 'Notificaciones'),
-        const SizedBox(height: AppSpacing.sm),
-        _NotificationsCard(
-          milestones: _notifyMilestones,
-          payments: _notifyPayments,
-          messages: _notifyMessages,
-          deadlines: _notifyDeadlines,
-          onMilestonesChanged: (v) => setState(() => _notifyMilestones = v),
-          onPaymentsChanged: (v) => setState(() => _notifyPayments = v),
-          onMessagesChanged: (v) => setState(() => _notifyMessages = v),
-          onDeadlinesChanged: (v) => setState(() => _notifyDeadlines = v),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-
-        // Acciones de cuenta
-        _SectionTitle(title: 'Cuenta'),
-        const SizedBox(height: AppSpacing.sm),
-        _AccountActionsCard(),
-
-        const SizedBox(height: AppSpacing.xxl),
-
-        // Footer con info legal
-        Center(
+        // ── Resto del contenido con padding horizontal ──────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, AppSpacing.lg),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'PactStream ${AppConstants.appVersion}',
-                style:
-                    AppTypography.caption.copyWith(color: AppColors.ink500),
+              // ── KYC ──────────────────────────────────────────────────
+              _SectionTitle(title: 'Verificación de identidad'),
+              const SizedBox(height: AppSpacing.sm),
+              _KycSection(status: _kycStatus, profile: _profile!),
+              const SizedBox(height: AppSpacing.xl),
+
+              // ── Datos de rol ─────────────────────────────────────────
+              _SectionTitle(title: 'Información ${_roleSpecificSection()}'),
+              const SizedBox(height: AppSpacing.sm),
+              _RoleDataCard(role: _role, profile: _profile!),
+              const SizedBox(height: AppSpacing.xl),
+
+              // ── Reputación ───────────────────────────────────────────
+              _SectionTitle(title: 'Reputación PactStream'),
+              const SizedBox(height: AppSpacing.sm),
+              UserReputationCard(
+                userId: _profile!['id'] as String? ?? '',
               ),
-              const SizedBox(height: 4),
-              Text(
-                '© 2026 PactStream Technologies, S.L.',
-                style:
-                    AppTypography.caption.copyWith(color: AppColors.ink500),
+              const SizedBox(height: AppSpacing.xl),
+
+              // ── Notificaciones ───────────────────────────────────────
+              _SectionTitle(title: 'Notificaciones'),
+              const SizedBox(height: AppSpacing.sm),
+              _NotificationsCard(
+                milestones: _notifyMilestones,
+                payments: _notifyPayments,
+                messages: _notifyMessages,
+                deadlines: _notifyDeadlines,
+                onMilestonesChanged: (v) =>
+                    setState(() => _notifyMilestones = v),
+                onPaymentsChanged: (v) =>
+                    setState(() => _notifyPayments = v),
+                onMessagesChanged: (v) =>
+                    setState(() => _notifyMessages = v),
+                onDeadlinesChanged: (v) =>
+                    setState(() => _notifyDeadlines = v),
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Confidence to build',
-                style:
-                    AppTypography.caption.copyWith(color: AppColors.psCyan),
+              const SizedBox(height: AppSpacing.xl),
+
+              // ── Cuenta ───────────────────────────────────────────────
+              _SectionTitle(title: 'Cuenta'),
+              const SizedBox(height: AppSpacing.sm),
+              _AccountActionsCard(),
+
+              const SizedBox(height: AppSpacing.xxl),
+
+              // ── Footer ───────────────────────────────────────────────
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'PactStream ${AppConstants.appVersion}',
+                      style: AppTypography.caption
+                          .copyWith(color: AppColors.ink500),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '© 2026 PactStream Technologies, S.L.',
+                      style: AppTypography.caption
+                          .copyWith(color: AppColors.ink500),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Confidence to build',
+                      style: AppTypography.caption
+                          .copyWith(color: AppColors.psCyan),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(height: AppSpacing.lg),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.lg),
       ],
     );
   }
@@ -179,7 +309,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 }
 
 // =====================================================================
-// HEADER · avatar + nombre + rol + KPIs
+// HEADER · avatar editable + nombre + rol
 // =====================================================================
 
 class _ProfileHeader extends StatelessWidget {
@@ -188,7 +318,11 @@ class _ProfileHeader extends StatelessWidget {
     required this.email,
     required this.roleLabel,
     required this.roleColor,
+    required this.onEditTap,
+    required this.onAvatarTap,
+    required this.uploadingAvatar,
     this.organizationName,
+    this.avatarUrl,
   });
 
   final String fullName;
@@ -196,6 +330,10 @@ class _ProfileHeader extends StatelessWidget {
   final String roleLabel;
   final Color roleColor;
   final String? organizationName;
+  final String? avatarUrl;
+  final bool uploadingAvatar;
+  final VoidCallback onEditTap;
+  final VoidCallback onAvatarTap;
 
   @override
   Widget build(BuildContext context) {
@@ -206,58 +344,156 @@ class _ProfileHeader extends StatelessWidget {
         .map((s) => s[0].toUpperCase())
         .join();
 
+    // Sin margen — el ListView no tiene padding, así que este Container
+    // se extiende edge-to-edge y conecta visualmente con el AppBar
+    // (mismo gradiente psGradientDeep).
+    // Uses the same gradient as the outer AppBar so the profile header
+    // looks like a natural extension of it — no rounded bottom corners
+    // to keep the unified header pattern across all pages.
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        color: AppColors.psNavy,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.psNavy, AppColors.ink800],
-        ),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.xl,
       ),
-      child: Column(
+      decoration: const BoxDecoration(
+        gradient: AppColors.psGradientDeep,
+      ),
+      child: Stack(
+        alignment: Alignment.topCenter,
         children: [
-          Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              color: roleColor,
-              shape: BoxShape.circle,
-              boxShadow: AppShadows.medium,
-            ),
-            child: Center(
-              child: Text(
-                initials.isEmpty ? '?' : initials,
-                style: AppTypography.h1.copyWith(
-                  color: AppColors.white,
-                  fontSize: 32,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Avatar con overlay de cámara
+              GestureDetector(
+                onTap: onAvatarTap,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 84,
+                      height: 84,
+                      decoration: BoxDecoration(
+                        color: roleColor,
+                        shape: BoxShape.circle,
+                        boxShadow: AppShadows.medium,
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: uploadingAvatar
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.white,
+                              ),
+                            )
+                          : avatarUrl != null && avatarUrl!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: avatarUrl!,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Center(
+                                    child: Text(
+                                      initials.isEmpty ? '?' : initials,
+                                      style: AppTypography.h1.copyWith(
+                                        color: AppColors.white,
+                                        fontSize: 32,
+                                      ),
+                                    ),
+                                  ),
+                                  errorWidget: (_, __, ___) => Center(
+                                    child: Text(
+                                      initials.isEmpty ? '?' : initials,
+                                      style: AppTypography.h1.copyWith(
+                                        color: AppColors.white,
+                                        fontSize: 32,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Center(
+                                  child: Text(
+                                    initials.isEmpty ? '?' : initials,
+                                    style: AppTypography.h1.copyWith(
+                                      color: AppColors.white,
+                                      fontSize: 32,
+                                    ),
+                                  ),
+                                ),
+                    ),
+                    // Overlay cámara
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: AppColors.psBlue,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          size: 13,
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                fullName,
+                textAlign: TextAlign.center,
+                style: AppTypography.h2.copyWith(color: AppColors.white),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                email,
+                textAlign: TextAlign.center,
+                style: AppTypography.bodyS
+                    .copyWith(color: AppColors.white.withValues(alpha: 0.7)),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: roleColor.withValues(alpha: 0.25),
+                  borderRadius: AppRadius.xlAll,
+                  border: Border.all(color: roleColor),
+                ),
+                child: Text(
+                  roleLabel.toUpperCase() +
+                      (organizationName != null
+                          ? ' · $organizationName'
+                          : ''),
+                  style: AppTypography.caption
+                      .copyWith(color: AppColors.white, fontSize: 10),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(fullName,
-              style: AppTypography.h2.copyWith(color: AppColors.white)),
-          const SizedBox(height: 4),
-          Text(email,
-              style: AppTypography.bodyS
-                  .copyWith(color: AppColors.white.withValues(alpha: 0.7))),
-          const SizedBox(height: AppSpacing.sm),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: roleColor.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(AppSpacing.xl),
-              border: Border.all(color: roleColor),
-            ),
-            child: Text(
-              roleLabel.toUpperCase() +
-                  (organizationName != null ? ' · $organizationName' : ''),
-              style: AppTypography.caption
-                  .copyWith(color: AppColors.white, fontSize: 10),
+
+          // Botón editar (esquina superior derecha)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: onEditTap,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.15),
+                  borderRadius: AppRadius.smAll,
+                ),
+                child: const Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: AppColors.white,
+                ),
+              ),
             ),
           ),
         ],
@@ -267,7 +503,99 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 // =====================================================================
-// SECCIÓN TITLE
+// BOTTOM SHEET · edición de nombre y teléfono
+// =====================================================================
+
+class _EditProfileSheet extends StatefulWidget {
+  const _EditProfileSheet({
+    required this.nameController,
+    required this.phoneController,
+    required this.onSave,
+  });
+
+  final TextEditingController nameController;
+  final TextEditingController phoneController;
+  final Future<void> Function(String name, String phone) onSave;
+
+  @override
+  State<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<_EditProfileSheet> {
+  bool _saving = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.lg + bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text('Editar perfil',
+                  style: AppTypography.h3.copyWith(fontSize: 18)),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TextFormField(
+            controller: widget.nameController,
+            decoration: const InputDecoration(
+              labelText: 'Nombre completo',
+              prefixIcon: Icon(Icons.person_outline),
+            ),
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextFormField(
+            controller: widget.phoneController,
+            decoration: const InputDecoration(
+              labelText: 'Teléfono',
+              hintText: '+34 612 345 678',
+              prefixIcon: Icon(Icons.phone_outlined),
+            ),
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.done,
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          ElevatedButton(
+            onPressed: _saving
+                ? null
+                : () async {
+                    setState(() => _saving = true);
+                    await widget.onSave(
+                      widget.nameController.text,
+                      widget.phoneController.text,
+                    );
+                    if (mounted) setState(() => _saving = false);
+                  },
+            child: _saving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.white),
+                  )
+                : const Text('Guardar cambios'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// SECTION TITLE
 // =====================================================================
 
 class _SectionTitle extends StatelessWidget {
@@ -335,8 +663,9 @@ class _KycSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: spec.fg.withValues(alpha: 0.3)),
+        boxShadow: AppShadows.soft,
       ),
       child: Row(
         children: [
@@ -361,8 +690,8 @@ class _KycSection extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     'Verificada ${AppFormatters.dateTimeDetail(DateTime.parse(spec.date!).toLocal())}',
-                    style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink500),
+                    style:
+                        AppTypography.bodyS.copyWith(color: AppColors.ink500),
                   ),
                 ] else if (status == 'pending_review') ...[
                   const SizedBox(height: 2),
@@ -385,7 +714,7 @@ class _KycSection extends StatelessWidget {
 }
 
 // =====================================================================
-// ROLE DATA CARD · datos específicos del rol
+// ROLE DATA CARD
 // =====================================================================
 
 class _RoleDataCard extends StatelessWidget {
@@ -442,7 +771,6 @@ class _RoleDataCard extends StatelessWidget {
         value: profile['organization_cif'] as String? ?? '—',
       ));
     } else if (role == 'promotor') {
-      // P1-51 aplicado: el promotor NO muestra empresa.
       rows.add(_DataRow(
         icon: Icons.badge_outlined,
         label: 'NIF',
@@ -459,14 +787,14 @@ class _RoleDataCard extends StatelessWidget {
       ));
     }
 
-    // P1-52: Constructor y Promotor también pueden subir documentación
     final showDocsButton = role == 'tecnico' || role == 'constructor';
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         children: [
@@ -475,8 +803,7 @@ class _RoleDataCard extends StatelessWidget {
             return Column(
               children: [
                 e.value,
-                if (!isLast)
-                  const Divider(height: 1, indent: 56),
+                if (!isLast) const Divider(height: 1, indent: 56),
               ],
             );
           }),
@@ -491,8 +818,7 @@ class _RoleDataCard extends StatelessWidget {
                     : 'Subir documentación de empresa',
                 style: AppTypography.body.copyWith(color: AppColors.psBlue),
               ),
-              trailing: const Icon(Icons.chevron_right,
-                  color: AppColors.psBlue),
+              trailing: const Icon(Icons.chevron_right, color: AppColors.psBlue),
               onTap: () {
                 // TODO(sprint-2): subida de documentos
               },
@@ -542,106 +868,6 @@ class _DataRow extends StatelessWidget {
 }
 
 // =====================================================================
-// REPUTATION CARD · placeholder para Sprint 2
-// =====================================================================
-
-class _ReputationCard extends StatelessWidget {
-  const _ReputationCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
-        border: Border.all(color: AppColors.ink200),
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.ink100,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text('—',
-                      style: AppTypography.h1
-                          .copyWith(color: AppColors.ink500, fontSize: 28)),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Sin actividad todavía',
-                        style: AppTypography.body
-                            .copyWith(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Tu reputación se construye con cada pacto cerrado, hito validado en plazo y ausencia de disputas.',
-                      style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink500),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              _ReputationStat(label: 'Pactos completados', value: '0'),
-              const SizedBox(width: AppSpacing.md),
-              _ReputationStat(label: 'En curso', value: '0'),
-              const SizedBox(width: AppSpacing.md),
-              _ReputationStat(label: 'Disputas', value: '0'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReputationStat extends StatelessWidget {
-  const _ReputationStat({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: AppColors.ink50,
-          borderRadius: BorderRadius.circular(AppSpacing.sm),
-        ),
-        child: Column(
-          children: [
-            Text(value,
-                style: AppTypography.h2
-                    .copyWith(color: AppColors.ink900, fontSize: 20)),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: AppTypography.caption
-                    .copyWith(color: AppColors.ink500)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// =====================================================================
 // NOTIFICATIONS CARD
 // =====================================================================
 
@@ -671,8 +897,9 @@ class _NotificationsCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         children: [
@@ -732,7 +959,8 @@ class _NotifToggle extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       activeThumbColor: AppColors.psBlue,
-      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.md),
     );
   }
 }
@@ -882,13 +1110,15 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         children: [
           ListTile(
-            leading: const Icon(Icons.group_outlined, color: AppColors.psBlue),
+            leading:
+                const Icon(Icons.group_outlined, color: AppColors.psBlue),
             title: const Text('Mi equipo'),
             subtitle: Text(
               'Invita jefes de obra o técnicos a tu organización',
@@ -923,8 +1153,7 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
               'RGPD · derecho de supresión',
               style: AppTypography.caption.copyWith(color: AppColors.ink500),
             ),
-            trailing:
-                const Icon(Icons.chevron_right, color: AppColors.error),
+            trailing: const Icon(Icons.chevron_right, color: AppColors.error),
             onTap: _deleteAccount,
           ),
         ],
@@ -932,4 +1161,3 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
     );
   }
 }
-

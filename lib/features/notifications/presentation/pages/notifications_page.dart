@@ -3,9 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_haptics.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/animated_list_item.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/pressable_card.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../data/notification_item.dart';
 import '../../data/notifications_providers.dart';
 
@@ -27,13 +34,20 @@ class NotificationsPage extends ConsumerWidget {
         await ref.read(notificationsListProvider.future);
       },
       child: notifsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorView(
+        loading: () => const ListSkeleton(),
+        error: (e, _) => ErrorStateView(
+          title: 'No se pudieron cargar los avisos',
           message: e.toString(),
           onRetry: () => ref.invalidate(notificationsListProvider),
         ),
         data: (items) {
-          if (items.isEmpty) return const _EmptyState();
+          if (items.isEmpty) {
+            return const EmptyStateView(
+              icon: Icons.notifications_outlined,
+              title: 'Sin avisos',
+              subtitle: 'Aquí verás invitaciones, validaciones pendientes, pagos liberados y otras alertas de tus obras.',
+            );
+          }
           return Column(
             children: [
               if (unread > 0) _MarkAllReadHeader(unread: unread),
@@ -45,7 +59,10 @@ class NotificationsPage extends ConsumerWidget {
                   itemCount: items.length,
                   separatorBuilder: (_, __) =>
                       const SizedBox(height: AppSpacing.xs),
-                  itemBuilder: (ctx, i) => _NotificationCard(item: items[i]),
+                  itemBuilder: (ctx, i) => AnimatedListItem(
+                    index: i,
+                    child: _NotificationCard(item: items[i]),
+                  ),
                 ),
               ),
             ],
@@ -74,6 +91,7 @@ class _MarkAllReadHeaderState extends ConsumerState<_MarkAllReadHeader> {
   bool _marking = false;
 
   Future<void> _markAll() async {
+    AppHaptics.medium();
     setState(() => _marking = true);
     try {
       await ref.read(notificationsRepoProvider).markAllAsRead();
@@ -163,20 +181,23 @@ class _NotificationCard extends ConsumerWidget {
     final spec = _specFor(item.notificationType);
     final isUnread = item.isUnread;
 
-    return InkWell(
-      onTap: () => _open(context, ref),
-      borderRadius: BorderRadius.circular(AppSpacing.md),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: isUnread ? AppColors.infoBg : AppColors.white,
-          borderRadius: BorderRadius.circular(AppSpacing.md),
-          border: Border.all(
-            color: isUnread ? AppColors.psBlue : AppColors.ink200,
-            width: isUnread ? 1 : 1,
+    return Semantics(
+      button: true,
+      label: '${isUnread ? "Sin leer. " : ""}${item.title}. ${item.body}',
+      child: PressableCard(
+        onTap: () => _open(context, ref),
+        borderRadius: AppRadius.mdAll,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: isUnread ? AppColors.infoBg : AppColors.white,
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(
+              color: isUnread ? AppColors.psBlue : AppColors.ink200,
+            ),
+            boxShadow: AppShadows.soft,
           ),
-        ),
-        child: Row(
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
@@ -234,7 +255,7 @@ class _NotificationCard extends ConsumerWidget {
                               horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
                             color: AppColors.ink100,
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: AppRadius.microAll,
                           ),
                           child: Text(
                             item.pactDisplayId!,
@@ -262,88 +283,13 @@ class _NotificationCard extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-// =====================================================================
-// EMPTY / ERROR
-// =====================================================================
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      children: [
-        const SizedBox(height: 80),
-        Center(
-          child: Container(
-            width: 88,
-            height: 88,
-            decoration: const BoxDecoration(
-              color: AppColors.infoBg,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.notifications_outlined,
-                color: AppColors.psBlue, size: 44),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(
-          'Sin avisos',
-          textAlign: TextAlign.center,
-          style: AppTypography.h2,
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'Aquí verás invitaciones, validaciones pendientes, pagos liberados y otras alertas de tus obras.',
-          textAlign: TextAlign.center,
-          style: AppTypography.body.copyWith(color: AppColors.ink500),
-        ),
-      ],
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline,
-                color: AppColors.error, size: 48),
-            const SizedBox(height: AppSpacing.md),
-            Text('No se pudieron cargar los avisos',
-                textAlign: TextAlign.center, style: AppTypography.h3),
-            const SizedBox(height: AppSpacing.xs),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyS
-                    .copyWith(color: AppColors.ink500)),
-            const SizedBox(height: AppSpacing.lg),
-            OutlinedButton(
-              onPressed: onRetry,
-              child: const Text('Reintentar'),
-            ),
-          ],
-        ),
       ),
     );
   }
 }
+
+// _EmptyState y _ErrorView ahora usan los widgets reutilizables
+// EmptyStateView y ErrorStateView de core/widgets/empty_state_view.dart.
 
 // =====================================================================
 // MAPEO TIPO → ICONO + COLOR

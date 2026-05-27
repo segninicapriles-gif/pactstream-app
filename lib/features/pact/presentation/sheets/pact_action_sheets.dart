@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../data/pact_actions_v2.dart';
 import '../../data/pact_detail.dart';
@@ -28,7 +30,7 @@ Future<bool> showFundInitialDepositSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => _FundDepositSheet(
           requiredCents: required,
@@ -88,7 +90,7 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.infoBg,
-            borderRadius: BorderRadius.circular(AppSpacing.md),
+            borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.psBlue, width: 1),
           ),
           child: Column(
@@ -151,7 +153,7 @@ Future<bool> showReplenishDepositSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => Padding(
           padding: EdgeInsets.only(
@@ -265,7 +267,7 @@ class _ReplenishDepositSheetState extends State<_ReplenishDepositSheet> {
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.ink50,
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderRadius: AppRadius.microAll,
             ),
             child: Row(
               children: [
@@ -303,7 +305,7 @@ Future<bool> showCreateCertSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => Padding(
           padding: EdgeInsets.only(
@@ -460,7 +462,7 @@ Future<bool> showProposeAddendumSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => Padding(
           padding: EdgeInsets.only(
@@ -603,7 +605,7 @@ class _ProposeAddendumSheetState extends State<_ProposeAddendumSheet> {
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.warningBg,
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderRadius: AppRadius.microAll,
             ),
             child: Row(
               children: [
@@ -677,7 +679,7 @@ Future<bool> showSignAddendumSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => _SignAddendumSheet(
           addendum: addendum,
@@ -753,7 +755,7 @@ class _SignAddendumSheetState extends State<_SignAddendumSheet> {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.ink50,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            borderRadius: AppRadius.smAll,
             border: Border.all(color: AppColors.ink200),
           ),
           child: Column(
@@ -856,7 +858,7 @@ class _SheetScaffold extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.ink200,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: AppRadius.xxsAll,
                   ),
                 ),
               ),
@@ -913,7 +915,12 @@ class _PrimaryButton extends StatelessWidget {
                   strokeWidth: 2, color: AppColors.white),
             )
           : const Icon(Icons.check, size: 18),
-      onPressed: enabled ? onPressed : null,
+      onPressed: enabled
+          ? () {
+              AppHaptics.medium();
+              onPressed();
+            }
+          : null,
       label: Text(loading ? 'Procesando…' : label),
     );
   }
@@ -932,7 +939,7 @@ class _ErrorBanner extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           color: AppColors.errorBg,
-          borderRadius: BorderRadius.circular(AppSpacing.xs),
+          borderRadius: AppRadius.microAll,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -965,7 +972,7 @@ Future<bool> showSetupAdvanceSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => _SetupAdvanceSheet(detail: detail),
       ) ??
@@ -1017,7 +1024,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.infoBg,
-            borderRadius: BorderRadius.circular(AppSpacing.md),
+            borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.psBlue, width: 1),
           ),
           child: Column(
@@ -1039,7 +1046,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.ink50,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            borderRadius: AppRadius.smAll,
             border: Border.all(color: AppColors.ink200),
           ),
           child: Column(
@@ -1143,7 +1150,7 @@ Future<bool> showPredepositMilestoneSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => Padding(
           padding: EdgeInsets.only(
@@ -1233,7 +1240,7 @@ class _PredepositMilestoneSheetState
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.ink50,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            borderRadius: AppRadius.smAll,
             border: Border.all(color: AppColors.ink200),
           ),
           child: Column(
@@ -1328,7 +1335,7 @@ Future<bool> showForceAdvanceSheet(
         isScrollControlled: true,
         backgroundColor: AppColors.white,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: AppRadius.sheetTop,
         ),
         builder: (ctx) => _ForceAdvanceSheet(milestone: milestone),
       ) ??
@@ -1391,7 +1398,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.warningBg,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            borderRadius: AppRadius.smAll,
             border: Border.all(color: AppColors.warning, width: 1),
           ),
           child: Column(
@@ -1408,7 +1415,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
                     horizontal: AppSpacing.sm, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.white,
-                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  borderRadius: AppRadius.microAll,
                 ),
                 child: Row(
                   children: [
@@ -1433,7 +1440,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.errorBg,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            borderRadius: AppRadius.smAll,
             border: Border.all(color: AppColors.error, width: 1),
           ),
           child: Column(

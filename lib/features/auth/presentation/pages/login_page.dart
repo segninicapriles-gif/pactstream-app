@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/pactstream_logo.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -29,6 +31,102 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showResetPasswordDialog() async {
+    final emailCtrl =
+        TextEditingController(text: _emailController.text.trim());
+    bool sending = false;
+    String? sent;
+    String? err;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: !sending,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Recuperar contraseña'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Te enviaremos un enlace para restablecer tu contraseña.',
+                style: AppTypography.bodyS
+                    .copyWith(color: AppColors.ink600),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: emailCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Correo electrónico',
+                  hintText: 'tu@email.com',
+                  prefixIcon: Icon(Icons.mail_outline),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
+                enabled: !sending,
+              ),
+              if (err != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(err!,
+                    style: AppTypography.bodyS
+                        .copyWith(color: AppColors.error)),
+              ],
+              if (sent != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(sent!,
+                    style: AppTypography.bodyS
+                        .copyWith(color: AppColors.success)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: sending ? null : () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: sending || sent != null
+                  ? null
+                  : () async {
+                      final email = emailCtrl.text.trim();
+                      if (!email.contains('@')) {
+                        setS(() => err = 'Introduce un email válido');
+                        return;
+                      }
+                      setS(() {
+                        sending = true;
+                        err = null;
+                      });
+                      try {
+                        await SupabaseConfig.client.auth
+                            .resetPasswordForEmail(email);
+                        setS(() {
+                          sending = false;
+                          sent = 'Revisa tu correo — te hemos enviado '
+                              'el enlace de recuperación.';
+                        });
+                      } catch (e) {
+                        setS(() {
+                          sending = false;
+                          err = 'No se pudo enviar el correo. '
+                              'Inténtalo de nuevo.';
+                        });
+                      }
+                    },
+              child: sending
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.white))
+                  : const Text('Enviar enlace'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _signIn() async {
@@ -56,33 +154,54 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: AppSpacing.xxxl),
-                // Logo oficial PactStream
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xl),
-                    child: Image.asset(
-                      'assets/images/pactstream_logo.png',
-                      fit: BoxFit.contain,
-                      height: 80,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Brand hero header ──────────────────────────
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + AppSpacing.xxl,
+                bottom: AppSpacing.xxl,
+              ),
+              decoration: const BoxDecoration(
+                gradient: AppColors.psGradientDeep,
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(AppRadius.xl),
+                ),
+              ),
+              child: Column(
+                children: [
+                  const PactStreamLogo(
+                    height: 44,
+                    variant: PactStreamLogoVariant.light,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    AppConstants.appTagline,
+                    style: AppTypography.bodyS.copyWith(
+                      color: AppColors.psCyan,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.xxxl),
-
-                Text('Bienvenido a PactStream', style: AppTypography.h3),
+                ],
+              ),
+            ),
+            // ── Form section ──────────────────────────────
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                const SizedBox(height: AppSpacing.lg),
+                Text('Iniciar sesión', style: AppTypography.h2),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'La confianza que la construcción necesitaba',
+                  'Accede a tu cuenta para gestionar tus obras',
                   style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -136,9 +255,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO(sprint-1): pantalla de recuperación de contraseña
-                    },
+                    onPressed: _showResetPasswordDialog,
                     child: const Text('¿Olvidaste tu contraseña?'),
                   ),
                 ),
@@ -149,7 +266,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: AppColors.errorBg,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: AppRadius.smAll,
                     ),
                     child: Text(
                       _errorMessage!,
@@ -196,9 +313,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   onPressed: () => context.go(AppRoutes.register),
                   child: const Text('Crear cuenta nueva'),
                 ),
-              ],
+                const SizedBox(height: AppSpacing.xl),
+                  ],
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
@@ -65,7 +66,7 @@ class _VerifiedResult extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.successBg,
-            borderRadius: BorderRadius.circular(AppSpacing.md),
+            borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.success),
           ),
           child: Column(
@@ -124,7 +125,7 @@ class _PendingResult extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.warningBg,
-            borderRadius: BorderRadius.circular(AppSpacing.md),
+            borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.warning),
           ),
           child: Column(
@@ -183,7 +184,7 @@ class _RejectedResult extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.errorBg,
-            borderRadius: BorderRadius.circular(AppSpacing.md),
+            borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.error),
           ),
           child: Column(

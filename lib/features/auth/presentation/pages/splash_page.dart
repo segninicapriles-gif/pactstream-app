@@ -6,6 +6,7 @@ import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/pactstream_logo.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
 
 /// Splash inicial. Decide a dónde mandar al usuario:
@@ -71,13 +72,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo oficial de PactStream
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
-                child: Image.asset(
-                  'assets/images/pactstream_logo.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
+              const PactStreamLogo(height: 52),
               const SizedBox(height: AppSpacing.xxxl),
               const SizedBox(
                 width: 28,

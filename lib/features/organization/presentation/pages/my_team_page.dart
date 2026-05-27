@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/animated_list_item.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/pressable_card.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../data/organization.dart';
 import '../../data/organization_providers.dart';
 import '../sheets/org_action_sheets.dart';
@@ -26,10 +32,14 @@ class MyTeamPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.ink50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Mi equipo', style: AppTypography.h3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
+        title: Text('Mi equipo',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -39,13 +49,28 @@ class MyTeamPage extends ConsumerWidget {
         ],
       ),
       body: orgsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorView(
+        loading: () => const ListSkeleton(),
+        error: (e, _) => ErrorStateView(
+          title: 'No se pudo cargar el equipo',
           message: e.toString(),
           onRetry: () => ref.invalidate(myOrgsProvider),
+          scrollable: false,
         ),
         data: (org) {
-          if (org == null) return _EmptyOrgView(ref: ref);
+          if (org == null) {
+            return EmptyStateView(
+              icon: Icons.business_center_outlined,
+              title: 'Crea tu organización',
+              subtitle: 'Para invitar a jefes de obra o técnicos del estudio, primero crea tu organización. Solo tarda un minuto.',
+              actionLabel: 'Crear mi organización',
+              actionIcon: Icons.add_business_outlined,
+              onAction: () async {
+                final ok = await showCreateOrgSheet(context);
+                if (ok) ref.invalidate(myOrgsProvider);
+              },
+              scrollable: false,
+            );
+          }
           return _OrgTeamView(org: org);
         },
       ),
@@ -53,56 +78,7 @@ class MyTeamPage extends ConsumerWidget {
   }
 }
 
-// =====================================================================
-// Empty state · cuando el user todavía no tiene organización
-// =====================================================================
-
-class _EmptyOrgView extends StatelessWidget {
-  const _EmptyOrgView({required this.ref});
-  final WidgetRef ref;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: const BoxDecoration(
-                color: AppColors.infoBg,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.business_center_outlined,
-                  color: AppColors.psBlue, size: 48),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text('Crea tu organización',
-                style: AppTypography.h2, textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Para invitar a jefes de obra o técnicos del estudio, primero crea tu organización. Solo tarda un minuto.',
-              style: AppTypography.body.copyWith(color: AppColors.ink600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.add_business_outlined),
-              onPressed: () async {
-                final ok = await showCreateOrgSheet(context);
-                if (ok) ref.invalidate(myOrgsProvider);
-              },
-              label: const Text('Crear mi organización'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// _EmptyOrgView ahora usa EmptyStateView de core/widgets/empty_state_view.dart.
 
 // =====================================================================
 // Vista del equipo · cabecera de org + lista de miembros
@@ -125,36 +101,45 @@ class _OrgTeamView extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          // Cabecera de la organización
-          _OrgHeaderCard(org: org),
+          // Cabecera de la organizacion
+          AnimatedListItem(
+            index: 0,
+            child: _OrgHeaderCard(org: org),
+          ),
           const SizedBox(height: AppSpacing.lg),
 
           // CTA invitar (solo owner)
           if (org.isOwner)
-            ElevatedButton.icon(
-              icon: const Icon(Icons.person_add_outlined),
-              onPressed: () async {
-                final ok = await showInviteMemberSheet(context, orgId: org.id);
-                if (ok) {
-                  ref.invalidate(orgMembersProvider(org.id));
-                  ref.invalidate(myOrgsProvider);
-                }
-              },
-              label: const Text('Invitar miembro'),
+            AnimatedListItem(
+              index: 1,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.person_add_outlined),
+                onPressed: () async {
+                  final ok = await showInviteMemberSheet(context, orgId: org.id);
+                  if (ok) {
+                    ref.invalidate(orgMembersProvider(org.id));
+                    ref.invalidate(myOrgsProvider);
+                  }
+                },
+                label: const Text('Invitar miembro'),
+              ),
             ),
           if (org.isOwner) const SizedBox(height: AppSpacing.lg),
 
           // Lista de miembros
           membersAsync.when(
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(AppSpacing.lg),
-                child: CircularProgressIndicator(),
-              ),
+            loading: () => const Column(
+              children: [
+                ShimmerBox(height: 80, radius: AppRadius.md),
+                SizedBox(height: AppSpacing.sm),
+                ShimmerBox(height: 80, radius: AppRadius.md),
+              ],
             ),
-            error: (e, _) => _ErrorView(
+            error: (e, _) => ErrorStateView(
+              title: 'No se pudo cargar el equipo',
               message: e.toString(),
               onRetry: () => ref.invalidate(orgMembersProvider(org.id)),
+              scrollable: false,
             ),
             data: (result) => _MembersList(
               org: org,
@@ -181,8 +166,9 @@ class _OrgHeaderCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +180,7 @@ class _OrgHeaderCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: AppColors.infoBg,
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  borderRadius: AppRadius.smAll,
                 ),
                 child: const Icon(Icons.business_center_outlined,
                     color: AppColors.psBlue, size: 24),
@@ -219,7 +205,7 @@ class _OrgHeaderCard extends StatelessWidget {
                       horizontal: AppSpacing.xs, vertical: 2),
                   decoration: BoxDecoration(
                     color: AppColors.psBlue.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppRadius.smAll,
                   ),
                   child: Text('OWNER',
                       style: AppTypography.caption.copyWith(
@@ -288,7 +274,7 @@ class _StatChip extends StatelessWidget {
           horizontal: AppSpacing.sm, vertical: 4),
       decoration: BoxDecoration(
         color: c.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.smAll,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -317,47 +303,67 @@ class _MembersList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var animIdx = 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (result.active.isNotEmpty) ...[
-          Text('Miembros activos', style: AppTypography.h3),
+          AnimatedListItem(
+            index: animIdx++,
+            child: Text('Miembros activos', style: AppTypography.h3),
+          ),
           const SizedBox(height: AppSpacing.sm),
           for (final m in result.active)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _MemberTile(
-                org: org,
-                member: m,
-                onChanged: onChanged,
+            AnimatedListItem(
+              index: animIdx++,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _MemberTile(
+                  org: org,
+                  member: m,
+                  onChanged: onChanged,
+                ),
               ),
             ),
           const SizedBox(height: AppSpacing.lg),
         ],
         if (result.pending.isNotEmpty) ...[
-          Text('Invitaciones pendientes', style: AppTypography.h3),
+          AnimatedListItem(
+            index: animIdx++,
+            child: Text('Invitaciones pendientes', style: AppTypography.h3),
+          ),
           const SizedBox(height: AppSpacing.sm),
           for (final m in result.pending)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _MemberTile(
-                org: org,
-                member: m,
-                onChanged: onChanged,
+            AnimatedListItem(
+              index: animIdx++,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _MemberTile(
+                  org: org,
+                  member: m,
+                  onChanged: onChanged,
+                ),
               ),
             ),
           const SizedBox(height: AppSpacing.lg),
         ],
         if (org.isOwner && result.revoked.isNotEmpty) ...[
-          Text('Revocados', style: AppTypography.h3),
+          AnimatedListItem(
+            index: animIdx++,
+            child: Text('Revocados', style: AppTypography.h3),
+          ),
           const SizedBox(height: AppSpacing.sm),
           for (final m in result.revoked)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _MemberTile(
-                org: org,
-                member: m,
-                onChanged: onChanged,
+            AnimatedListItem(
+              index: animIdx++,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _MemberTile(
+                  org: org,
+                  member: m,
+                  onChanged: onChanged,
+                ),
               ),
             ),
         ],
@@ -386,8 +392,9 @@ class _MemberTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.ink200),
+        boxShadow: AppShadows.soft,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +432,7 @@ class _MemberTile extends StatelessWidget {
                         margin: const EdgeInsets.only(left: 4),
                         decoration: BoxDecoration(
                           color: AppColors.success.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: AppRadius.xsAll,
                         ),
                         child: Text('TÚ',
                             style: AppTypography.caption.copyWith(
@@ -540,7 +547,7 @@ class _MiniPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: AppRadius.xsAll,
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(label,
@@ -550,34 +557,4 @@ class _MiniPill extends StatelessWidget {
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline,
-                color: AppColors.error, size: 48),
-            const SizedBox(height: AppSpacing.md),
-            Text('No se pudo cargar tu equipo',
-                style: AppTypography.h3, textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.xs),
-            Text(message,
-                style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
-                textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.lg),
-            OutlinedButton(
-                onPressed: onRetry, child: const Text('Reintentar')),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// _ErrorView ahora usa ErrorStateView de core/widgets/empty_state_view.dart.

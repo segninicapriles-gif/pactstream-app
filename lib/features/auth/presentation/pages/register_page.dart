@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
@@ -259,10 +260,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: _previousStep,
         ),
-        title: Text('Paso ${_currentStep + 1} de $_totalSteps'),
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        title: Text('Paso ${_currentStep + 1} de $_totalSteps',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -283,7 +288,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           right: i < _totalSteps - 1 ? 6 : 0),
                       decoration: BoxDecoration(
                         color: active ? AppColors.psCyan : AppColors.ink200,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: AppRadius.xxsAll,
                       ),
                     ),
                   );
@@ -322,7 +327,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.errorBg,
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  borderRadius: AppRadius.smAll,
                 ),
                 child: Text(
                   _errorMessage!,
@@ -342,7 +347,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           color: AppColors.white,
                         ),
                       )
-                    : Text(_currentStep == 2 ? 'Crear mi cuenta' : 'Siguiente →'),
+                    : Text(_currentStep == _totalSteps - 1 ? 'Crear mi cuenta' : 'Siguiente →'),
               ),
             ),
           ],
@@ -435,7 +440,7 @@ class _Step1PersonalInfo extends StatelessWidget {
                     horizontal: 12, vertical: 14),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.ink200, width: 1.5),
-                  borderRadius: BorderRadius.circular(AppSpacing.md),
+                  borderRadius: AppRadius.mdAll,
                 ),
                 child: Text(
                   'ES +34',
@@ -688,12 +693,12 @@ class _RoleCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.lg),
+        borderRadius: AppRadius.lgAll,
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.white,
-            borderRadius: BorderRadius.circular(AppSpacing.lg),
+            borderRadius: AppRadius.lgAll,
             border: Border.all(
               color: selected ? AppColors.psBlue : AppColors.ink200,
               width: selected ? 2 : 1.5,
@@ -706,7 +711,7 @@ class _RoleCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: AppColors.infoBg,
-                  borderRadius: BorderRadius.circular(AppSpacing.md),
+                  borderRadius: AppRadius.mdAll,
                 ),
                 child: Icon(option.icon, color: AppColors.psBlue),
               ),
@@ -763,7 +768,7 @@ class _Step3LegalConsents extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: AppColors.white,
-              borderRadius: BorderRadius.circular(AppSpacing.md),
+              borderRadius: AppRadius.mdAll,
               border: Border.all(color: AppColors.ink200),
             ),
             child: Column(
@@ -895,7 +900,7 @@ class _ConsentRow extends StatelessWidget {
               value: checked,
               onChanged: onChanged,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: AppRadius.microAll,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -950,7 +955,7 @@ class _InviteContextBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.psNavy.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(
           color: AppColors.psNavy.withValues(alpha: 0.18),
           width: 1,
@@ -964,7 +969,7 @@ class _InviteContextBanner extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: AppColors.psNavy,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.smAll,
             ),
             child: const Icon(Icons.groups_2_outlined,
                 color: AppColors.psCyan, size: 18),

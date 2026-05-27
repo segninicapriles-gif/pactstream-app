@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
@@ -94,7 +95,7 @@ class _CustodyWidgetV21 extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.successBg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.success, width: 1),
       ),
       child: Column(
@@ -159,7 +160,7 @@ class _CustodyWidgetV21 extends StatelessWidget {
                 horizontal: AppSpacing.sm, vertical: 6),
             decoration: BoxDecoration(
               color: AppColors.white,
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderRadius: AppRadius.microAll,
             ),
             child: Row(
               children: [
@@ -206,7 +207,7 @@ class _UnfundedV21 extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.infoBg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.psBlue, width: 1),
       ),
       child: Column(
@@ -240,7 +241,7 @@ class _UnfundedV21 extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: AppColors.white,
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
+              borderRadius: AppRadius.microAll,
             ),
             child: Column(
               children: [
@@ -316,7 +317,7 @@ class _CustodyBlock extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
+        borderRadius: AppRadius.microAll,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,7 +376,7 @@ class _AdvanceCoverageBlock extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
+        borderRadius: AppRadius.microAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,7 +418,7 @@ class _AdvanceCoverageBlock extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.smAll,
             child: LinearProgressIndicator(
               value: coverage,
               minHeight: 6,
@@ -461,7 +462,7 @@ class _MiniPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.smAll,
       ),
       child: Text(label,
           style: AppTypography.caption.copyWith(color: AppColors.ink600)),
@@ -507,7 +508,7 @@ class _DepositWidgetV20 extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
+        borderRadius: AppRadius.mdAll,
         border: Border.all(color: accent, width: 1),
       ),
       child: Column(
@@ -556,7 +557,7 @@ class _DepositWidgetV20 extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.smAll,
               child: LinearProgressIndicator(
                 value: pct,
                 minHeight: 8,

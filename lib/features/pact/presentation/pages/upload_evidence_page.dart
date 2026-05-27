@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/pact_providers.dart';
@@ -183,10 +184,14 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
     return Scaffold(
       backgroundColor: AppColors.ink50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Subir evidencia', style: AppTypography.h3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
+        title: Text('Subir evidencia',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
       ),
       body: SafeArea(
         child: ListView(
@@ -212,7 +217,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: AppColors.errorBg,
-                    borderRadius: BorderRadius.circular(AppSpacing.sm),
+                    borderRadius: AppRadius.smAll,
                   ),
                   child: Row(
                     children: [
@@ -269,7 +274,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.infoBg,
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            borderRadius: AppRadius.smAll,
           ),
           child: Row(
             children: [
@@ -312,7 +317,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.md),
+          borderRadius: AppRadius.mdAll,
           child: AspectRatio(
             aspectRatio: 4 / 3,
             child: Image.memory(
@@ -339,7 +344,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.ink50,
-          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          borderRadius: AppRadius.smAll,
           border: Border.all(color: AppColors.ink200),
         ),
         child: Row(
@@ -360,7 +365,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.successBg,
-          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          borderRadius: AppRadius.smAll,
           border: Border.all(color: AppColors.success, width: 1),
         ),
         child: Row(
@@ -426,12 +431,12 @@ class _PickerOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.md),
+      borderRadius: AppRadius.mdAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: primary ? AppColors.infoBg : AppColors.white,
-          borderRadius: BorderRadius.circular(AppSpacing.md),
+          borderRadius: AppRadius.mdAll,
           border: Border.all(
             color: primary ? AppColors.psBlue : AppColors.ink200,
             width: primary ? 2 : 1,
@@ -444,7 +449,7 @@ class _PickerOption extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 color: primary ? AppColors.psBlue : AppColors.ink100,
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                borderRadius: AppRadius.smAll,
               ),
               child: Icon(icon,
                   color: primary ? AppColors.white : AppColors.ink600,

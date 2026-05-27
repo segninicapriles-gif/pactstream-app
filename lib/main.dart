@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -9,6 +11,10 @@ import 'app.dart';
 import 'data/datasources/supabase/supabase_client.dart';
 
 Future<void> main() async {
+  // Eliminar el fragmento /#/ de las URLs en web para que los deep links
+  // (invitaciones de org, verify-email) funcionen como rutas normales.
+  if (kIsWeb) usePathUrlStrategy();
+
   WidgetsFlutterBinding.ensureInitialized();
 
   // Cargar variables de entorno

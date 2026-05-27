@@ -56,6 +56,26 @@ abstract final class AppColors {
   static const Color tecnicoAccent = Color(0xFFC97A2B);
   static const Color tecnicoAccentDark = Color(0xFFA56423);
 
+  // === SCORING · Tiers de reputación ===
+  static const Color tierBronce  = Color(0xFFCD7F32);
+  static const Color tierPlata   = Color(0xFF94A3B8);
+  static const Color tierOro     = Color(0xFFF59E0B);
+  static const Color tierPlatino = Color(0xFF38BDF8);
+  static const Color tierElite1  = Color(0xFF6366F1); // gradiente inicio
+  static const Color tierElite2  = Color(0xFF8B5CF6); // gradiente fin
+
+  // Backgrounds suaves para cada tier
+  static const Color tierBronceBg  = Color(0x1ACD7F32);
+  static const Color tierPlataBg   = Color(0x1A94A3B8);
+  static const Color tierOroBg     = Color(0x1AF59E0B);
+  static const Color tierPlatinoBg = Color(0x1A38BDF8);
+  static const Color tierEliteBg   = Color(0x1A6366F1);
+
+  // Gauge arc · colores del gradiente rojo→ámbar→verde
+  static const Color gaugeRed    = Color(0xFFFF4D6D); // = error
+  static const Color gaugeAmber  = Color(0xFFFFB020); // = warning
+  static const Color gaugeGreen  = Color(0xFF00C389); // = success
+
   // === MATERIALCOLOR del azul principal ===
   // Para ColorScheme.fromSeed
   static const MaterialColor psBlueSwatch = MaterialColor(

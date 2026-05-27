@@ -7,8 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../data/contract_pdf_builder.dart';
 import '../../data/pact_providers.dart';
 
@@ -98,19 +101,22 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
     return Scaffold(
       backgroundColor: AppColors.ink50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.ink900,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         elevation: 0,
-        title: Text('Firmar contrato', style: AppTypography.h3),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+        ),
+        title: Text('Firmar contrato',
+            style: AppTypography.h3.copyWith(color: AppColors.white)),
       ),
       body: detailAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Text('No se pudo cargar el contrato: $e',
-                textAlign: TextAlign.center, style: AppTypography.body),
-          ),
+        loading: () => const DetailSkeleton(),
+        error: (e, _) => ErrorStateView(
+          title: 'No se pudo cargar el contrato',
+          message: e.toString(),
+          onRetry: () => ref.invalidate(pactDetailProvider(widget.pactId)),
+          scrollable: false,
         ),
         data: (detail) {
           final builder = ContractPdfBuilder(detail: detail);
@@ -303,7 +309,7 @@ class _SignSuccess extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.ink50,
-                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  borderRadius: AppRadius.smAll,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
