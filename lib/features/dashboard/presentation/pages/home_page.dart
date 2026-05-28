@@ -69,14 +69,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     final isLoading = profileAsync.isLoading;
     final profile = profileAsync.valueOrNull;
     final userName = _userNameFrom(profile);
-    final userRole = _userRoleFrom(profile);
-    // Los 3 roles principales pueden crear obras:
-    //   - Constructor: crea el proyecto, sube documentación y contrato
-    //   - Promotor: puede crear obras que encarga a un constructor
-    //   - Técnico: puede crear obras que supervisa
-    final canCreate =
-        userRole == 'constructor' || userRole == 'promotor' || userRole == 'tecnico';
-
     // Títulos del AppBar por tab
     const tabTitles = ['Inicio', 'Mis obras', 'Avisos', 'Mi perfil'];
 
@@ -138,18 +130,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ],
                     )
                   : _buildTabContent(profile),
-          // FAB para crear obra — visible en Inicio y Obras cuando
-          // el usuario tiene permisos (promotor / técnico).
-          floatingActionButton:
-              canCreate && (_selectedIndex == 0 || _selectedIndex == 1)
-                  ? FloatingActionButton.extended(
-                      onPressed: () => context.push(AppRoutes.pactNew),
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Nueva obra'),
-                      backgroundColor: AppColors.psBlue,
-                      foregroundColor: AppColors.white,
-                    )
-                  : null,
           bottomNavigationBar:
               useRail ? null : _buildBottomNav(unread),
         );
