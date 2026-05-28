@@ -81,7 +81,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           appBar: AppBar(
             title: _selectedIndex == 0 && !isLoading
                 ? Text(
-                    'Hola, ${userName.split(' ').first}',
+                    '${_timeGreeting()}, ${userName.split(' ').first}',
                     style: AppTypography.h2.copyWith(color: AppColors.white),
                   )
                 : Text(
@@ -220,6 +220,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       );
     }
     return dashboard;
+  }
+
+  /// Saludo contextual según la hora del día.
+  static String _timeGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 6) return 'Buenas noches';
+    if (hour < 13) return 'Buenos días';
+    if (hour < 20) return 'Buenas tardes';
+    return 'Buenas noches';
   }
 
   /// Callback para "Ver todas" en los dashboards — cambia al tab Obras.

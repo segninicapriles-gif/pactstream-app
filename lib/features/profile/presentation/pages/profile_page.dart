@@ -13,6 +13,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/animated_list_item.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
 import '../../data/profile_providers.dart';
@@ -219,7 +220,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ),
 
         // ── Stats summary row ───────────────────────────────────────
-        _ProfileStatsRow(ref: ref),
+        AnimatedListItem(
+          index: 0,
+          child: _ProfileStatsRow(ref: ref),
+        ),
 
         // ── Resto del contenido con padding horizontal ──────────────
         Padding(
@@ -229,73 +233,116 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── KYC ──────────────────────────────────────────────────
-              _SectionTitle(title: 'Verificación de identidad'),
-              const SizedBox(height: AppSpacing.sm),
-              _KycSection(status: _kycStatus, profile: _profile!),
+              AnimatedListItem(
+                index: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SectionTitle(title: 'Verificación de identidad'),
+                    const SizedBox(height: AppSpacing.sm),
+                    _KycSection(status: _kycStatus, profile: _profile!),
+                  ],
+                ),
+              ),
               const SizedBox(height: AppSpacing.xl),
 
               // ── Datos de rol ─────────────────────────────────────────
-              _SectionTitle(title: 'Información ${_roleSpecificSection()}'),
-              const SizedBox(height: AppSpacing.sm),
-              _RoleDataCard(role: _role, profile: _profile!),
+              AnimatedListItem(
+                index: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SectionTitle(title: 'Información ${_roleSpecificSection()}'),
+                    const SizedBox(height: AppSpacing.sm),
+                    _RoleDataCard(role: _role, profile: _profile!),
+                  ],
+                ),
+              ),
               const SizedBox(height: AppSpacing.xl),
 
               // ── Reputación ───────────────────────────────────────────
-              _SectionTitle(title: 'Reputación PactStream'),
-              const SizedBox(height: AppSpacing.sm),
-              UserReputationCard(
-                userId: _profile!['id'] as String? ?? '',
+              AnimatedListItem(
+                index: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SectionTitle(title: 'Reputación PactStream'),
+                    const SizedBox(height: AppSpacing.sm),
+                    UserReputationCard(
+                      userId: _profile!['id'] as String? ?? '',
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
 
               // ── Notificaciones ───────────────────────────────────────
-              _SectionTitle(title: 'Notificaciones'),
-              const SizedBox(height: AppSpacing.sm),
-              _NotificationsCard(
-                milestones: _notifyMilestones,
-                payments: _notifyPayments,
-                messages: _notifyMessages,
-                deadlines: _notifyDeadlines,
-                onMilestonesChanged: (v) =>
-                    setState(() => _notifyMilestones = v),
-                onPaymentsChanged: (v) =>
-                    setState(() => _notifyPayments = v),
-                onMessagesChanged: (v) =>
-                    setState(() => _notifyMessages = v),
-                onDeadlinesChanged: (v) =>
-                    setState(() => _notifyDeadlines = v),
+              AnimatedListItem(
+                index: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SectionTitle(title: 'Notificaciones'),
+                    const SizedBox(height: AppSpacing.sm),
+                    _NotificationsCard(
+                      milestones: _notifyMilestones,
+                      payments: _notifyPayments,
+                      messages: _notifyMessages,
+                      deadlines: _notifyDeadlines,
+                      onMilestonesChanged: (v) =>
+                          setState(() => _notifyMilestones = v),
+                      onPaymentsChanged: (v) =>
+                          setState(() => _notifyPayments = v),
+                      onMessagesChanged: (v) =>
+                          setState(() => _notifyMessages = v),
+                      onDeadlinesChanged: (v) =>
+                          setState(() => _notifyDeadlines = v),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
 
               // ── Cuenta ───────────────────────────────────────────────
-              _SectionTitle(title: 'Cuenta'),
-              const SizedBox(height: AppSpacing.sm),
-              _AccountActionsCard(),
+              AnimatedListItem(
+                index: 5,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SectionTitle(title: 'Cuenta'),
+                    const SizedBox(height: AppSpacing.sm),
+                    _AccountActionsCard(),
+                  ],
+                ),
+              ),
 
               const SizedBox(height: AppSpacing.xxl),
 
               // ── Footer ───────────────────────────────────────────────
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'PactStream ${AppConstants.appVersion}',
-                      style: AppTypography.caption
-                          .copyWith(color: AppColors.ink500),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '© 2026 PactStream Technologies, S.L.',
-                      style: AppTypography.caption
-                          .copyWith(color: AppColors.ink500),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Confidence to build',
-                      style: AppTypography.caption
-                          .copyWith(color: AppColors.psCyan),
-                    ),
-                  ],
+              AnimatedListItem(
+                index: 6,
+                child: Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'PactStream ${AppConstants.appVersion}',
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.ink500),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '© 2026 PactStream Technologies, S.L.',
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.ink500),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'Confidence to build',
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.psCyan),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),

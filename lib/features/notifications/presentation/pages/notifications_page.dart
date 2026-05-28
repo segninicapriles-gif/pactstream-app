@@ -104,6 +104,23 @@ class NotificationsPage extends ConsumerWidget {
                         letterSpacing: 0.3,
                       ),
                     ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.ink200,
+                        borderRadius: AppRadius.xlAll,
+                      ),
+                      child: Text(
+                        '${group.length}',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.ink600,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Divider(

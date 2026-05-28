@@ -115,6 +115,118 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
 
           final filtered = _applyFilters(pacts);
 
+          // Show a friendly empty state when filters yield no results
+          if (filtered.isEmpty) {
+            return ListView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              children: [
+                // Keep subtitle row
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Gestiona tus proyectos de construcción',
+                        style: AppTypography.bodyS
+                            .copyWith(color: AppColors.ink500),
+                      ),
+                    ),
+                    Text(
+                      '${pacts.length} total',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.ink400,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // Keep search bar
+                TextField(
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  decoration: InputDecoration(
+                    hintText: 'Buscar obra, ciudad o NIF...',
+                    hintStyle: AppTypography.bodyS
+                        .copyWith(color: AppColors.ink400),
+                    prefixIcon: const Icon(Icons.search,
+                        color: AppColors.ink400, size: 20),
+                    filled: true,
+                    fillColor: AppColors.ink50,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: AppRadius.mdAll,
+                      borderSide: BorderSide(color: AppColors.ink200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: AppRadius.mdAll,
+                      borderSide: BorderSide(color: AppColors.ink200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: AppRadius.mdAll,
+                      borderSide:
+                          BorderSide(color: AppColors.psBlue, width: 1.5),
+                    ),
+                  ),
+                  style: AppTypography.bodyS,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // Keep filter chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _filters.map((label) {
+                      final selected = _selectedFilter == label;
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(right: AppSpacing.xs),
+                        child: ChoiceChip(
+                          label: Text(label),
+                          selected: selected,
+                          onSelected: (_) =>
+                              setState(() => _selectedFilter = label),
+                          labelStyle: AppTypography.bodyS.copyWith(
+                            color: selected
+                                ? AppColors.white
+                                : AppColors.ink600,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          selectedColor: AppColors.psBlue,
+                          backgroundColor: AppColors.ink100,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.xlAll,
+                            side: BorderSide.none,
+                          ),
+                          side: BorderSide.none,
+                          showCheckmark: false,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: 2,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+                // Empty filter result
+                EmptyStateView(
+                  icon: Icons.search_off_outlined,
+                  title: 'Sin resultados',
+                  subtitle: _searchQuery.isNotEmpty
+                      ? 'No se encontraron obras para "$_searchQuery"'
+                      : 'No hay obras con el filtro "$_selectedFilter"',
+                  actionLabel: 'Limpiar filtros',
+                  onAction: () => setState(() {
+                    _searchQuery = '';
+                    _selectedFilter = 'Todas';
+                  }),
+                ),
+              ],
+            );
+          }
+
           // Header count: subtitle + search bar + filter chips row
           const headerCount = 3;
           final ctaCount = widget.canCreate ? 1 : 0;
@@ -276,6 +388,15 @@ class _PactCard extends StatelessWidget {
   final PactSummary pact;
   final VoidCallback onTap;
 
+  /// Color de acento lateral según el estado del pacto.
+  static Color _accentForState(String state) => switch (state) {
+    'in_execution' || 'funded' => AppColors.psBlue,
+    'inviting' || 'signing' || 'signed' || 'paused_pending_tech' => AppColors.warning,
+    'completed' => AppColors.success,
+    'disputed' => AppColors.error,
+    _ => AppColors.ink400,
+  };
+
   @override
   Widget build(BuildContext context) {
     final stateStyle = PactStateStyle.forPactState(pact.state);
@@ -283,6 +404,7 @@ class _PactCard extends StatelessWidget {
         ? '${pact.milestonesPaid} de ${pact.milestonesTotal} hitos pagados'
         : '';
     final amount = AppFormatters.moneyShort(pact.totalAmountCents);
+    final accent = _accentForState(pact.state);
 
     return Semantics(
       button: true,
@@ -292,14 +414,23 @@ class _PactCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: AppRadius.mdAll,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: AppRadius.mdAll,
           border: Border.all(color: AppColors.ink200),
           boxShadow: AppShadows.soft,
         ),
-        child: Column(
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Colored left accent bar for quick state identification
+              Container(width: 4, color: accent),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -442,9 +573,14 @@ class _PactCard extends StatelessWidget {
             ],
           ],
         ),
-      ),
-    ),
-    );
+      ),  // Padding
+    ),  // Expanded
+  ],
+),  // Row
+        ),  // IntrinsicHeight
+      ),  // Container
+    ),  // PressableCard
+    );  // Semantics
   }
 }
 
