@@ -1363,12 +1363,12 @@ class _PrimaryActionCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           ElevatedButton.icon(
             icon: loading
-                ? const SizedBox(
+                ? SizedBox(
                     height: 16,
                     width: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.psNavy,
+                      color: context.colors.textPrimary,
                     ),
                   )
                 : const Icon(Icons.arrow_forward),

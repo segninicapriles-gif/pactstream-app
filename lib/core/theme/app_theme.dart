@@ -38,7 +38,10 @@ abstract final class AppTheme {
           outlineVariant: AppColors.ink200,
         ),
         scaffoldBackgroundColor: AppColors.ink50,
-        textTheme: AppTypography.textTheme,
+        textTheme: AppTypography.textTheme.apply(
+          bodyColor: AppColors.ink800,
+          displayColor: AppColors.ink900,
+        ),
         appBarTheme: AppBarTheme(
           backgroundColor: AppColors.psNavy,
           foregroundColor: AppColors.white,
@@ -199,7 +202,7 @@ abstract final class AppTheme {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.psBlue,
+            backgroundColor: AppColors.darkPrimaryButton,
             foregroundColor: AppColors.white,
             disabledBackgroundColor: AppColors.darkSurfaceHigh,
             disabledForegroundColor: AppColors.ink500,

@@ -676,7 +676,7 @@ class _PermissionTile extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 6),
-            child: Icon(icon, size: 18, color: AppColors.psNavy),
+            child: Icon(icon, size: 18, color: context.colors.textPrimary),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(

@@ -231,7 +231,7 @@ class _UnfundedV21 extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(AppFormatters.moneyLong(totalAdvance),
-              style: AppTypography.h1.copyWith(color: AppColors.psNavy)),
+              style: AppTypography.h1.copyWith(color: context.colors.textPrimary)),
           Text(
             subtitle,
             style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
@@ -532,7 +532,7 @@ class _DepositWidgetV20 extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           if (isUnfunded) ...[
             Text(AppFormatters.moneyLong(required),
-                style: AppTypography.h1.copyWith(color: AppColors.psNavy)),
+                style: AppTypography.h1.copyWith(color: context.colors.textPrimary)),
             Text('pendiente de depositar',
                 style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary)),
             const SizedBox(height: AppSpacing.md),
@@ -548,7 +548,7 @@ class _DepositWidgetV20 extends StatelessWidget {
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Text(AppFormatters.moneyLong(current),
-                    style: AppTypography.h1.copyWith(color: AppColors.psNavy)),
+                    style: AppTypography.h1.copyWith(color: context.colors.textPrimary)),
                 const SizedBox(width: AppSpacing.xs),
                 Text('/ ${AppFormatters.moneyShort(required)}',
                     style:

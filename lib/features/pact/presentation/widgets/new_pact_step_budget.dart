@@ -191,7 +191,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                 children: [
                   Text('${d.advancePct.toStringAsFixed(0)} %',
                       style: AppTypography.h1
-                          .copyWith(color: AppColors.psNavy)),
+                          .copyWith(color: context.colors.textPrimary)),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
                     'del presupuesto',
@@ -202,7 +202,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                   Text(
                     AppFormatters.moneyShort(d.totalAdvanceCents),
                     style: AppTypography.h2
-                        .copyWith(color: AppColors.psNavy),
+                        .copyWith(color: context.colors.textPrimary),
                   ),
                 ],
               ),

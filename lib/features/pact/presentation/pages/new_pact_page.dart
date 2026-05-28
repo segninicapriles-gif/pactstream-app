@@ -418,7 +418,7 @@ class _SuccessScreen extends StatelessWidget {
                       child: Text(
                         'Próximos pasos: las partes firman el contrato y el promotor deposita el % acordado en custodia. Después, el constructor podrá emitir certificaciones.',
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.psNavy),
+                            .copyWith(color: context.colors.textPrimary),
                       ),
                     ),
                   ],

@@ -179,7 +179,7 @@ class _OrgHeaderCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.infoBg,
+                  color: context.colors.brandAccentBg,
                   borderRadius: AppRadius.smAll,
                 ),
                 child: Icon(Icons.business_center_outlined,

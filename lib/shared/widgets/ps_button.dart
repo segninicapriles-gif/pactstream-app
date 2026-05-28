@@ -126,7 +126,12 @@ class _PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? AppColors.error : AppColors.psBlue;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDestructive
+        ? AppColors.error
+        : isDark
+            ? AppColors.darkPrimaryButton
+            : AppColors.psBlue;
     return Container(
       decoration: BoxDecoration(
         boxShadow: glow ? AppShadows.glow : null,

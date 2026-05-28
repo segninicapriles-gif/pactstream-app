@@ -112,6 +112,10 @@ abstract final class AppColors {
     colors: [Color(0xFF1530B0), Color(0xFF0B0F28)],
   );
 
+  /// Brighter primary blue for dark-mode buttons / interactive fills.
+  /// psBlue (#0121DC) is invisible on darkSurface; this is the 300 swatch.
+  static const Color darkPrimaryButton = Color(0xFF4D63EB);
+
   /// Semantic backgrounds — richer tints on dark surfaces.
   static const Color darkSuccessBg = Color(0x2600C389);
   static const Color darkWarningBg = Color(0x30FFB020);

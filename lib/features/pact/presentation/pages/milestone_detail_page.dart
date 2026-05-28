@@ -462,13 +462,13 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.groups_2_outlined,
-                                size: 10, color: AppColors.psNavy),
+                            Icon(Icons.groups_2_outlined,
+                                size: 10, color: co.textPrimary),
                             const SizedBox(width: 3),
                             Text(
                               'Vía ${ev.uploaderViaOrgName!}',
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.psNavy,
+                                color: co.textPrimary,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0,
@@ -737,12 +737,12 @@ class _SubmitForReviewCtaState
           const SizedBox(height: AppSpacing.md),
           ElevatedButton.icon(
             icon: _submitting
-                ? const SizedBox(
+                ? SizedBox(
                     height: 16,
                     width: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppColors.psNavy,
+                      color: context.colors.textPrimary,
                     ),
                   )
                 : const Icon(Icons.send),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'app_colors.dart';
-
 /// Sistema tipográfico de PactStream basado en Nunito.
 ///
 /// Escala según Design System v1.0:
@@ -15,6 +13,10 @@ import 'app_colors.dart';
 ///   Body:       15 / 400
 ///   Body S:     13 / 400
 ///   Caption:    11 / 600 / +0.04em / UPPERCASE
+///
+/// **Color**: NO se define aquí. Los estilos heredan el color del
+/// `TextTheme` del tema activo (light → ink900/800, dark → ink200).
+/// Para colores semánticos, usar `.copyWith(color: context.colors.xxx)`.
 abstract final class AppTypography {
   AppTypography._();
 
@@ -23,7 +25,6 @@ abstract final class AppTypography {
         fontWeight: FontWeight.w800,
         height: 1.0,
         letterSpacing: -2.16, // -0.03em
-        color: AppColors.ink900,
       );
 
   static TextStyle get displayL => GoogleFonts.nunito(
@@ -31,7 +32,6 @@ abstract final class AppTypography {
         fontWeight: FontWeight.w800,
         height: 1.05,
         letterSpacing: -0.96, // -0.02em
-        color: AppColors.ink900,
       );
 
   static TextStyle get h1 => GoogleFonts.nunito(
@@ -39,42 +39,36 @@ abstract final class AppTypography {
         fontWeight: FontWeight.w700,
         height: 1.15,
         letterSpacing: -0.32, // -0.01em
-        color: AppColors.ink900,
       );
 
   static TextStyle get h2 => GoogleFonts.nunito(
         fontSize: 24,
         fontWeight: FontWeight.w700,
         height: 1.2,
-        color: AppColors.ink900,
       );
 
   static TextStyle get h3 => GoogleFonts.nunito(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         height: 1.3,
-        color: AppColors.ink900,
       );
 
   static TextStyle get bodyL => GoogleFonts.nunito(
         fontSize: 17,
         fontWeight: FontWeight.w400,
         height: 1.55,
-        color: AppColors.ink800,
       );
 
   static TextStyle get body => GoogleFonts.nunito(
         fontSize: 15,
         fontWeight: FontWeight.w400,
         height: 1.5,
-        color: AppColors.ink800,
       );
 
   static TextStyle get bodyS => GoogleFonts.nunito(
         fontSize: 13,
         fontWeight: FontWeight.w400,
         height: 1.45,
-        color: AppColors.ink700,
       );
 
   static TextStyle get caption => GoogleFonts.nunito(
@@ -82,7 +76,6 @@ abstract final class AppTypography {
         fontWeight: FontWeight.w600,
         height: 1.4,
         letterSpacing: 0.44, // 0.04em
-        color: AppColors.ink600,
       );
 
   /// Estilo para etiquetas de campos / secciones (más fuerte que body S).
@@ -92,14 +85,12 @@ abstract final class AppTypography {
         fontWeight: FontWeight.w800,
         height: 1.3,
         letterSpacing: 0.5,
-        color: AppColors.ink600,
       );
 
   /// Estilo monoespaciado para metadata técnica (IDs, hashes, fechas forenses).
   static TextStyle get mono => GoogleFonts.jetBrainsMono(
         fontSize: 12,
         fontWeight: FontWeight.w400,
-        color: AppColors.ink600,
       );
 
   /// TextTheme completo para Material 3.

@@ -398,16 +398,15 @@ class _VerificationBody extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.xs, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.psNavy.withValues(alpha: 0.08),
+                    color: context.colors.border.withValues(alpha: 0.3),
                     borderRadius: AppRadius.xsAll,
                     border: Border.all(
-                        color:
-                            AppColors.psNavy.withValues(alpha: 0.2)),
+                        color: context.colors.border),
                   ),
                   child: Text(
                     'DEMO',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.psNavy,
+                      color: context.colors.textPrimary,
                       fontWeight: FontWeight.w800,
                       fontSize: 9,
                       letterSpacing: 0.5,

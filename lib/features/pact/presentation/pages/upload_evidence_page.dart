@@ -287,7 +287,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
                   'desde la cámara, registramos también la ubicación GPS '
                   'como prueba forense.',
                   style: AppTypography.bodyS
-                      .copyWith(color: AppColors.psNavy),
+                      .copyWith(color: context.colors.textPrimary),
                 ),
               ),
             ],
