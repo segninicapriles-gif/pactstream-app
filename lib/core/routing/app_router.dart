@@ -17,6 +17,7 @@ import '../../features/scoring/presentation/pages/trust_score_page.dart';
 import '../../features/organization/presentation/pages/accept_org_invite_page.dart';
 import '../../features/organization/presentation/pages/my_team_page.dart';
 import '../../features/pact/presentation/pages/contract_pdf_preview_page.dart';
+import '../../features/pact/presentation/pages/obra_report_preview_page.dart';
 import '../../features/pact/presentation/pages/contract_signing_page.dart';
 import '../../features/pact/presentation/pages/milestone_detail_page.dart';
 import '../../features/pact/presentation/pages/new_pact_page.dart';
@@ -76,6 +77,9 @@ abstract final class AppRoutes {
 
   // Scoring (Sprint 8)
   static const pactTrustScore = '/pacts/:id/trust-score';
+
+  // Libro de la Obra (Sprint 8)
+  static const obraReport = '/pacts/:id/obra-report';
 }
 
 /// GoRouter de la app con redirección por estado de auth + KYC.
@@ -191,6 +195,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id']!;
           return AppMotion.slideUpPage(
             child: ContractPdfPreviewPage(pactId: id),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/pacts/:id/obra-report',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AppMotion.slideUpPage(
+            child: ObraReportPreviewPage(pactId: id),
           );
         },
       ),
