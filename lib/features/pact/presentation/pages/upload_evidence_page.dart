@@ -182,7 +182,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
@@ -330,7 +330,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
         Text(
           '${_picked!.name} · ${_formatSize(_bytes!.length)}',
           style: AppTypography.caption.copyWith(
-            color: AppColors.ink500,
+            color: context.colors.textTertiary,
             letterSpacing: 0,
           ),
         ),
@@ -343,19 +343,20 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.ink50,
+          color: context.colors.scaffold,
           borderRadius: AppRadius.smAll,
-          border: Border.all(color: AppColors.ink200),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(
-          children: const [
-            SizedBox(
+          children: [
+            const SizedBox(
               height: 14,
               width: 14,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            SizedBox(width: AppSpacing.sm),
-            Text('Obteniendo ubicación GPS…'),
+            const SizedBox(width: AppSpacing.sm),
+            Text('Obteniendo ubicación GPS…',
+                style: TextStyle(color: context.colors.textSecondary)),
           ],
         ),
       );
@@ -387,7 +388,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
                     '${_gps!.latitude.toStringAsFixed(5)}, ${_gps!.longitude.toStringAsFixed(5)}'
                     ' · precisión ${_gps!.accuracy.toStringAsFixed(0)} m',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.ink600,
+                      color: context.colors.textSecondary,
                       letterSpacing: 0,
                     ),
                   ),
@@ -435,10 +436,10 @@ class _PickerOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: primary ? AppColors.infoBg : AppColors.white,
+          color: primary ? AppColors.infoBg : context.colors.card,
           borderRadius: AppRadius.mdAll,
           border: Border.all(
-            color: primary ? AppColors.psBlue : AppColors.ink200,
+            color: primary ? AppColors.psBlue : context.colors.border,
             width: primary ? 2 : 1,
           ),
         ),
@@ -448,11 +449,11 @@ class _PickerOption extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: primary ? AppColors.psBlue : AppColors.ink100,
+                color: primary ? AppColors.psBlue : context.colors.chipBg,
                 borderRadius: AppRadius.smAll,
               ),
               child: Icon(icon,
-                  color: primary ? AppColors.white : AppColors.ink600,
+                  color: primary ? AppColors.white : context.colors.textSecondary,
                   size: 24),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -462,14 +463,14 @@ class _PickerOption extends StatelessWidget {
                 children: [
                   Text(label,
                       style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w800)),
+                          .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
                   Text(subtitle,
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink500)),
+                          .copyWith(color: context.colors.textTertiary)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.ink400),
+            Icon(Icons.chevron_right, color: context.colors.textHint),
           ],
         ),
       ),

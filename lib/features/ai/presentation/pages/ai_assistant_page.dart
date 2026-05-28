@@ -94,7 +94,7 @@ class _AiAssistantPageState extends ConsumerState<AiAssistantPage> {
     if (state.messages.isNotEmpty) _scrollToBottom();
 
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
@@ -220,7 +220,7 @@ class _EmptyConversation extends StatelessWidget {
               'ayudarte a tomar acciones.',
               textAlign: TextAlign.center,
               style: AppTypography.body
-                  .copyWith(color: AppColors.ink500),
+                  .copyWith(color: context.colors.textTertiary),
             ),
           ],
         ),
@@ -273,7 +273,7 @@ class _MessageBubble extends StatelessWidget {
                     vertical: AppSpacing.sm,
                   ),
                   decoration: BoxDecoration(
-                    color: isUser ? AppColors.psBlue : AppColors.white,
+                    color: isUser ? AppColors.psBlue : context.colors.card,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(AppRadius.lg),
                       topRight: const Radius.circular(AppRadius.lg),
@@ -285,7 +285,7 @@ class _MessageBubble extends StatelessWidget {
                   child: Text(
                     message.content ?? '',
                     style: AppTypography.body.copyWith(
-                      color: isUser ? AppColors.white : AppColors.ink800,
+                      color: isUser ? AppColors.white : context.colors.textPrimary,
                     ),
                   ),
                 ),
@@ -313,7 +313,7 @@ class _MessageBubble extends StatelessWidget {
                 Text(
                   _fmtTime(message.createdAt),
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.ink400,
+                    color: context.colors.textHint,
                     letterSpacing: 0,
                   ),
                 ),
@@ -345,7 +345,7 @@ class _MessageBubble extends StatelessWidget {
                     size: 13,
                     color: message.toolCallStatus == 'confirmed'
                         ? AppColors.success
-                        : AppColors.ink400,
+                        : context.colors.textHint,
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
@@ -355,7 +355,7 @@ class _MessageBubble extends StatelessWidget {
                     style: AppTypography.caption.copyWith(
                       color: message.toolCallStatus == 'confirmed'
                           ? AppColors.success
-                          : AppColors.ink400,
+                          : context.colors.textHint,
                       letterSpacing: 0,
                     ),
                   ),
@@ -460,7 +460,7 @@ class _ToolCallProposal extends StatelessWidget {
                   label,
                   style: AppTypography.bodyS.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.ink800,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -474,9 +474,9 @@ class _ToolCallProposal extends StatelessWidget {
                   onPressed: onCancel,
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 32),
-                    foregroundColor: AppColors.ink600,
+                    foregroundColor: context.colors.textSecondary,
                     side:
-                        const BorderSide(color: AppColors.ink300),
+                        BorderSide(color: context.colors.border),
                   ),
                   child: const Text('Cancelar'),
                 ),
@@ -527,7 +527,7 @@ class _TypingIndicator extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: context.colors.card,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(AppRadius.lg),
                 topRight: Radius.circular(AppRadius.lg),
@@ -594,8 +594,8 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
       child: Container(
         width: 6,
         height: 6,
-        decoration: const BoxDecoration(
-          color: AppColors.ink400,
+        decoration: BoxDecoration(
+          color: context.colors.textHint,
           shape: BoxShape.circle,
         ),
       ),
@@ -638,7 +638,7 @@ class _QuickActionsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.white,
+      color: context.colors.card,
       padding: const EdgeInsets.fromLTRB(
           AppSpacing.md, AppSpacing.xs, AppSpacing.md, AppSpacing.xs),
       child: SingleChildScrollView(
@@ -652,13 +652,13 @@ class _QuickActionsBar extends StatelessWidget {
                   avatar: Icon(a.icon, size: 16),
                   label: Text(a.label),
                   labelStyle: AppTypography.caption
-                      .copyWith(letterSpacing: 0, color: AppColors.ink700),
+                      .copyWith(letterSpacing: 0, color: context.colors.textSecondary),
                   onPressed: () => onSelected(
                     quickIntent: a.label,
                     intentKey: a.intentKey,
                   ),
-                  backgroundColor: AppColors.ink50,
-                  side: const BorderSide(color: AppColors.ink200),
+                  backgroundColor: context.colors.chipBg,
+                  side: BorderSide(color: context.colors.border),
                 ),
               ),
           ],
@@ -687,7 +687,7 @@ class _InputBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        color: AppColors.white,
+        color: context.colors.card,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.sm,
@@ -704,9 +704,9 @@ class _InputBar extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: 'Pregunta algo sobre la obra…',
                   hintStyle: AppTypography.body
-                      .copyWith(color: AppColors.ink400),
+                      .copyWith(color: context.colors.textHint),
                   filled: true,
-                  fillColor: AppColors.ink50,
+                  fillColor: context.colors.inputFill,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.md,
                     vertical: AppSpacing.sm,
@@ -714,12 +714,12 @@ class _InputBar extends StatelessWidget {
                   border: OutlineInputBorder(
                     borderRadius: AppRadius.xlAll,
                     borderSide:
-                        const BorderSide(color: AppColors.ink200),
+                        BorderSide(color: context.colors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: AppRadius.xlAll,
                     borderSide:
-                        const BorderSide(color: AppColors.ink200),
+                        BorderSide(color: context.colors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: AppRadius.xlAll,
@@ -736,17 +736,17 @@ class _InputBar extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 gradient: isSending ? null : AppColors.psGradientDeep,
-                color: isSending ? AppColors.ink200 : null,
+                color: isSending ? context.colors.border : null,
                 shape: BoxShape.circle,
               ),
               child: isSending
-                  ? const Center(
+                  ? Center(
                       child: SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.ink500,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                     )

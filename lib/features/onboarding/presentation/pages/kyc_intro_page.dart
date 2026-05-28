@@ -54,7 +54,7 @@ class KycIntroPage extends ConsumerWidget {
               Text(
                 'Para firmar pactos y mover dinero, necesitamos confirmar quién eres. Tarda 2 minutos.',
                 textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(color: AppColors.ink600),
+                style: AppTypography.body.copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.xl),
               const _BulletPoint(
@@ -85,7 +85,7 @@ class KycIntroPage extends ConsumerWidget {
               Text(
                 'Verificación gestionada por Onfido (próximamente · simulada en desarrollo).',
                 textAlign: TextAlign.center,
-                style: AppTypography.caption.copyWith(color: AppColors.ink500),
+                style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
               ),
             ],
           ),
@@ -124,10 +124,10 @@ class _BulletPoint extends StatelessWidget {
               children: [
                 Text(title,
                     style: AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w700)),
+                        .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                 Text(subtitle,
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink500)),
+                        .copyWith(color: context.colors.textTertiary)),
               ],
             ),
           ),

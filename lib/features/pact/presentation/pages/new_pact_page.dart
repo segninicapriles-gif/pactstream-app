@@ -227,7 +227,7 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.white,
+        backgroundColor: context.colors.card,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           foregroundColor: AppColors.white,
@@ -285,9 +285,9 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
       top: false,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-          border: Border(top: BorderSide(color: AppColors.ink200, width: 1)),
+        decoration: BoxDecoration(
+          color: context.colors.card,
+          border: Border(top: BorderSide(color: context.colors.border, width: 1)),
         ),
         child: Row(
           children: [
@@ -343,7 +343,7 @@ class _StepProgressBar extends StatelessWidget {
                       right: i == total - 1 ? 0 : AppSpacing.xs),
                   height: 4,
                   decoration: BoxDecoration(
-                    color: filled ? AppColors.psBlue : AppColors.ink200,
+                    color: filled ? AppColors.psBlue : context.colors.border,
                     borderRadius: AppRadius.xxsAll,
                   ),
                 ),
@@ -353,7 +353,7 @@ class _StepProgressBar extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Paso ${current + 1} de $total',
-            style: AppTypography.caption.copyWith(color: AppColors.ink500),
+            style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
@@ -369,7 +369,7 @@ class _SuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: context.colors.card,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
@@ -392,13 +392,13 @@ class _SuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               Text('Obra creada con éxito',
-                  textAlign: TextAlign.center, style: AppTypography.h1),
+                  textAlign: TextAlign.center, style: AppTypography.h1.copyWith(color: context.colors.textPrimary)),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'Tu pacto $displayId está en estado borrador. '
                 'Las partes invitadas recibirán un email para unirse y firmar.',
                 textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(color: AppColors.ink600),
+                style: AppTypography.body.copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.xl),
               Container(
@@ -435,7 +435,7 @@ class _SuccessScreen extends StatelessWidget {
                 child: Text(
                   'Ver detalle de la obra (próximamente)',
                   style:
-                      AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                      AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
                 ),
               ),
             ],

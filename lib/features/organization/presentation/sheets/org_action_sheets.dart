@@ -21,7 +21,7 @@ Future<bool> showCreateOrgSheet(BuildContext context) async {
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: context.colors.card,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -96,7 +96,7 @@ class _CreateOrgSheetState extends State<_CreateOrgSheet> {
       children: [
         Text(
           'Crea tu organización para poder invitar a jefes de obra (constructor) o técnicos del estudio que te ayuden en el día a día.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
         TextField(
@@ -171,7 +171,7 @@ Future<bool> showInviteMemberSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: context.colors.card,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -265,13 +265,13 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
           Text(
             '${_nameCtrl.text.trim()} recibirá un email para aceptar la invitación.',
             textAlign: TextAlign.center,
-            style: AppTypography.body.copyWith(color: AppColors.ink900),
+            style: AppTypography.body.copyWith(color: context.colors.textPrimary),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Cuando acepte, podrá empezar a subir evidencias en las obras donde colaboréis.',
             textAlign: TextAlign.center,
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
         ],
       );
@@ -284,7 +284,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
       children: [
         Text(
           'Invita a un jefe de obra para que pueda subir evidencias de las obras en su dispositivo. No necesita pasar verificación de identidad.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
         TextField(
@@ -311,7 +311,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
-            color: AppColors.ink50,
+            color: context.colors.chipBg,
             borderRadius: AppRadius.microAll,
           ),
           child: SwitchListTile(
@@ -325,7 +325,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
                     .copyWith(fontWeight: FontWeight.w700)),
             subtitle: Text(
               'Si lo activas, este miembro verá importes, presupuestos y movimientos del pacto. Si no, solo verá la información operativa.',
-              style: AppTypography.caption.copyWith(color: AppColors.ink600),
+              style: AppTypography.caption.copyWith(color: context.colors.textSecondary),
             ),
           ),
         ),
@@ -353,7 +353,7 @@ Future<bool> showRevokeMemberSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: context.colors.card,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -423,7 +423,7 @@ class _RevokeMemberSheetState extends State<_RevokeMemberSheet> {
           isInvited
               ? '¿Cancelar la invitación pendiente de ${m.displayName} (${m.email})?'
               : 'Vas a revocar el acceso de ${m.displayName} (${m.email}) a tu organización. No podrá seguir subiendo evidencias ni acceder a tus pacts.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink900),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
         ),
         const SizedBox(height: AppSpacing.md),
         if (!isInvited) ...[
@@ -442,7 +442,7 @@ class _RevokeMemberSheetState extends State<_RevokeMemberSheet> {
                   child: Text(
                     'Las evidencias que ya subió a obras pasadas siguen siendo válidas y vinculadas a su nombre.',
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.ink900),
+                        .copyWith(color: context.colors.textPrimary),
                   ),
                 ),
               ],
@@ -510,7 +510,7 @@ Future<bool> showUpdatePermissionsSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: context.colors.card,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -667,9 +667,9 @@ class _PermissionTile extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.ink50,
+        color: context.colors.chipBg,
         borderRadius: AppRadius.smAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -689,7 +689,7 @@ class _PermissionTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(subtitle,
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink600)),
+                        .copyWith(color: context.colors.textSecondary)),
               ],
             ),
           ),
@@ -733,7 +733,7 @@ class _SheetScaffold extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.ink200,
+                    color: context.colors.border,
                     borderRadius: AppRadius.xxsAll,
                   ),
                 ),

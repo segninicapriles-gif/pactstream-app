@@ -81,7 +81,7 @@ class _ScoringFactorRowState extends State<ScoringFactorRow>
                   factor.label,
                   style: AppTypography.bodyS.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.ink800,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -90,7 +90,7 @@ class _ScoringFactorRowState extends State<ScoringFactorRow>
               Text(
                 'peso ${factor.weightPct}%',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.ink400,
+                  color: context.colors.textHint,
                 ),
               ),
 
@@ -120,7 +120,7 @@ class _ScoringFactorRowState extends State<ScoringFactorRow>
                 borderRadius: AppRadius.pillAll,
                 child: LinearProgressIndicator(
                   value: (pct / 100) * _barAnimation.value,
-                  backgroundColor: AppColors.ink100,
+                  backgroundColor: context.colors.chipBg,
                   valueColor: AlwaysStoppedAnimation<Color>(color),
                   minHeight: 6,
                 ),

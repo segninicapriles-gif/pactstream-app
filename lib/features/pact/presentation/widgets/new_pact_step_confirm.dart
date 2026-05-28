@@ -60,7 +60,7 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text('Crear pacto',
-                    textAlign: TextAlign.center, style: AppTypography.h1),
+                    textAlign: TextAlign.center, style: AppTypography.h1.copyWith(color: context.colors.textPrimary)),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Las partes invitadas recibirán un email para unirse y firmar. '
@@ -68,7 +68,7 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                   '${AppFormatters.moneyShort(d.advanceReleasedCents)} al constructor el día 1 y '
                   '${AppFormatters.moneyShort(d.advanceReserveCents)} en custodia hasta el finiquito.',
                   textAlign: TextAlign.center,
-                  style: AppTypography.body.copyWith(color: AppColors.ink600),
+                  style: AppTypography.body.copyWith(color: context.colors.textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.xl),
 
@@ -145,7 +145,7 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                       : (v) => setState(() => _accepted = v ?? false),
                   title: Text(
                     'Confirmo que los datos son correctos y autorizo a PactStream a notificar a las partes invitadas.',
-                    style: AppTypography.bodyS,
+                    style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
                   ),
                 ),
 
@@ -193,7 +193,7 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
           Text(
             'Aún no se cobra nada. El Adelanto se solicitará cuando todas las partes firmen.',
             textAlign: TextAlign.center,
-            style: AppTypography.caption.copyWith(color: AppColors.ink500),
+            style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
@@ -230,9 +230,9 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.ink50,
+        color: context.colors.scaffold,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -243,7 +243,7 @@ class _SummaryCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text(title,
                   style: AppTypography.bodyS
-                      .copyWith(fontWeight: FontWeight.w800)),
+                      .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -274,7 +274,7 @@ class _SummaryRow extends StatelessWidget {
             flex: 4,
             child: Text(label,
                 style: AppTypography.bodyS.copyWith(
-                    color: muted ? AppColors.ink500 : AppColors.ink600)),
+                    color: muted ? context.colors.textTertiary : context.colors.textSecondary)),
           ),
           Expanded(
             flex: 6,
@@ -285,7 +285,7 @@ class _SummaryRow extends StatelessWidget {
                 fontWeight: emphasis
                     ? FontWeight.w800
                     : (muted ? FontWeight.w500 : FontWeight.w700),
-                color: muted ? AppColors.ink600 : AppColors.ink900,
+                color: muted ? context.colors.textSecondary : context.colors.textPrimary,
               ),
             ),
           ),

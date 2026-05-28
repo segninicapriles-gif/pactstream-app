@@ -21,13 +21,13 @@ class PactStateStyle {
   final Color bg;
   final Color fg;
 
-  static PactStateStyle forPactState(String state) {
+  static PactStateStyle forPactState(String state, BuildContext context) {
     switch (state) {
       case 'draft':
         return PactStateStyle(
           label: 'Borrador',
-          bg: AppColors.ink100,
-          fg: AppColors.ink600,
+          bg: context.colors.chipBg,
+          fg: context.colors.chipText,
         );
       case 'inviting':
         return PactStateStyle(
@@ -64,11 +64,11 @@ class PactStateStyle {
       case 'closed':
         return PactStateStyle(
           label: 'Completado',
-          bg: AppColors.ink200,
-          fg: AppColors.ink700,
+          bg: context.colors.border,
+          fg: context.colors.textPrimary,
         );
       case 'cancelled':
-        return PactStateStyle(
+        return const PactStateStyle(
           label: 'Cancelado',
           bg: AppColors.errorBg,
           fg: AppColors.error,
@@ -76,19 +76,19 @@ class PactStateStyle {
       default:
         return PactStateStyle(
           label: state,
-          bg: AppColors.ink100,
-          fg: AppColors.ink600,
+          bg: context.colors.chipBg,
+          fg: context.colors.chipText,
         );
     }
   }
 
-  static PactStateStyle forMilestoneState(String state) {
+  static PactStateStyle forMilestoneState(String state, BuildContext context) {
     switch (state) {
       case 'pending':
         return PactStateStyle(
           label: 'Pendiente',
-          bg: AppColors.ink100,
-          fg: AppColors.ink600,
+          bg: context.colors.chipBg,
+          fg: context.colors.chipText,
         );
       case 'in_execution':
       case 'in_progress':
@@ -168,14 +168,14 @@ class PactStateStyle {
       case 'completed':
         return PactStateStyle(
           label: 'Completado',
-          bg: AppColors.ink200,
-          fg: AppColors.ink700,
+          bg: context.colors.border,
+          fg: context.colors.textPrimary,
         );
       default:
         return PactStateStyle(
           label: state.replaceAll('_', ' '),
-          bg: AppColors.ink100,
-          fg: AppColors.ink600,
+          bg: context.colors.chipBg,
+          fg: context.colors.chipText,
         );
     }
   }

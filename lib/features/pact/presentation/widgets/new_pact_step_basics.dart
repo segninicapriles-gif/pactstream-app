@@ -53,11 +53,11 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        Text('¿Qué tipo de obra es?', style: AppTypography.h2),
+        Text('¿Qué tipo de obra es?', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Esto define qué partes participan y la documentación necesaria.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
         const SizedBox(height: AppSpacing.lg),
 
@@ -90,7 +90,7 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
         // Si obra menor, exigimos categoría + declaración
         if (widget.data.pactType == 'obra_menor') ...[
           const SizedBox(height: AppSpacing.lg),
-          Text('Categoría de obra menor', style: AppTypography.label),
+          Text('Categoría de obra menor', style: AppTypography.label.copyWith(color: context.colors.textSecondary)),
           const SizedBox(height: AppSpacing.xs),
           DropdownButtonFormField<String>(
             value: widget.data.minorWorkCategory,
@@ -128,13 +128,13 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
                     const SizedBox(width: AppSpacing.xs),
                     Text('Declaración del promotor',
                         style: AppTypography.bodyS
-                            .copyWith(fontWeight: FontWeight.w700)),
+                            .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'En obra menor sin técnico, el promotor asume la responsabilidad de declarar que la obra no afecta a la estructura ni requiere licencia de obra mayor.',
-                  style: AppTypography.bodyS,
+                  style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 CheckboxListTile(
@@ -147,7 +147,7 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
                   },
                   title: Text(
                     'Declaro que esta obra no es estructural y conozco que la responsabilidad recae sobre mí.',
-                    style: AppTypography.bodyS,
+                    style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
                   ),
                 ),
               ],
@@ -156,7 +156,7 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
         ],
 
         const SizedBox(height: AppSpacing.xl),
-        Text('Datos de la obra', style: AppTypography.h2),
+        Text('Datos de la obra', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
         const SizedBox(height: AppSpacing.md),
 
         TextField(
@@ -257,10 +257,10 @@ class _PactTypeCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? AppColors.infoBg : AppColors.white,
+          color: selected ? AppColors.infoBg : context.colors.card,
           borderRadius: AppRadius.mdAll,
           border: Border.all(
-            color: selected ? AppColors.psBlue : AppColors.ink200,
+            color: selected ? AppColors.psBlue : context.colors.border,
             width: selected ? 2 : 1,
           ),
         ),
@@ -271,12 +271,12 @@ class _PactTypeCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: selected ? AppColors.psBlue : AppColors.ink100,
+                color: selected ? AppColors.psBlue : context.colors.chipBg,
                 borderRadius: AppRadius.smAll,
               ),
               child: Icon(
                 icon,
-                color: selected ? AppColors.white : AppColors.ink600,
+                color: selected ? AppColors.white : context.colors.textSecondary,
                 size: 24,
               ),
             ),
@@ -287,11 +287,11 @@ class _PactTypeCard extends StatelessWidget {
                 children: [
                   Text(title,
                       style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w800)),
+                          .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
                   const SizedBox(height: 2),
                   Text(subtitle,
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink500)),
+                          .copyWith(color: context.colors.textTertiary)),
                 ],
               ),
             ),

@@ -59,7 +59,7 @@ class _VerifiedResult extends StatelessWidget {
         Text(
           'Ya puedes firmar pactos y mover dinero en custodia.',
           textAlign: TextAlign.center,
-          style: AppTypography.body.copyWith(color: AppColors.ink600),
+          style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.xl),
         Container(
@@ -118,7 +118,7 @@ class _PendingResult extends StatelessWidget {
         Text(
           'Hemos recibido tu documentación. Un agente revisará tu identidad en menos de 24 horas.',
           textAlign: TextAlign.center,
-          style: AppTypography.body.copyWith(color: AppColors.ink600),
+          style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.xl),
         Container(
@@ -143,7 +143,7 @@ class _PendingResult extends StatelessWidget {
         Text(
           'Te avisaremos por email y notificación cuando esté lista.',
           textAlign: TextAlign.center,
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
         const Spacer(),
         ElevatedButton(
@@ -177,7 +177,7 @@ class _RejectedResult extends StatelessWidget {
         Text(
           'No hemos podido validar tu identidad con la documentación aportada.',
           textAlign: TextAlign.center,
-          style: AppTypography.body.copyWith(color: AppColors.ink600),
+          style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.xl),
         Container(
@@ -233,11 +233,11 @@ class _ResultRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500)),
+            style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary)),
         Text(value,
             style: AppTypography.body.copyWith(
               fontWeight: FontWeight.w700,
-              color: valueColor ?? AppColors.ink900,
+              color: valueColor ?? context.colors.textPrimary,
             )),
       ],
     );

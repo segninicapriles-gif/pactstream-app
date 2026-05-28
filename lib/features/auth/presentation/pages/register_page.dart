@@ -240,7 +240,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     // Si todavía cargamos la preview de la invitación, mostramos loader.
     if (_previewLoading) {
       return Scaffold(
-        backgroundColor: AppColors.ink50,
+        backgroundColor: context.colors.scaffold,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -287,7 +287,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       margin: EdgeInsets.only(
                           right: i < _totalSteps - 1 ? 6 : 0),
                       decoration: BoxDecoration(
-                        color: active ? AppColors.psCyan : AppColors.ink200,
+                        color: active ? AppColors.psCyan : context.colors.border,
                         borderRadius: AppRadius.xxsAll,
                       ),
                     ),
@@ -387,7 +387,7 @@ class _Step1PersonalInfo extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Datos personales',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
           const SizedBox(height: AppSpacing.xl),
           TextFormField(
@@ -439,13 +439,13 @@ class _Step1PersonalInfo extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 14),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.ink200, width: 1.5),
+                  border: Border.all(color: context.colors.border, width: 1.5),
                   borderRadius: AppRadius.mdAll,
                 ),
                 child: Text(
                   'ES +34',
                   style: AppTypography.body.copyWith(
-                      fontWeight: FontWeight.w700, color: AppColors.ink700),
+                      fontWeight: FontWeight.w700, color: context.colors.textSecondary),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -490,7 +490,7 @@ class _Step1PersonalInfo extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Text(
             'Al continuar verás los términos legales en el último paso. No creamos la cuenta hasta que los aceptes.',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
@@ -540,7 +540,7 @@ class _Step2RoleAndProfessional extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Selecciona tu rol en PactStream',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
           const SizedBox(height: AppSpacing.xl),
           ..._roles.map((role) => _RoleCard(
@@ -697,10 +697,10 @@ class _RoleCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: context.colors.card,
             borderRadius: AppRadius.lgAll,
             border: Border.all(
-              color: selected ? AppColors.psBlue : AppColors.ink200,
+              color: selected ? AppColors.psBlue : context.colors.border,
               width: selected ? 2 : 1.5,
             ),
           ),
@@ -725,7 +725,7 @@ class _RoleCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(option.subtitle,
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.ink500)),
+                            .copyWith(color: context.colors.textTertiary)),
                   ],
                 ),
               ),
@@ -760,16 +760,16 @@ class _Step3LegalConsents extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Revisa la información antes de crear tu cuenta',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
           const SizedBox(height: AppSpacing.xl),
           // Resumen
           Container(
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: context.colors.card,
               borderRadius: AppRadius.mdAll,
-              border: Border.all(color: AppColors.ink200),
+              border: Border.all(color: context.colors.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -827,7 +827,7 @@ class _Step3LegalConsents extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           Text(
             'Tu identidad se verificará en el siguiente paso conforme a la normativa de prevención de blanqueo (KYC).',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
@@ -861,8 +861,8 @@ class _SummaryRow extends StatelessWidget {
               children: [
                 Text(label,
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.ink500)),
-                Text(value, style: AppTypography.body),
+                        .copyWith(color: context.colors.textTertiary)),
+                Text(value, style: AppTypography.body.copyWith(color: context.colors.textPrimary)),
               ],
             ),
           ),
@@ -981,14 +981,14 @@ class _InviteContextBanner extends StatelessWidget {
               children: [
                 Text('Te uniste como miembro de equipo',
                     style: AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w800)),
+                        .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
                 const SizedBox(height: 2),
                 Text(
                   '$inviter te invitó al equipo de $orgName. '
                   'Sólo necesitas tus datos personales — la empresa y el rol '
                   'ya están definidos por tu equipo.',
                   style: AppTypography.bodyS
-                      .copyWith(color: AppColors.ink600),
+                      .copyWith(color: context.colors.textSecondary),
                 ),
               ],
             ),
@@ -1015,7 +1015,7 @@ class _InvalidInviteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -1040,7 +1040,7 @@ class _InvalidInviteScreen extends StatelessWidget {
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: AppTypography.body.copyWith(color: AppColors.ink600),
+                  style: AppTypography.body.copyWith(color: context.colors.textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 ElevatedButton(

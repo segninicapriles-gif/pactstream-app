@@ -38,7 +38,7 @@ class ContractPdfPreviewPage extends ConsumerWidget {
     final detailAsync = ref.watch(pactDetailProvider(pactId));
 
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,

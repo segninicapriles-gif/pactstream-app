@@ -106,7 +106,7 @@ class _Content extends StatelessWidget {
                       : 'Sin cambios este mes',
                   subtitleColor: data.newWorksThisMonth > 0
                       ? AppColors.success
-                      : AppColors.ink500,
+                      : context.colors.textTertiary,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),

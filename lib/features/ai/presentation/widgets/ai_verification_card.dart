@@ -46,7 +46,7 @@ class AiVerificationCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.mdAll,
         border: Border.all(
           color: AppColors.psBlue.withValues(alpha: 0.2),
@@ -242,7 +242,7 @@ class _AnalyzingBody extends StatelessWidget {
           Text(
             'Analizando evidencias…',
             style: AppTypography.bodyS
-                .copyWith(color: AppColors.ink600),
+                .copyWith(color: context.colors.textSecondary),
           ),
         ],
       ),
@@ -273,7 +273,7 @@ class _ErrorBody extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style:
-                AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
           const SizedBox(height: AppSpacing.md),
           OutlinedButton(
@@ -294,8 +294,8 @@ class _EmptyBody extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         children: [
-          const Icon(Icons.auto_awesome_outlined,
-              color: AppColors.ink400, size: 32),
+          Icon(Icons.auto_awesome_outlined,
+              color: context.colors.textHint, size: 32),
           const SizedBox(height: AppSpacing.xs),
           Text(
             evidenceCount > 0
@@ -311,7 +311,7 @@ class _EmptyBody extends StatelessWidget {
               'Claude Vision revisará las $evidenceCount evidencia${evidenceCount == 1 ? "" : "s"} contra el checklist del hito.',
               textAlign: TextAlign.center,
               style: AppTypography.bodyS
-                  .copyWith(color: AppColors.ink500),
+                  .copyWith(color: context.colors.textTertiary),
             ),
             const SizedBox(height: AppSpacing.md),
             FilledButton.icon(
@@ -351,7 +351,7 @@ class _VerificationBody extends StatelessWidget {
           Text(
             verification.summary,
             style:
-                AppTypography.body.copyWith(color: AppColors.ink700),
+                AppTypography.body.copyWith(color: context.colors.textSecondary),
           ),
           // Findings
           if (verification.findings.isNotEmpty) ...[
@@ -382,7 +382,7 @@ class _VerificationBody extends StatelessWidget {
                     child: Text(
                       verification.recommendation,
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink700),
+                          .copyWith(color: context.colors.textSecondary),
                     ),
                   ),
                 ],
@@ -418,7 +418,7 @@ class _VerificationBody extends StatelessWidget {
               Text(
                 _fmtDate(verification.createdAt),
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.ink400,
+                  color: context.colors.textHint,
                   letterSpacing: 0,
                 ),
               ),
@@ -462,7 +462,7 @@ class _ScoreRow extends StatelessWidget {
               CircularProgressIndicator(
                 value: verification.score / 100.0,
                 strokeWidth: 5,
-                backgroundColor: AppColors.ink200,
+                backgroundColor: context.colors.border,
                 valueColor:
                     AlwaysStoppedAnimation<Color>(scoreColor),
               ),
@@ -488,7 +488,7 @@ class _ScoreRow extends StatelessWidget {
                 '${verification.findings.length} hallazgo${verification.findings.length == 1 ? "" : "s"}'
                 ' · ${verification.checklistMatch.where((c) => c.evidenceOk).length}/${verification.checklistMatch.length} checklist',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.ink500,
+                  color: context.colors.textTertiary,
                   letterSpacing: 0,
                 ),
               ),
@@ -512,7 +512,7 @@ class _FindingsList extends StatelessWidget {
         Text(
           'Hallazgos',
           style: AppTypography.bodyS.copyWith(
-              fontWeight: FontWeight.w700, color: AppColors.ink600),
+              fontWeight: FontWeight.w700, color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.xs),
         for (final f in findings) ...[
@@ -565,7 +565,7 @@ class _FindingItem extends StatelessWidget {
                   Text(
                     finding.evidenceRef!.split('/').last,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.ink500,
+                      color: context.colors.textTertiary,
                       letterSpacing: 0,
                       fontFamily: 'monospace',
                     ),
@@ -595,7 +595,7 @@ class _ChecklistMatchList extends StatelessWidget {
         Text(
           'Checklist',
           style: AppTypography.bodyS.copyWith(
-              fontWeight: FontWeight.w700, color: AppColors.ink600),
+              fontWeight: FontWeight.w700, color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.xs),
         for (final item in items)
@@ -611,7 +611,7 @@ class _ChecklistMatchList extends StatelessWidget {
                   size: 15,
                   color: item.evidenceOk
                       ? AppColors.success
-                      : AppColors.ink400,
+                      : context.colors.textHint,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -622,15 +622,15 @@ class _ChecklistMatchList extends StatelessWidget {
                         item.title,
                         style: AppTypography.bodyS.copyWith(
                           color: item.evidenceOk
-                              ? AppColors.ink700
-                              : AppColors.ink500,
+                              ? context.colors.textSecondary
+                              : context.colors.textTertiary,
                         ),
                       ),
                       if (item.note != null)
                         Text(
                           item.note!,
                           style: AppTypography.caption.copyWith(
-                              color: AppColors.ink500, letterSpacing: 0),
+                              color: context.colors.textTertiary, letterSpacing: 0),
                         ),
                     ],
                   ),

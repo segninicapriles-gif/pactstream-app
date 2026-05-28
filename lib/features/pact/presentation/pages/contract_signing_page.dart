@@ -105,7 +105,7 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
@@ -198,10 +198,10 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
 
               // Footer fijo: checkbox + firmar
               Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.white,
+                decoration: BoxDecoration(
+                  color: context.colors.card,
                   border: Border(
-                    top: BorderSide(color: AppColors.ink200, width: 1),
+                    top: BorderSide(color: context.colors.border, width: 1),
                   ),
                 ),
                 padding: const EdgeInsets.all(AppSpacing.lg),
@@ -271,7 +271,7 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                       Text(
                         'Hash del contrato: ${hash.substring(0, 16)}…',
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.ink400,
+                          color: context.colors.textHint,
                           letterSpacing: 0,
                           fontFamily: 'monospace',
                         ),
@@ -300,7 +300,7 @@ class _SignSuccess extends StatelessWidget {
     final signatureId = result['signature_id'] as String? ?? '';
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: context.colors.card,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
@@ -323,7 +323,7 @@ class _SignSuccess extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               Text('Firma registrada',
-                  textAlign: TextAlign.center, style: AppTypography.h1),
+                  textAlign: TextAlign.center, style: AppTypography.h1.copyWith(color: context.colors.textPrimary)),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 allSigned
@@ -331,13 +331,13 @@ class _SignSuccess extends StatelessWidget {
                     : 'Tu firma quedó registrada. Esperaremos a que las demás partes firmen para activar el pacto.',
                 textAlign: TextAlign.center,
                 style: AppTypography.body
-                    .copyWith(color: AppColors.ink600),
+                    .copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.lg),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.ink50,
+                  color: context.colors.scaffold,
                   borderRadius: AppRadius.smAll,
                 ),
                 child: Column(
@@ -345,12 +345,12 @@ class _SignSuccess extends StatelessWidget {
                   children: [
                     Text('Identificador de firma',
                         style: AppTypography.caption
-                            .copyWith(color: AppColors.ink500)),
+                            .copyWith(color: context.colors.textTertiary)),
                     const SizedBox(height: 2),
                     SelectableText(
                       signatureId,
                       style: AppTypography.mono
-                          .copyWith(fontSize: 11, color: AppColors.ink800),
+                          .copyWith(fontSize: 11, color: context.colors.textPrimary),
                     ),
                   ],
                 ),
@@ -413,10 +413,10 @@ class _WebSigningPdfViewState extends State<_WebSigningPdfView> {
             const Icon(Icons.error_outline, color: AppColors.error, size: 48),
             const SizedBox(height: AppSpacing.md),
             Text('No se pudo generar el PDF',
-                style: AppTypography.body.copyWith(color: AppColors.ink800)),
+                style: AppTypography.body.copyWith(color: context.colors.textPrimary)),
             const SizedBox(height: AppSpacing.sm),
             Text(_error.toString(),
-                style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
                 textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.md),
             TextButton.icon(

@@ -102,13 +102,13 @@ class _EmptyStateViewState extends State<EmptyStateView>
               Text(
                 widget.title,
                 textAlign: TextAlign.center,
-                style: AppTypography.h2,
+                style: AppTypography.h2.copyWith(color: context.colors.textPrimary),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 widget.subtitle,
                 textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(color: AppColors.ink500),
+                style: AppTypography.body.copyWith(color: context.colors.textTertiary),
               ),
               if (widget.actionLabel != null && widget.onAction != null) ...[
                 const SizedBox(height: AppSpacing.xl),
@@ -177,12 +177,12 @@ class ErrorStateView extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(title,
-                textAlign: TextAlign.center, style: AppTypography.h3),
+                textAlign: TextAlign.center, style: AppTypography.h3.copyWith(color: context.colors.textPrimary)),
             const SizedBox(height: AppSpacing.xs),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+              style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),

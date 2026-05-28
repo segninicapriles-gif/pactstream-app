@@ -279,7 +279,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: Text(
               'Rol desconocido. Contacta con soporte.',
               textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(color: AppColors.ink600),
+              style: AppTypography.body.copyWith(color: context.colors.textSecondary),
             ),
           ),
         ),
@@ -306,15 +306,15 @@ class _PlaceholderTab extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: AppColors.ink400),
+            Icon(icon, size: 64, color: context.colors.textHint),
             const SizedBox(height: AppSpacing.md),
             Text(title,
-                style: AppTypography.h2, textAlign: TextAlign.center),
+                style: AppTypography.h2.copyWith(color: context.colors.textPrimary), textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.xs),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+              style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
             ),
           ],
         ),
@@ -426,14 +426,14 @@ class _AdaptiveNavigationRail extends StatelessWidget {
       backgroundColor: c.navBg,
       indicatorColor: c.pillBg,
       selectedIconTheme: const IconThemeData(color: AppColors.psBlue),
-      unselectedIconTheme: const IconThemeData(color: AppColors.ink500),
+      unselectedIconTheme: IconThemeData(color: c.textTertiary),
       selectedLabelTextStyle: AppTypography.caption.copyWith(
         color: AppColors.psBlue,
         fontWeight: FontWeight.w700,
         letterSpacing: 0,
       ),
       unselectedLabelTextStyle: AppTypography.caption.copyWith(
-        color: AppColors.ink500,
+        color: c.textTertiary,
         fontWeight: FontWeight.w500,
         letterSpacing: 0,
       ),

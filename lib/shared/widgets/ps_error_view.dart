@@ -23,6 +23,7 @@ class PsErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     if (compact) {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -41,11 +42,11 @@ class PsErrorView extends StatelessWidget {
                 children: [
                   Text(title,
                       style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w700)),
+                          .copyWith(fontWeight: FontWeight.w700, color: co.textPrimary)),
                   if (subtitle != null)
                     Text(subtitle!,
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.ink600)),
+                            .copyWith(color: co.textSecondary)),
                 ],
               ),
             ),
@@ -67,12 +68,12 @@ class PsErrorView extends StatelessWidget {
           children: [
             Icon(icon, color: AppColors.error, size: 48),
             const SizedBox(height: AppSpacing.md),
-            Text(title, textAlign: TextAlign.center, style: AppTypography.h3),
+            Text(title, textAlign: TextAlign.center, style: AppTypography.h3.copyWith(color: co.textPrimary)),
             if (subtitle != null) ...[
               const SizedBox(height: AppSpacing.xs),
               Text(subtitle!,
                   textAlign: TextAlign.center,
-                  style: AppTypography.bodyS.copyWith(color: AppColors.ink500)),
+                  style: AppTypography.bodyS.copyWith(color: co.textTertiary)),
             ],
             if (onRetry != null) ...[
               const SizedBox(height: AppSpacing.lg),

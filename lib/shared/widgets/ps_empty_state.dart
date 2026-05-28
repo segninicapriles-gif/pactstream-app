@@ -25,17 +25,18 @@ class PsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     if (compact) {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.ink50,
+          color: co.scaffold,
           borderRadius: AppRadius.mdAll,
-          border: Border.all(color: AppColors.ink200),
+          border: Border.all(color: co.border),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 24, color: AppColors.ink400),
+            Icon(icon, size: 24, color: co.textHint),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
@@ -44,11 +45,11 @@ class PsEmptyState extends StatelessWidget {
                 children: [
                   Text(title,
                       style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w700)),
+                          .copyWith(fontWeight: FontWeight.w700, color: co.textPrimary)),
                   if (subtitle != null)
                     Text(subtitle!,
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.ink500)),
+                            .copyWith(color: co.textTertiary)),
                 ],
               ),
             ),
@@ -66,19 +67,19 @@ class PsEmptyState extends StatelessWidget {
             Container(
               width: 64,
               height: 64,
-              decoration: const BoxDecoration(
-                color: AppColors.ink100,
+              decoration: BoxDecoration(
+                color: co.chipBg,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 32, color: AppColors.ink400),
+              child: Icon(icon, size: 32, color: co.textHint),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(title, textAlign: TextAlign.center, style: AppTypography.h3),
+            Text(title, textAlign: TextAlign.center, style: AppTypography.h3.copyWith(color: co.textPrimary)),
             if (subtitle != null) ...[
               const SizedBox(height: AppSpacing.xs),
               Text(subtitle!,
                   textAlign: TextAlign.center,
-                  style: AppTypography.bodyS.copyWith(color: AppColors.ink500)),
+                  style: AppTypography.bodyS.copyWith(color: co.textTertiary)),
             ],
             if (ctaLabel != null && onCta != null) ...[
               const SizedBox(height: AppSpacing.lg),

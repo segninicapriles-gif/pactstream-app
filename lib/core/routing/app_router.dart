@@ -260,13 +260,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // TODO(sprint-2): rutas de depósito, validación, decisión, disputa.
     ],
     errorBuilder: (context, state) => Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
+          decoration: BoxDecoration(gradient: context.colors.headerGradient),
         ),
         title: Text('Página no encontrada',
             style: AppTypography.h3.copyWith(color: AppColors.white)),
@@ -282,13 +282,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               const SizedBox(height: AppSpacing.lg),
               Text(
                 'No encontramos esta página',
-                style: AppTypography.h2,
+                style: AppTypography.h2.copyWith(color: context.colors.textPrimary),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 state.matchedLocation,
                 style: AppTypography.mono
-                    .copyWith(color: AppColors.ink500),
+                    .copyWith(color: context.colors.textTertiary),
               ),
               const SizedBox(height: AppSpacing.xl),
               ElevatedButton(

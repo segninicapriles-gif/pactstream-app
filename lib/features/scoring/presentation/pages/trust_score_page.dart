@@ -33,7 +33,7 @@ class TrustScorePage extends ConsumerWidget {
     final healthAsync = ref.watch(pactHealthProvider(pactId));
 
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
@@ -143,11 +143,11 @@ class _FinancingCtaCard extends StatelessWidget {
                 end: Alignment.bottomRight,
               )
             : null,
-        color: unlocked ? null : AppColors.white,
+        color: unlocked ? null : context.colors.card,
         borderRadius: AppRadius.lgAll,
         border: unlocked
             ? null
-            : Border.all(color: AppColors.ink200),
+            : Border.all(color: context.colors.border),
         boxShadow: unlocked ? const [] : AppShadows.soft,
       ),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -179,7 +179,7 @@ class _FinancingCtaCard extends StatelessWidget {
                       unlocked ? 'Financiación disponible' : 'Próximamente',
                       style: AppTypography.bodyS.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: unlocked ? Colors.white : AppColors.ink900,
+                        color: unlocked ? Colors.white : context.colors.textPrimary,
                       ),
                     ),
                     if (!unlocked) ...[
@@ -209,7 +209,7 @@ class _FinancingCtaCard extends StatelessWidget {
                   style: AppTypography.caption.copyWith(
                     color: unlocked
                         ? Colors.white.withValues(alpha:0.8)
-                        : AppColors.ink500,
+                        : context.colors.textTertiary,
                     height: 1.4,
                   ),
                 ),
@@ -218,7 +218,7 @@ class _FinancingCtaCard extends StatelessWidget {
           ),
           Icon(
             Icons.chevron_right,
-            color: unlocked ? Colors.white.withValues(alpha:0.7) : AppColors.ink400,
+            color: unlocked ? Colors.white.withValues(alpha:0.7) : context.colors.textHint,
           ),
         ],
       ),
@@ -239,9 +239,9 @@ class _FactorsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.lgAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: context.colors.border),
         boxShadow: AppShadows.soft,
       ),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -280,9 +280,9 @@ class _StatusCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.lgAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: context.colors.border),
         boxShadow: AppShadows.soft,
       ),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -386,13 +386,13 @@ class _StatusItem extends StatelessWidget {
                   item.title,
                   style: AppTypography.bodyS.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.ink900,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 Text(
                   item.subtitle,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.ink500,
+                    color: context.colors.textTertiary,
                   ),
                 ),
               ],

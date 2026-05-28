@@ -63,7 +63,7 @@ class PredepositPendingCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text('Cert #${m.ordinal} · ${m.name}',
                   style: AppTypography.bodyS
-                      .copyWith(fontWeight: FontWeight.w800)),
+                      .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -85,7 +85,7 @@ class PredepositPendingCard extends StatelessWidget {
           if (m.description != null) ...[
             const SizedBox(height: 4),
             Text(m.description!,
-                style: AppTypography.bodyS.copyWith(color: AppColors.ink600)),
+                style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary)),
           ],
 
           const SizedBox(height: AppSpacing.sm),
@@ -94,18 +94,18 @@ class PredepositPendingCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: context.colors.card,
               borderRadius: AppRadius.microAll,
             ),
             child: Column(
               children: [
-                _kv('Bruto certificado',
+                _kv(context, 'Bruto certificado',
                     AppFormatters.moneyLong(m.amountCents)),
-                _kv('Amortización del Adelanto',
+                _kv(context, 'Amortización del Adelanto',
                     '− ${AppFormatters.moneyShort(m.advanceAmortizationCents)}',
                     muted: true),
-                Divider(height: AppSpacing.sm, color: AppColors.ink200),
-                _kv('Neto a pre-depositar',
+                Divider(height: AppSpacing.sm, color: context.colors.divider),
+                _kv(context, 'Neto a pre-depositar',
                     AppFormatters.moneyLong(m.netAmountCents),
                     emphasis: true,
                     color: accent),
@@ -121,7 +121,7 @@ class PredepositPendingCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: m.predepositProgress,
                 minHeight: 6,
-                backgroundColor: AppColors.ink200,
+                backgroundColor: context.colors.border,
                 valueColor: AlwaysStoppedAnimation(accent),
               ),
             ),
@@ -129,7 +129,7 @@ class PredepositPendingCard extends StatelessWidget {
             Text(
               'Pre-depositado: ${AppFormatters.moneyShort(m.predepositReceivedCents)} '
               '· Falta: ${AppFormatters.moneyShort(m.predepositRemainingCents)}',
-              style: AppTypography.caption.copyWith(color: AppColors.ink600),
+              style: AppTypography.caption.copyWith(color: context.colors.textSecondary),
             ),
           ],
 
@@ -146,19 +146,19 @@ class PredepositPendingCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: AppColors.ink900.withValues(alpha: 0.05),
+                color: context.colors.borderSubtle,
                 borderRadius: AppRadius.microAll,
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.gavel,
-                      size: 14, color: AppColors.ink600),
+                  Icon(Icons.gavel,
+                      size: 14, color: context.colors.textSecondary),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'El constructor avanza bajo su propia responsabilidad.',
                       style: AppTypography.caption
-                          .copyWith(color: AppColors.ink600),
+                          .copyWith(color: context.colors.textSecondary),
                     ),
                   ),
                 ],
@@ -198,7 +198,7 @@ class PredepositPendingCard extends StatelessWidget {
     );
   }
 
-  Widget _kv(String k, String v,
+  Widget _kv(BuildContext context, String k, String v,
       {bool muted = false, bool emphasis = false, Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -207,7 +207,7 @@ class PredepositPendingCard extends StatelessWidget {
           Expanded(
             child: Text(k,
                 style: AppTypography.bodyS.copyWith(
-                  color: muted ? AppColors.ink500 : AppColors.ink600,
+                  color: muted ? context.colors.textTertiary : context.colors.textSecondary,
                   fontWeight:
                       emphasis ? FontWeight.w700 : FontWeight.w400,
                 )),
@@ -215,7 +215,7 @@ class PredepositPendingCard extends StatelessWidget {
           Text(v,
               style: AppTypography.body.copyWith(
                 fontWeight: emphasis ? FontWeight.w800 : FontWeight.w700,
-                color: color ?? AppColors.ink900,
+                color: color ?? context.colors.textPrimary,
               )),
         ],
       ),
@@ -254,7 +254,7 @@ class _CountdownNotice extends StatelessWidget {
         Expanded(
           child: Text(label,
               style: AppTypography.caption.copyWith(
-                color: isOverdue ? AppColors.error : AppColors.ink600,
+                color: isOverdue ? AppColors.error : context.colors.textSecondary,
                 fontWeight: FontWeight.w700,
               )),
         ),
@@ -269,7 +269,7 @@ class _PausedNotice extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.microAll,
         border: Border.all(color: AppColors.error, width: 1),
       ),
@@ -281,7 +281,7 @@ class _PausedNotice extends StatelessWidget {
           Expanded(
             child: Text(
               'Obra paralizada por falta de pre-depósito. El promotor debe completar el pre-depósito o el constructor puede avanzar bajo su responsabilidad.',
-              style: AppTypography.caption.copyWith(color: AppColors.ink900),
+              style: AppTypography.caption.copyWith(color: context.colors.textPrimary),
             ),
           ),
         ],

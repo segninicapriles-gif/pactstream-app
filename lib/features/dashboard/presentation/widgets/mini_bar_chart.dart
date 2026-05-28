@@ -48,12 +48,13 @@ class MiniBarChart extends StatelessWidget {
 
     // Si todos los valores son 0, mostrar empty state en vez de chart vacío
     if (allZero) {
+      final c = context.colors;
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: c.card,
           borderRadius: AppRadius.mdAll,
-          border: Border.all(color: AppColors.ink200),
+          border: Border.all(color: c.border),
           boxShadow: AppShadows.soft,
         ),
         child: Column(
@@ -61,19 +62,19 @@ class MiniBarChart extends StatelessWidget {
           children: [
             Text(
               title,
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.w700, color: c.textPrimary),
             ),
             SizedBox(height: height * 0.3),
             Center(
               child: Column(
                 children: [
                   Icon(Icons.bar_chart_rounded,
-                      color: AppColors.ink300, size: 40),
+                      color: c.textHint, size: 40),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Aún no hay datos',
                     style: AppTypography.bodyS.copyWith(
-                      color: AppColors.ink400,
+                      color: c.textHint,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -81,7 +82,7 @@ class MiniBarChart extends StatelessWidget {
                   Text(
                     'El gráfico se llenará con la actividad de tus obras',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.ink400,
+                      color: c.textHint,
                     ),
                   ),
                 ],
@@ -96,12 +97,13 @@ class MiniBarChart extends StatelessWidget {
     final computedMaxY =
         maxY ?? (data.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.3);
 
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: c.border),
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -109,7 +111,7 @@ class MiniBarChart extends StatelessWidget {
         children: [
           Text(
             title,
-            style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
+            style: AppTypography.body.copyWith(fontWeight: FontWeight.w700, color: c.textPrimary),
           ),
           const SizedBox(height: AppSpacing.md),
           SizedBox(
@@ -152,7 +154,7 @@ class MiniBarChart extends StatelessWidget {
                         return Text(
                           _formatValueShort(value),
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.ink500,
+                            color: c.textTertiary,
                             fontSize: 9,
                           ),
                         );
@@ -172,7 +174,7 @@ class MiniBarChart extends StatelessWidget {
                           child: Text(
                             data[idx].label,
                             style: AppTypography.caption.copyWith(
-                              color: AppColors.ink500,
+                              color: c.textTertiary,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                             ),
@@ -187,7 +189,7 @@ class MiniBarChart extends StatelessWidget {
                   drawVerticalLine: false,
                   horizontalInterval: computedMaxY / 4,
                   getDrawingHorizontalLine: (_) => FlLine(
-                    color: AppColors.ink200,
+                    color: c.border,
                     strokeWidth: 0.5,
                   ),
                 ),

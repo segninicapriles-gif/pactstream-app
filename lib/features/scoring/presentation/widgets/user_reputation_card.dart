@@ -77,7 +77,7 @@ class _ReputationContent extends StatelessWidget {
                     Text(
                       rep.summaryText,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.ink500,
+                        color: context.colors.textTertiary,
                         height: 1.4,
                       ),
                     ),
@@ -97,7 +97,7 @@ class _ReputationContent extends StatelessWidget {
           Text(
             'Factores de reputación',
             style: AppTypography.label.copyWith(
-              color: AppColors.ink500,
+              color: context.colors.textTertiary,
               letterSpacing: 0.8,
             ),
           ),
@@ -231,7 +231,7 @@ class _ComponentRow extends StatelessWidget {
             flex: 3,
             child: Text(
               label,
-              style: AppTypography.bodyS.copyWith(color: AppColors.ink700),
+              style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
             ),
           ),
           Expanded(
@@ -300,24 +300,24 @@ class _EmptyState extends StatelessWidget {
         Container(
           width: 56,
           height: 56,
-          decoration: const BoxDecoration(
-            color: AppColors.ink100,
+          decoration: BoxDecoration(
+            color: context.colors.chipBg,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.shield_outlined,
-              color: AppColors.ink400, size: 26),
+          child: Icon(Icons.shield_outlined,
+              color: context.colors.textHint, size: 26),
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
           'Sin actividad todavía',
           style:
-              AppTypography.body.copyWith(fontWeight: FontWeight.w700),
+              AppTypography.body.copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary),
         ),
         const SizedBox(height: 4),
         Text(
           'Tu reputación se construye con cada pacto cerrado, hito validado a tiempo y ausencia de disputas.',
           textAlign: TextAlign.center,
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500, height: 1.4),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary, height: 1.4),
         ),
       ],
     );

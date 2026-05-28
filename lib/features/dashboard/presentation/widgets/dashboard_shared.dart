@@ -490,14 +490,14 @@ class DashboardSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (onViewAll == null) {
-      return Text(title, style: AppTypography.h3.copyWith(fontSize: 18));
+      return Text(title, style: AppTypography.h3.copyWith(fontSize: 18, color: context.colors.textPrimary));
     }
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
-        Text(title, style: AppTypography.h3.copyWith(fontSize: 18)),
+        Text(title, style: AppTypography.h3.copyWith(fontSize: 18, color: context.colors.textPrimary)),
         GestureDetector(
           onTap: onViewAll,
           child: Text(
@@ -646,7 +646,7 @@ class WorkCard extends ConsumerWidget {
                   Expanded(
                     child: Text(pact.title,
                         style: AppTypography.body
-                            .copyWith(fontWeight: FontWeight.w700)),
+                            .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                 ),
                 // Dot de salud (solo cuando hay datos)
                 if (healthColor != null) ...[
@@ -675,7 +675,7 @@ class WorkCard extends ConsumerWidget {
               child: LinearProgressIndicator(
                 value: (pact.progressPct / 100).clamp(0.0, 1.0),
                 minHeight: 6,
-                backgroundColor: AppColors.ink200,
+                backgroundColor: co.border,
                 valueColor: AlwaysStoppedAnimation(
                   healthColor ?? AppColors.psBlue,
                 ),
@@ -686,11 +686,11 @@ class WorkCard extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Progreso: ${pact.progressPct}%',
-                    style: AppTypography.bodyS),
+                    style: AppTypography.bodyS.copyWith(color: co.textSecondary)),
                 Text(
                   AppFormatters.moneyShort(pact.totalAmountCents),
                   style: AppTypography.body
-                      .copyWith(fontWeight: FontWeight.w700),
+                      .copyWith(fontWeight: FontWeight.w700, color: co.textPrimary),
                 ),
               ],
             ),
@@ -899,12 +899,12 @@ class DashboardErrorBlock extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text('No se pudo cargar el panel',
               style: AppTypography.body
-                  .copyWith(fontWeight: FontWeight.w800)),
+                  .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
           const SizedBox(height: 4),
           Text(message,
               textAlign: TextAlign.center,
               style:
-                  AppTypography.caption.copyWith(color: AppColors.ink600)),
+                  AppTypography.caption.copyWith(color: context.colors.textSecondary)),
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton(
             onPressed: onRetry,
@@ -1002,7 +1002,7 @@ class TecnicoValidationTaskCard extends StatelessWidget {
                               Text(
                                 task.title,
                                 style: AppTypography.body
-                                    .copyWith(fontWeight: FontWeight.w700),
+                                    .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary),
                               ),
                               const SizedBox(height: 2),
                               Text(

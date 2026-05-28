@@ -277,7 +277,7 @@ class _NotificationCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final spec = _specFor(item.notificationType);
+    final spec = _specFor(item.notificationType, context);
     final isUnread = item.isUnread;
 
     final c = context.colors;
@@ -402,7 +402,7 @@ class _NotifSpec {
   final Color fg;
 }
 
-_NotifSpec _specFor(String type) {
+_NotifSpec _specFor(String type, BuildContext context) {
   switch (type) {
     case 'pact_invitation':
       return const _NotifSpec(
@@ -460,10 +460,10 @@ _NotifSpec _specFor(String type) {
         fg: AppColors.success,
       );
     default:
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.notifications_outlined,
-        bg: AppColors.ink100,
-        fg: AppColors.ink600,
+        bg: context.colors.chipBg,
+        fg: context.colors.textSecondary,
       );
   }
 }

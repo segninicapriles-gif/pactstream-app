@@ -99,7 +99,7 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
             children: [
               Text('${widget.depositPct.toStringAsFixed(0)} % del presupuesto',
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.ink600)),
+                      .copyWith(color: context.colors.textSecondary)),
               const SizedBox(height: 4),
               Text(AppFormatters.moneyLong(widget.requiredCents),
                   style: AppTypography.h1.copyWith(color: AppColors.psNavy)),
@@ -110,7 +110,7 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
         Text(
           'Al confirmar, el pacto pasará a "En ejecución" y el constructor podrá empezar a emitir certificaciones. '
           'En esta versión MVP el ingreso se simula — en producción Mangopay confirmará la transferencia.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
         CheckboxListTile(
@@ -120,7 +120,7 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
           onChanged: _loading ? null : (v) => setState(() => _accepted = v ?? false),
           title: Text(
             'Confirmo que he transferido el importe a la cuenta de custodia.',
-            style: AppTypography.bodyS,
+            style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
           ),
         ),
         if (_error != null) _ErrorBanner(message: _error!),
@@ -243,7 +243,7 @@ class _ReplenishDepositSheetState extends State<_ReplenishDepositSheet> {
         Text(
           'El depósito se utiliza para liberar dinero al constructor cuando se aprueba una certificación. '
           'Reponlo para que la obra siga avanzando sin pausas.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
         TextField(
@@ -261,7 +261,7 @@ class _ReplenishDepositSheetState extends State<_ReplenishDepositSheet> {
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Sugerido para volver al 100 %: ${AppFormatters.moneyShort(widget.suggestedCents)}',
-            style: AppTypography.caption.copyWith(color: AppColors.ink500),
+            style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
           ),
         ],
         const SizedBox(height: AppSpacing.md),
@@ -269,16 +269,16 @@ class _ReplenishDepositSheetState extends State<_ReplenishDepositSheet> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.ink50,
+              color: context.colors.scaffold,
               borderRadius: AppRadius.microAll,
             ),
             child: Row(
               children: [
-                Text('Nuevo balance', style: AppTypography.bodyS),
+                Text('Nuevo balance', style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary)),
                 const Spacer(),
                 Text(AppFormatters.moneyLong(newBalance),
                     style: AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w800)),
+                        .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
               ],
             ),
           ),
@@ -401,7 +401,7 @@ class _CreateCertSheetState extends State<_CreateCertSheet> {
       children: [
         Text(
           'Describe el avance certificado y su importe. Recuerda adjuntar la factura desde el detalle de la certificación antes de enviarla a revisión.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
         TextField(
@@ -438,7 +438,7 @@ class _CreateCertSheetState extends State<_CreateCertSheet> {
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Disponible: ${AppFormatters.moneyShort(_availableCents)}',
-          style: AppTypography.caption.copyWith(color: AppColors.ink500),
+          style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
         ),
         if (_error != null) _ErrorBanner(message: _error!),
         const SizedBox(height: AppSpacing.sm),
@@ -561,7 +561,7 @@ class _ProposeAddendumSheetState extends State<_ProposeAddendumSheet> {
         Text(
           'Los anexos modifican el pacto cuando hay imprevistos o cambios de alcance. '
           'Para activarse, todas las partes deben firmarlo.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
         TextField(
@@ -595,7 +595,7 @@ class _ProposeAddendumSheetState extends State<_ProposeAddendumSheet> {
               children: [
                 Text('Reduce',
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.ink500)),
+                        .copyWith(color: context.colors.textTertiary)),
                 Switch(
                   value: _isNegative,
                   onChanged: (v) => setState(() => _isNegative = v),
@@ -621,7 +621,7 @@ class _ProposeAddendumSheetState extends State<_ProposeAddendumSheet> {
                   child: Text(
                     'Anexos > 10 000 € requieren documento detallado adjunto.',
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.ink900),
+                        .copyWith(color: context.colors.textPrimary),
                   ),
                 ),
               ],
@@ -750,15 +750,15 @@ class _SignAddendumSheetState extends State<_SignAddendumSheet> {
         if (a.description != null) ...[
           const SizedBox(height: 4),
           Text(a.description!,
-              style: AppTypography.bodyS.copyWith(color: AppColors.ink600)),
+              style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary)),
         ],
         const SizedBox(height: AppSpacing.md),
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.ink50,
+            color: context.colors.scaffold,
             borderRadius: AppRadius.smAll,
-            border: Border.all(color: AppColors.ink200),
+            border: Border.all(color: context.colors.border),
           ),
           child: Column(
             children: [
@@ -804,7 +804,7 @@ class _SignAddendumSheetState extends State<_SignAddendumSheet> {
               flex: 4,
               child: Text(k,
                   style:
-                      AppTypography.bodyS.copyWith(color: AppColors.ink500)),
+                      AppTypography.bodyS.copyWith(color: context.colors.textTertiary)),
             ),
             Expanded(
               flex: 6,
@@ -1035,7 +1035,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
               Text(
                 '${(p.depositRequiredPct ?? 30).toStringAsFixed(0)} % del presupuesto',
                 style: AppTypography.caption
-                    .copyWith(color: AppColors.ink600),
+                    .copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: 4),
               Text(AppFormatters.moneyLong(total),
@@ -1048,9 +1048,9 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.ink50,
+            color: context.colors.scaffold,
             borderRadius: AppRadius.smAll,
-            border: Border.all(color: AppColors.ink200),
+            border: Border.all(color: context.colors.border),
           ),
           child: Column(
             children: [
@@ -1063,7 +1063,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
                 value: AppFormatters.moneyLong(p.advanceReserveCents),
               ),
               const SizedBox(height: AppSpacing.sm),
-              Divider(height: 1, color: AppColors.ink200),
+              Divider(height: 1, color: context.colors.divider),
               const SizedBox(height: AppSpacing.sm),
               _kvRow(
                 icon: Icons.payments_outlined,
@@ -1080,7 +1080,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
         Text(
           'Tras confirmar, el pacto pasará a "En ejecución" y el constructor podrá emitir certificaciones. '
           'En esta versión MVP el ingreso se simula — en producción Mangopay confirmará la transferencia.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
         CheckboxListTile(
@@ -1090,7 +1090,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
           onChanged: _loading ? null : (v) => setState(() => _accepted = v ?? false),
           title: Text(
             'Confirmo que he transferido ${AppFormatters.moneyShort(total)} a PactStream para configurar el Adelanto.',
-            style: AppTypography.bodyS,
+            style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
           ),
         ),
         if (_error != null) _ErrorBanner(message: _error!),
@@ -1127,7 +1127,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
                       .copyWith(fontWeight: FontWeight.w700)),
               Text(sublabel,
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.ink500)),
+                      .copyWith(color: context.colors.textTertiary)),
             ],
           ),
         ),
@@ -1236,16 +1236,16 @@ class _PredepositMilestoneSheetState
       children: [
         Text(
           'Pre-deposita el neto para que el constructor pueda emitir la certificación oficialmente. El dinero queda custodiado en PactStream hasta la validación técnica.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
         // Desglose de la cert
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.ink50,
+            color: context.colors.scaffold,
             borderRadius: AppRadius.smAll,
-            border: Border.all(color: AppColors.ink200),
+            border: Border.all(color: context.colors.border),
           ),
           child: Column(
             children: [
@@ -1254,7 +1254,7 @@ class _PredepositMilestoneSheetState
               _kvLine('Amortización del Adelanto',
                   '− ${AppFormatters.moneyShort(m.advanceAmortizationCents)}',
                   muted: true),
-              Divider(height: AppSpacing.sm, color: AppColors.ink200),
+              Divider(height: AppSpacing.sm, color: context.colors.divider),
               _kvLine('Neto a pre-depositar',
                   AppFormatters.moneyLong(m.netAmountCents),
                   emphasis: true),
@@ -1263,7 +1263,7 @@ class _PredepositMilestoneSheetState
                     '− ${AppFormatters.moneyShort(m.predepositReceivedCents)}',
                     muted: true),
               if (m.predepositReceivedCents > 0) ...[
-                Divider(height: AppSpacing.sm, color: AppColors.ink200),
+                Divider(height: AppSpacing.sm, color: context.colors.divider),
                 _kvLine('Falta por pre-depositar',
                     AppFormatters.moneyLong(m.predepositRemainingCents),
                     emphasis: true,
@@ -1287,7 +1287,7 @@ class _PredepositMilestoneSheetState
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Sugerido: ${AppFormatters.moneyShort(m.predepositRemainingCents)} (completar el neto)',
-          style: AppTypography.caption.copyWith(color: AppColors.ink500),
+          style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
         ),
         if (_error != null) _ErrorBanner(message: _error!),
         const SizedBox(height: AppSpacing.sm),
@@ -1310,7 +1310,7 @@ class _PredepositMilestoneSheetState
           Expanded(
             child: Text(k,
                 style: AppTypography.bodyS.copyWith(
-                  color: muted ? AppColors.ink500 : AppColors.ink600,
+                  color: muted ? context.colors.textTertiary : context.colors.textSecondary,
                   fontWeight:
                       emphasis ? FontWeight.w700 : FontWeight.w400,
                 )),
@@ -1318,7 +1318,7 @@ class _PredepositMilestoneSheetState
           Text(v,
               style: AppTypography.body.copyWith(
                 fontWeight: emphasis ? FontWeight.w800 : FontWeight.w700,
-                color: color ?? AppColors.ink900,
+                color: color ?? context.colors.textPrimary,
               )),
         ],
       ),
@@ -1394,7 +1394,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
         Text(
           'Vas a reactivar la Certificación #${m.ordinal} sin esperar a que el promotor complete el pre-depósito. '
           'Esto te permite seguir trabajando, pero el riesgo del importe pendiente recae sobre ti.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
 
@@ -1419,7 +1419,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: context.colors.card,
                   borderRadius: AppRadius.microAll,
                 ),
                 child: Row(
@@ -1468,7 +1468,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
                 '• Esta acción se registra de forma inmutable en el audit log con marca temporal.\n\n'
                 '• El promotor sigue obligado contractualmente a pagar, pero deberás reclamarlo directamente si no lo hace.',
                 style: AppTypography.bodyS
-                    .copyWith(color: AppColors.ink900, height: 1.45),
+                    .copyWith(color: context.colors.textPrimary, height: 1.45),
               ),
             ],
           ),
@@ -1518,7 +1518,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
           Expanded(
             child: Text(k,
                 style: AppTypography.caption
-                    .copyWith(color: AppColors.ink600)),
+                    .copyWith(color: context.colors.textSecondary)),
           ),
           Text(v,
               style: AppTypography.bodyS

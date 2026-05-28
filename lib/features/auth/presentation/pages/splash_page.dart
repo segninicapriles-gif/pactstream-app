@@ -76,7 +76,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       body: SafeArea(
         child: Center(
           child: Column(
@@ -96,7 +96,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
               const SizedBox(height: AppSpacing.md),
               Text(
                 'Cargando...',
-                style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
               ),
             ],
           ),

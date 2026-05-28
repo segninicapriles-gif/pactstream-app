@@ -142,7 +142,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
               Text(
                 'Hemos enviado un enlace de confirmación a:',
                 textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(color: AppColors.ink600),
+                style: AppTypography.body.copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
@@ -150,14 +150,14 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                 textAlign: TextAlign.center,
                 style: AppTypography.body.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.ink900,
+                  color: context.colors.textPrimary,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 'Pulsa el enlace del email para activar tu cuenta. La detectaremos automáticamente.',
                 textAlign: TextAlign.center,
-                style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
               ),
               const SizedBox(height: AppSpacing.xxl),
               Container(
@@ -171,14 +171,14 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     Text(
                       '¿Ya pulsaste el link del email?',
                       style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w700),
+                          .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       'El link te redirige a una nueva pestaña. Cuando confirmes ahí, vuelve aquí y continúa al login.',
                       textAlign: TextAlign.center,
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink600),
+                          .copyWith(color: context.colors.textSecondary),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     ElevatedButton.icon(

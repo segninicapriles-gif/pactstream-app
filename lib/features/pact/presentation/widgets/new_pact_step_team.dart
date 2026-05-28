@@ -93,11 +93,11 @@ class _NewPactStepTeamState extends State<NewPactStepTeam> {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        Text('Invita a las partes', style: AppTypography.h2),
+        Text('Invita a las partes', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Recibirán un email para unirse al pacto. Si ya tienen cuenta en PactStream, lo enlazaremos automáticamente.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
         const SizedBox(height: AppSpacing.lg),
 
@@ -131,7 +131,7 @@ class _NewPactStepTeamState extends State<NewPactStepTeam> {
                 Expanded(
                   child: Text(
                     'Obra menor sin técnico: la validación de hitos la hará el promotor con fotos como evidencia.',
-                    style: AppTypography.bodyS,
+                    style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
                   ),
                 ),
               ],
@@ -174,10 +174,10 @@ class _MyselfCard extends StatelessWidget {
               children: [
                 Text(_label(role),
                     style: AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w800)),
+                        .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
                 Text('Tú · ya estás en el pacto',
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink500)),
+                        .copyWith(color: context.colors.textTertiary)),
               ],
             ),
           ),
@@ -233,9 +233,9 @@ class _InviteCardState extends State<_InviteCard> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +255,7 @@ class _InviteCardState extends State<_InviteCard> {
               const SizedBox(width: AppSpacing.sm),
               Text(_labelFor(widget.invite.role),
                   style: AppTypography.body
-                      .copyWith(fontWeight: FontWeight.w800)),
+                      .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -288,7 +288,7 @@ class _InviteCardState extends State<_InviteCard> {
           Text(
             'Necesitamos nombre y email reales para emitir el contrato a firma.',
             style: AppTypography.caption.copyWith(
-              color: AppColors.ink500,
+              color: context.colors.textTertiary,
               fontWeight: FontWeight.w500,
               letterSpacing: 0,
             ),

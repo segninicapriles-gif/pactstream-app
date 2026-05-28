@@ -110,7 +110,7 @@ class _AcceptOrgInvitePageState extends ConsumerState<AcceptOrgInvitePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -141,7 +141,7 @@ class _LoadingView extends StatelessWidget {
         const CircularProgressIndicator(),
         const SizedBox(height: AppSpacing.lg),
         Text('Procesando invitación…',
-            style: AppTypography.body.copyWith(color: AppColors.ink600)),
+            style: AppTypography.body.copyWith(color: context.colors.textSecondary)),
       ],
     );
   }
@@ -176,7 +176,7 @@ class _SuccessView extends StatelessWidget {
         Text(
           'Ya formas parte del equipo de $orgName. En unos segundos te llevamos a tu panel.',
           textAlign: TextAlign.center,
-          style: AppTypography.body.copyWith(color: AppColors.ink600),
+          style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.xl),
         ElevatedButton(
@@ -223,7 +223,7 @@ class _WelcomeView extends StatelessWidget {
         Text(
           '$inviterName te invita a unirte a $orgName en PactStream.',
           textAlign: TextAlign.center,
-          style: AppTypography.body.copyWith(color: AppColors.ink600),
+          style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.xxl),
         // CTA principal: crear cuenta nueva (flujo simplificado)

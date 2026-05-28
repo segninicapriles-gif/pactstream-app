@@ -73,9 +73,9 @@ class _PactScoreGaugeState extends State<PactScoreGauge>
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.lgAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: context.colors.border),
         boxShadow: AppShadows.medium,
       ),
       padding: const EdgeInsets.fromLTRB(
@@ -92,7 +92,7 @@ class _PactScoreGaugeState extends State<PactScoreGauge>
             'RATING PACTSTREAM',
             style: AppTypography.label.copyWith(
               letterSpacing: 1.2,
-              color: AppColors.ink500,
+              color: context.colors.textTertiary,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -119,7 +119,10 @@ class _PactScoreGaugeState extends State<PactScoreGauge>
                     width: gaugeW,
                     height: gaugeH,
                     child: CustomPaint(
-                      painter: _ArcGaugePainter(progress: progress),
+                      painter: _ArcGaugePainter(
+                        progress: progress,
+                        trackColor: context.colors.border,
+                      ),
                       child: Align(
                         // Texto en el centro-bajo del interior del arco
                         alignment: const Alignment(0, 0.42),
@@ -132,7 +135,7 @@ class _PactScoreGaugeState extends State<PactScoreGauge>
                                 fontSize: scoreFontSize,
                                 fontWeight: FontWeight.w800,
                                 height: 1.0,
-                                color: AppColors.ink900,
+                                color: context.colors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -140,7 +143,7 @@ class _PactScoreGaugeState extends State<PactScoreGauge>
                               'score / 100',
                               style: AppTypography.caption.copyWith(
                                 fontSize: labelFontSize,
-                                color: AppColors.ink500,
+                                color: context.colors.textTertiary,
                               ),
                             ),
                           ],
@@ -224,9 +227,10 @@ class _PactScoreGaugeState extends State<PactScoreGauge>
 // ---------------------------------------------------------------------------
 
 class _ArcGaugePainter extends CustomPainter {
-  const _ArcGaugePainter({required this.progress});
+  const _ArcGaugePainter({required this.progress, required this.trackColor});
 
   final double progress; // 0.0 → 1.0
+  final Color trackColor;
 
   // Arco de 180°: empieza a la IZQUIERDA (180°), barre en sentido horario
   // hasta la DERECHA (360°/0°). El centro queda en la base del canvas.
@@ -248,7 +252,7 @@ class _ArcGaugePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeW
       ..strokeCap = StrokeCap.round
-      ..color = AppColors.ink200;
+      ..color = trackColor;
 
     canvas.drawArc(
       rect,
@@ -316,5 +320,6 @@ class _ArcGaugePainter extends CustomPainter {
   static double _deg2rad(double deg) => deg * math.pi / 180;
 
   @override
-  bool shouldRepaint(_ArcGaugePainter old) => old.progress != progress;
+  bool shouldRepaint(_ArcGaugePainter old) =>
+      old.progress != progress || old.trackColor != trackColor;
 }

@@ -38,7 +38,7 @@ class MilestoneDetailPage extends ConsumerWidget {
     final detailAsync = ref.watch(milestoneDetailProvider(milestoneId));
 
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
@@ -128,11 +128,12 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stateStyle = PactStateStyle.forMilestoneState(milestone.state);
+    final co = context.colors;
+    final stateStyle = PactStateStyle.forMilestoneState(milestone.state, context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: co.card,
         borderRadius: AppRadius.mdAll,
       ),
       child: Column(
@@ -161,7 +162,7 @@ class _Header extends StatelessWidget {
               Expanded(
                 child: Text(
                   milestone.name,
-                  style: AppTypography.h2.copyWith(fontSize: 22),
+                  style: AppTypography.h2.copyWith(fontSize: 22, color: co.textPrimary),
                 ),
               ),
               PactStateBadge(style: stateStyle),
@@ -171,7 +172,7 @@ class _Header extends StatelessWidget {
           Text(
             milestone.displayId,
             style: AppTypography.mono
-                .copyWith(fontSize: 11, color: AppColors.ink500),
+                .copyWith(fontSize: 11, color: co.textTertiary),
           ),
           const SizedBox(height: AppSpacing.sm),
           Row(
@@ -193,12 +194,12 @@ class _Header extends StatelessWidget {
               ),
               if (milestone.targetDate != null) ...[
                 const SizedBox(width: AppSpacing.sm),
-                const Icon(Icons.calendar_today_outlined,
-                    size: 14, color: AppColors.ink500),
+                Icon(Icons.calendar_today_outlined,
+                    size: 14, color: co.textTertiary),
                 const SizedBox(width: 4),
                 Text(_date(milestone.targetDate!),
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink500)),
+                        .copyWith(color: co.textTertiary)),
               ],
             ],
           ),
@@ -207,12 +208,12 @@ class _Header extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(milestone.description!.trim(),
                 style: AppTypography.body
-                    .copyWith(color: AppColors.ink700)),
+                    .copyWith(color: co.textSecondary)),
           ],
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Pacto: ${milestone.pactTitle} · ${milestone.pactDisplayId}',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: co.textTertiary),
           ),
         ],
       ),
@@ -238,10 +239,11 @@ class _EvidencesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: co.card,
         borderRadius: AppRadius.mdAll,
       ),
       child: Column(
@@ -250,7 +252,7 @@ class _EvidencesSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text('Evidencias', style: AppTypography.h3),
+                child: Text('Evidencias', style: AppTypography.h3.copyWith(color: co.textPrimary)),
               ),
               if (onUpload != null)
                 FilledButton.icon(
@@ -266,7 +268,7 @@ class _EvidencesSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             '${detail.evidences.length} evidencia${detail.evidences.length == 1 ? "" : "s"} aportada${detail.evidences.length == 1 ? "" : "s"}',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: co.textTertiary),
           ),
           const SizedBox(height: AppSpacing.md),
           if (detail.evidences.isEmpty)
@@ -289,22 +291,26 @@ class _EmptyEvidences extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.ink50,
+        color: co.scaffold,
         borderRadius: AppRadius.smAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: co.border),
       ),
       child: Column(
         children: [
-          const Icon(Icons.photo_camera_outlined,
-              color: AppColors.ink400, size: 36),
+          Icon(Icons.photo_camera_outlined,
+              color: co.textHint, size: 36),
           const SizedBox(height: AppSpacing.sm),
           Text(
             canUpload ? 'Aún no hay evidencias' : 'Sin evidencias todavía',
             style: AppTypography.body
-                .copyWith(fontWeight: FontWeight.w800),
+                .copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: co.textPrimary,
+                ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -313,7 +319,7 @@ class _EmptyEvidences extends StatelessWidget {
                 : 'El constructor aún no ha subido evidencias del avance.',
             textAlign: TextAlign.center,
             style: AppTypography.bodyS
-                .copyWith(color: AppColors.ink500),
+                .copyWith(color: co.textTertiary),
           ),
         ],
       ),
@@ -363,12 +369,13 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     final ev = widget.evidence;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: co.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: co.border),
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -414,7 +421,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                     ev.description!.trim().isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(ev.description!,
-                      style: AppTypography.body),
+                      style: AppTypography.body.copyWith(color: co.textPrimary)),
                 ],
                 const SizedBox(height: AppSpacing.sm),
                 Wrap(
@@ -425,15 +432,15 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.person_outline,
-                            size: 12, color: AppColors.ink500),
+                        Icon(Icons.person_outline,
+                            size: 12, color: co.textTertiary),
                         const SizedBox(width: 4),
                         Text(
                           ev.uploadedByName ??
                               ev.uploadedByEmail ??
                               'Sin nombre',
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.ink500,
+                            color: co.textTertiary,
                             letterSpacing: 0,
                           ),
                         ),
@@ -473,13 +480,13 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.access_time,
-                            size: 12, color: AppColors.ink500),
+                        Icon(Icons.access_time,
+                            size: 12, color: co.textTertiary),
                         const SizedBox(width: 4),
                         Text(
                           AppFormatters.timeRelative(ev.serverTimestamp),
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.ink500,
+                            color: co.textTertiary,
                             letterSpacing: 0,
                           ),
                         ),
@@ -510,7 +517,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                 Text(
                   'Hash: ${ev.sha256Hash.substring(0, 16)}…',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.ink400,
+                    color: co.textHint,
                     letterSpacing: 0,
                     fontFamily: 'monospace',
                   ),
@@ -527,9 +534,9 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
     if (_loadingUrl) {
       return Container(
         height: 160,
-        decoration: const BoxDecoration(
-          color: AppColors.ink100,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: context.colors.chipBg,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppSpacing.md),
           ),
         ),
@@ -565,8 +572,8 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
             if (progress == null) return child;
             return const Center(child: CircularProgressIndicator());
           },
-          errorBuilder: (ctx, e, _) => const Center(
-            child: Icon(Icons.broken_image, size: 48, color: AppColors.ink400),
+          errorBuilder: (ctx, e, _) => Center(
+            child: Icon(Icons.broken_image, size: 48, color: context.colors.textHint),
           ),
         ),
       ),
@@ -1214,7 +1221,7 @@ class _ReworkBanner extends StatelessWidget {
                   rejected
                       ? 'Revisa las observaciones, corrige lo que haga falta y vuelve a marcar el hito como listo.'
                       : 'Aporta la información o evidencias adicionales que ha solicitado el técnico.',
-                  style: AppTypography.bodyS,
+                  style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
                 ),
               ],
             ),
@@ -1259,13 +1266,13 @@ class _PaidBanner extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Se liberaron ${AppFormatters.moneyLong(milestone.amountCents)} al constructor.',
-                  style: AppTypography.bodyS,
+                  style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
                 ),
                 if (milestone.paidAt != null)
                   Text(
                     AppFormatters.dateTimeDetail(milestone.paidAt!),
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.ink500,
+                      color: context.colors.textTertiary,
                       letterSpacing: 0,
                     ),
                   ),
@@ -1313,7 +1320,7 @@ class _DisputeBanner extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Las partes intentarán resolver la disputa en los próximos días. La gestión de disputas detallada se activa en el siguiente sprint.',
-                  style: AppTypography.bodyS,
+                  style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
                 ),
               ],
             ),

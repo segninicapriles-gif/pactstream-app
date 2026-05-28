@@ -30,7 +30,7 @@ class MyTeamPage extends ConsumerWidget {
     final orgsAsync = ref.watch(myOwnedOrgProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
@@ -165,9 +165,9 @@ class _OrgHeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: context.colors.border),
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -195,7 +195,7 @@ class _OrgHeaderCard extends StatelessWidget {
                     if (org.cif != null)
                       Text('CIF · ${org.cif}',
                           style: AppTypography.bodyS
-                              .copyWith(color: AppColors.ink500)),
+                              .copyWith(color: context.colors.textTertiary)),
                   ],
                 ),
               ),
@@ -268,7 +268,7 @@ class _StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.ink600;
+    final c = color ?? context.colors.textSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm, vertical: 4),
@@ -391,9 +391,9 @@ class _MemberTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: context.colors.border),
         boxShadow: AppShadows.soft,
       ),
       child: Row(
@@ -404,11 +404,11 @@ class _MemberTile extends StatelessWidget {
             radius: 22,
             backgroundColor: member.isOwner
                 ? AppColors.psBlue
-                : AppColors.ink200,
+                : context.colors.border,
             child: Text(
               _initials(member.displayName),
               style: AppTypography.bodyS.copyWith(
-                color: member.isOwner ? AppColors.white : AppColors.ink600,
+                color: member.isOwner ? AppColors.white : context.colors.textSecondary,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -444,7 +444,7 @@ class _MemberTile extends StatelessWidget {
                 ),
                 Text(member.email,
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink500)),
+                        .copyWith(color: context.colors.textTertiary)),
                 const SizedBox(height: AppSpacing.xs),
                 Wrap(
                   spacing: 4,
@@ -454,7 +454,7 @@ class _MemberTile extends StatelessWidget {
                       label: member.isOwner ? 'Owner' : 'Miembro',
                       color: member.isOwner
                           ? AppColors.psBlue
-                          : AppColors.ink600,
+                          : context.colors.textSecondary,
                     ),
                     _MiniPill(
                       label: stateConfig.label,
@@ -472,7 +472,7 @@ class _MemberTile extends StatelessWidget {
           ),
           if (canIManage)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: AppColors.ink500),
+              icon: Icon(Icons.more_vert, color: context.colors.textTertiary),
               onSelected: (action) async {
                 bool changed = false;
                 if (action == 'permissions') {
@@ -528,9 +528,9 @@ class _MemberTile extends StatelessWidget {
       case 'invited':
         return (label: 'Pendiente', color: AppColors.warning);
       case 'revoked':
-        return (label: 'Revocado', color: AppColors.ink500);
+        return (label: 'Revocado', color: AppColors.ink400);
       default:
-        return (label: state, color: AppColors.ink500);
+        return (label: state, color: AppColors.ink400);
     }
   }
 }

@@ -91,7 +91,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.white,
+      backgroundColor: context.colors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -328,13 +328,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       Text(
                         'PactStream ${AppConstants.appVersion}',
                         style: AppTypography.caption
-                            .copyWith(color: AppColors.ink500),
+                            .copyWith(color: context.colors.textTertiary),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '© 2026 PactStream Technologies, S.L.',
                         style: AppTypography.caption
-                            .copyWith(color: AppColors.ink500),
+                            .copyWith(color: context.colors.textTertiary),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(

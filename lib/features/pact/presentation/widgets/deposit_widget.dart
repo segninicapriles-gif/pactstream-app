@@ -108,7 +108,7 @@ class _CustodyWidgetV21 extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text('Custodia activa',
                   style: AppTypography.bodyS
-                      .copyWith(fontWeight: FontWeight.w800)),
+                      .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
               const Spacer(),
               if (pact.depositRequiredPct != null)
                 _MiniPill(
@@ -159,19 +159,19 @@ class _CustodyWidgetV21 extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.sm, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: context.colors.card,
               borderRadius: AppRadius.microAll,
             ),
             child: Row(
               children: [
                 Text('Obra ejecutada',
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.ink600)),
+                        .copyWith(color: context.colors.textSecondary)),
                 const Spacer(),
                 Text(
                   '${AppFormatters.moneyShort(pact.budgetConsumedCents)} / ${AppFormatters.moneyShort(pact.totalAmountCents)}',
                   style: AppTypography.bodyS
-                      .copyWith(fontWeight: FontWeight.w700),
+                      .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary),
                 ),
               ],
             ),
@@ -220,7 +220,7 @@ class _UnfundedV21 extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text('Configurar Adelanto',
                   style: AppTypography.bodyS
-                      .copyWith(fontWeight: FontWeight.w800)),
+                      .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
               const Spacer(),
               if (pact.depositRequiredPct != null)
                 _MiniPill(
@@ -234,13 +234,13 @@ class _UnfundedV21 extends StatelessWidget {
               style: AppTypography.h1.copyWith(color: AppColors.psNavy)),
           Text(
             subtitle,
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink600),
+            style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: context.colors.card,
               borderRadius: AppRadius.microAll,
             ),
             child: Column(
@@ -316,7 +316,7 @@ class _CustodyBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.microAll,
       ),
       child: Row(
@@ -330,10 +330,10 @@ class _CustodyBlock extends StatelessWidget {
               children: [
                 Text(label,
                     style: AppTypography.bodyS
-                        .copyWith(fontWeight: FontWeight.w700)),
+                        .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                 Text(sublabel,
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.ink500)),
+                        .copyWith(color: context.colors.textTertiary)),
               ],
             ),
           ),
@@ -375,7 +375,7 @@ class _AdvanceCoverageBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.microAll,
       ),
       child: Column(
@@ -393,11 +393,11 @@ class _AdvanceCoverageBlock extends StatelessWidget {
                   children: [
                     Text('Anticipo asegurado',
                         style: AppTypography.bodyS
-                            .copyWith(fontWeight: FontWeight.w700)),
+                            .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                     Text(
                       'Saldo vivo de la cobertura (decrece con cada cert)',
                       style: AppTypography.caption
-                          .copyWith(color: AppColors.ink500),
+                          .copyWith(color: context.colors.textTertiary),
                     ),
                   ],
                 ),
@@ -408,10 +408,10 @@ class _AdvanceCoverageBlock extends StatelessWidget {
                 children: [
                   Text(AppFormatters.moneyShort(outstandingCents),
                       style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w800)),
+                          .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
                   Text('de ${AppFormatters.moneyShort(releasedCents)}',
                       style: AppTypography.caption
-                          .copyWith(color: AppColors.ink500)),
+                          .copyWith(color: context.colors.textTertiary)),
                 ],
               ),
             ],
@@ -422,7 +422,7 @@ class _AdvanceCoverageBlock extends StatelessWidget {
             child: LinearProgressIndicator(
               value: coverage,
               minHeight: 6,
-              backgroundColor: AppColors.ink200,
+              backgroundColor: context.colors.border,
               valueColor: const AlwaysStoppedAnimation(AppColors.psBlue),
             ),
           ),
@@ -461,11 +461,11 @@ class _MiniPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.smAll,
       ),
       child: Text(label,
-          style: AppTypography.caption.copyWith(color: AppColors.ink600)),
+          style: AppTypography.caption.copyWith(color: context.colors.textSecondary)),
     );
   }
 }
@@ -520,7 +520,7 @@ class _DepositWidgetV20 extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text('Depósito en custodia',
                   style: AppTypography.bodyS
-                      .copyWith(fontWeight: FontWeight.w800)),
+                      .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
               const Spacer(),
               if (pact.depositRequiredPct != null)
                 _MiniPill(
@@ -534,7 +534,7 @@ class _DepositWidgetV20 extends StatelessWidget {
             Text(AppFormatters.moneyLong(required),
                 style: AppTypography.h1.copyWith(color: AppColors.psNavy)),
             Text('pendiente de depositar',
-                style: AppTypography.bodyS.copyWith(color: AppColors.ink600)),
+                style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary)),
             const SizedBox(height: AppSpacing.md),
             if (isPromotor && onFundInitial != null)
               ElevatedButton.icon(
@@ -552,7 +552,7 @@ class _DepositWidgetV20 extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Text('/ ${AppFormatters.moneyShort(required)}',
                     style:
-                        AppTypography.body.copyWith(color: AppColors.ink500)),
+                        AppTypography.body.copyWith(color: context.colors.textTertiary)),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -561,14 +561,14 @@ class _DepositWidgetV20 extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: pct,
                 minHeight: 8,
-                backgroundColor: AppColors.white,
+                backgroundColor: context.colors.card,
                 valueColor: AlwaysStoppedAnimation(accent),
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               '${(pct * 100).toStringAsFixed(0)} % del depósito requerido',
-              style: AppTypography.caption.copyWith(color: AppColors.ink600),
+              style: AppTypography.caption.copyWith(color: context.colors.textSecondary),
             ),
           ],
           if (isLow && isPromotor && onReplenish != null) ...[

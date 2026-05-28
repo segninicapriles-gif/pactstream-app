@@ -156,7 +156,7 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.ink50,
+      backgroundColor: context.colors.scaffold,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
@@ -274,7 +274,7 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: context.colors.card,
                     borderRadius: AppRadius.mdAll,
                   ),
                   child: AddendumsSection(
@@ -326,15 +326,16 @@ class _ContractPdfLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     return InkWell(
       onTap: () => context.push('/pacts/$pactId/contract-pdf'),
       borderRadius: AppRadius.mdAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: co.card,
           borderRadius: AppRadius.mdAll,
-          border: Border.all(color: AppColors.ink200),
+          border: Border.all(color: co.border),
           boxShadow: AppShadows.soft,
         ),
         child: Row(
@@ -356,14 +357,17 @@ class _ContractPdfLink extends StatelessWidget {
                 children: [
                   Text('Contrato del pacto · PDF',
                       style: AppTypography.body
-                          .copyWith(fontWeight: FontWeight.w800)),
+                          .copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: co.textPrimary,
+                          )),
                   Text('Ver, descargar o imprimir el contrato firmado',
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink500)),
+                          .copyWith(color: co.textTertiary)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.ink400),
+            Icon(Icons.chevron_right, color: co.textHint),
           ],
         ),
       ),
@@ -382,14 +386,15 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     final p = detail.pact;
-    final stateStyle = PactStateStyle.forPactState(p.state);
+    final stateStyle = PactStateStyle.forPactState(p.state, context);
     final isMenor = p.pactType == 'obra_menor';
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: co.card,
         borderRadius: AppRadius.mdAll,
       ),
       child: Column(
@@ -404,13 +409,13 @@ class _Header extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.ink100,
+                  color: co.chipBg,
                   borderRadius: AppRadius.xlAll,
                 ),
                 child: Text(
                   isMenor ? 'OBRA MENOR' : 'OBRA MAYOR',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.ink600,
+                    color: co.chipText,
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                   ),
@@ -420,14 +425,14 @@ class _Header extends StatelessWidget {
               Text(
                 p.displayId,
                 style: AppTypography.mono
-                    .copyWith(fontSize: 11, color: AppColors.ink500),
+                    .copyWith(fontSize: 11, color: co.textTertiary),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
 
           // Título grande
-          Text(p.title, style: AppTypography.h2),
+          Text(p.title, style: AppTypography.h2.copyWith(color: co.textPrimary)),
 
           const SizedBox(height: AppSpacing.xs),
 
@@ -435,10 +440,10 @@ class _Header extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
                 child: Icon(Icons.location_on_outlined,
-                    size: 14, color: AppColors.ink500),
+                    size: 14, color: co.textTertiary),
               ),
               const SizedBox(width: 4),
               Expanded(
@@ -447,7 +452,7 @@ class _Header extends StatelessWidget {
                   '${p.obraCity != null ? ', ${p.obraCity}' : ''}'
                   '${p.obraProvince != null && p.obraProvince != p.obraCity ? ' (${p.obraProvince})' : ''}',
                   style: AppTypography.bodyS
-                      .copyWith(color: AppColors.ink500),
+                      .copyWith(color: co.textTertiary),
                 ),
               ),
             ],
@@ -459,7 +464,7 @@ class _Header extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(p.description!.trim(),
                 style: AppTypography.body
-                    .copyWith(color: AppColors.ink700)),
+                    .copyWith(color: co.textSecondary)),
           ],
         ],
       ),
@@ -563,26 +568,27 @@ class _PartiesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: co.card,
         borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Partes del pacto', style: AppTypography.h3),
+          Text('Partes del pacto', style: AppTypography.h3.copyWith(color: co.textPrimary)),
           const SizedBox(height: AppSpacing.xs),
           Text(
             '${parties.where((p) => p.hasAccepted).length} de ${parties.length} han aceptado · '
             '${parties.where((p) => p.hasSigned).length} han firmado',
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: co.textTertiary),
           ),
           const SizedBox(height: AppSpacing.md),
           for (var i = 0; i < parties.length; i++) ...[
             if (i > 0)
-              const Divider(height: 1, color: AppColors.ink200),
+              Divider(height: 1, color: co.divider),
             _PartyTile(
               party: parties[i],
               canResend: isCreator,
@@ -625,6 +631,7 @@ class _PartyTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     final roleSpec = _roleSpec(party.role);
     final statusLabel = _statusLabel();
     // El nombre real puede faltar en pactos antiguos; usamos email de
@@ -658,7 +665,10 @@ class _PartyTile extends StatelessWidget {
                       child: Text(
                         displayName,
                         style: AppTypography.body
-                            .copyWith(fontWeight: FontWeight.w700),
+                            .copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: co.textPrimary,
+                            ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -685,7 +695,7 @@ class _PartyTile extends StatelessWidget {
                 Text(
                   roleSpec.label,
                   style: AppTypography.bodyS
-                      .copyWith(color: AppColors.ink500),
+                      .copyWith(color: co.textTertiary),
                 ),
                 // Email separado solo si tenemos nombre (si no, el email
                 // YA es el displayName de arriba y no queremos duplicar).
@@ -694,7 +704,7 @@ class _PartyTile extends StatelessWidget {
                   Text(
                     party.snapshotEmail!,
                     style: AppTypography.bodyS.copyWith(
-                      color: AppColors.ink500,
+                      color: co.textTertiary,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -812,34 +822,35 @@ class _MilestonesSection extends StatelessWidget {
           : '${milestones.length} hitos · $paid pagados';
     }
 
+    final co = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: co.card,
         borderRadius: AppRadius.mdAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(sectionTitle, style: AppTypography.h3),
+          Text(sectionTitle, style: AppTypography.h3.copyWith(color: co.textPrimary)),
           const SizedBox(height: AppSpacing.xs),
           Text(
             subtitle,
-            style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+            style: AppTypography.bodyS.copyWith(color: co.textTertiary),
           ),
           const SizedBox(height: AppSpacing.md),
           if (milestones.isEmpty && isV2)
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.ink50,
+                color: co.scaffold,
                 borderRadius: AppRadius.smAll,
-                border: Border.all(color: AppColors.ink200),
+                border: Border.all(color: co.border),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.timeline_outlined,
-                      size: 18, color: AppColors.ink500),
+                  Icon(Icons.timeline_outlined,
+                      size: 18, color: co.textTertiary),
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(
@@ -847,7 +858,7 @@ class _MilestonesSection extends StatelessWidget {
                           ? 'Como constructor podrás emitir tu primera certificación cuando el pacto esté en ejecución.'
                           : 'El constructor podrá emitir certificaciones cuando el pacto esté en ejecución.',
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink600),
+                          .copyWith(color: co.textSecondary),
                     ),
                   ),
                 ],
@@ -882,7 +893,8 @@ class _MilestoneTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stateStyle = PactStateStyle.forMilestoneState(milestone.state);
+    final co = context.colors;
+    final stateStyle = PactStateStyle.forMilestoneState(milestone.state, context);
     final isPaid = milestone.state == 'paid';
     final isCurrent = milestone.state != 'paid' &&
         milestone.state != 'pending';
@@ -908,7 +920,7 @@ class _MilestoneTile extends StatelessWidget {
                         ? AppColors.success
                         : isCurrent
                             ? AppColors.psBlue
-                            : AppColors.ink200,
+                            : co.border,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -920,7 +932,7 @@ class _MilestoneTile extends StatelessWidget {
                             style: AppTypography.caption.copyWith(
                               color: isCurrent
                                   ? AppColors.white
-                                  : AppColors.ink600,
+                                  : co.textSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
                             ),
@@ -931,7 +943,7 @@ class _MilestoneTile extends StatelessWidget {
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: AppColors.ink200,
+                      color: co.border,
                     ),
                   ),
               ],
@@ -955,6 +967,7 @@ class _MilestoneTile extends StatelessWidget {
                           milestone.name,
                           style: AppTypography.body.copyWith(
                             fontWeight: FontWeight.w800,
+                            color: co.textPrimary,
                           ),
                         ),
                       ),
@@ -973,13 +986,13 @@ class _MilestoneTile extends StatelessWidget {
                       ),
                       if (milestone.targetDate != null) ...[
                         const SizedBox(width: AppSpacing.sm),
-                        const Icon(Icons.calendar_today_outlined,
-                            size: 12, color: AppColors.ink500),
+                        Icon(Icons.calendar_today_outlined,
+                            size: 12, color: co.textTertiary),
                         const SizedBox(width: 4),
                         Text(
                           _formatDate(milestone.targetDate!),
                           style: AppTypography.bodyS
-                              .copyWith(color: AppColors.ink500),
+                              .copyWith(color: co.textTertiary),
                         ),
                       ],
                     ],
@@ -990,7 +1003,7 @@ class _MilestoneTile extends StatelessWidget {
                     Text(
                       milestone.description!,
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink600),
+                          .copyWith(color: co.textSecondary),
                     ),
                   ],
                   // Badges v2: factura, doc detallado, versión editada
@@ -1020,7 +1033,7 @@ class _MilestoneTile extends StatelessWidget {
                           _MilestoneBadge(
                             icon: Icons.history,
                             label: 'v${milestone.version}',
-                            color: AppColors.ink500,
+                            color: co.textTertiary,
                           ),
                       ],
                     ),
@@ -1380,6 +1393,7 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -1399,11 +1413,14 @@ class _InfoCard extends StatelessWidget {
               children: [
                 Text(title,
                     style: AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w800)),
+                        .copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: co.textPrimary,
+                        )),
                 const SizedBox(height: 2),
                 Text(description,
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink700)),
+                        .copyWith(color: co.textSecondary)),
               ],
             ),
           ),
@@ -1471,12 +1488,15 @@ class _ViaOrgBanner extends StatelessWidget {
               children: [
                 Text('Accedes a esta obra vía tu equipo',
                     style: AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w800)),
+                        .copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: context.colors.textPrimary,
+                        )),
                 const SizedBox(height: 2),
                 Text(
                   accessLine,
                   style: AppTypography.bodyS
-                      .copyWith(color: AppColors.ink600),
+                      .copyWith(color: context.colors.textSecondary),
                 ),
               ],
             ),
@@ -1495,24 +1515,25 @@ class _EconomicsHidden extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.ink50,
+        color: co.scaffold,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200, width: 1),
+        border: Border.all(color: co.border, width: 1),
       ),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(
-              color: AppColors.white,
+            decoration: BoxDecoration(
+              color: co.card,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.lock_outline,
-                color: AppColors.ink500, size: 20),
+            child: Icon(Icons.lock_outline,
+                color: co.textTertiary, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -1523,13 +1544,13 @@ class _EconomicsHidden extends StatelessWidget {
                   'Información económica restringida',
                   style: AppTypography.body.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.ink700,
+                    color: co.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'El dueño de la organización puede activar este permiso desde Mi equipo.',
-                  style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                  style: AppTypography.bodyS.copyWith(color: co.textTertiary),
                 ),
               ],
             ),
@@ -1557,6 +1578,7 @@ class _InlineTrustScoreCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final co = context.colors;
     final healthAsync = ref.watch(pactHealthProvider(pactId));
 
     return GestureDetector(
@@ -1567,11 +1589,7 @@ class _InlineTrustScoreCard extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: AppRadius.lgAll,
-          gradient: const LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [Color(0xFFEFF6FF), AppColors.white],
-          ),
+          color: co.card,
           border: Border.all(color: AppColors.psBlue, width: 1.2),
           boxShadow: AppShadows.soft,
         ),
@@ -1591,9 +1609,9 @@ class _InlineTrustScoreCard extends ConsumerWidget {
                         // Score circle
                         healthAsync.when(
                           loading: () =>
-                              _ScoreCircle(score: null, color: AppColors.ink300),
+                              _ScoreCircle(score: null, color: co.textHint),
                           error: (_, __) =>
-                              _ScoreCircle(score: null, color: AppColors.ink300),
+                              _ScoreCircle(score: null, color: co.textHint),
                           data: (h) => _ScoreCircle(score: h.score, color: h.color),
                         ),
                         const SizedBox(width: AppSpacing.md),
@@ -1614,12 +1632,12 @@ class _InlineTrustScoreCard extends ConsumerWidget {
                                 loading: () => Text(
                                   'Calculando...',
                                   style: AppTypography.bodyS
-                                      .copyWith(color: AppColors.ink400),
+                                      .copyWith(color: co.textHint),
                                 ),
                                 error: (_, __) => Text(
                                   'No disponible',
                                   style: AppTypography.bodyS
-                                      .copyWith(color: AppColors.ink400),
+                                      .copyWith(color: co.textHint),
                                 ),
                                 data: (h) => Row(
                                   children: [
@@ -1706,7 +1724,7 @@ class _ScoreCircle extends StatelessWidget {
                   Text(
                     '/100',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.ink500,
+                      color: context.colors.textTertiary,
                       fontSize: 8,
                     ),
                   ),

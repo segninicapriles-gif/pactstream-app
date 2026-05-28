@@ -53,7 +53,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               Text(
                 'Te enviaremos un enlace para restablecer tu contraseña.',
                 style: AppTypography.bodyS
-                    .copyWith(color: AppColors.ink600),
+                    .copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(
@@ -198,11 +198,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                 const SizedBox(height: AppSpacing.lg),
-                Text('Iniciar sesión', style: AppTypography.h2),
+                Text('Iniciar sesión', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Accede a tu cuenta para gestionar tus obras',
-                  style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                  style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
                 ),
                 const SizedBox(height: AppSpacing.xl),
 
@@ -301,7 +301,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       child: Text(
                         'o',
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.ink500),
+                            .copyWith(color: context.colors.textTertiary),
                       ),
                     ),
                     const Expanded(child: Divider()),

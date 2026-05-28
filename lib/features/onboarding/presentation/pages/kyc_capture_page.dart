@@ -203,7 +203,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
         Text(
           'Completa la verificación en la pestaña que se abrió. Cuando termines, vuelve aquí — detectaremos el resultado automáticamente.',
           textAlign: TextAlign.center,
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
         const SizedBox(height: AppSpacing.xxl),
         if (_sessionUrl != null) ...[
@@ -261,7 +261,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
         Text(
           'Necesitas tu DNI o pasaporte y la cámara del dispositivo. Tarda 2-3 minutos.',
           textAlign: TextAlign.center,
-          style: AppTypography.body.copyWith(color: AppColors.ink600),
+          style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
 
         const SizedBox(height: AppSpacing.xl),
@@ -318,7 +318,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
         // Modo dev fallback
         ExpansionTile(
           title: Text('Modo desarrollo · Simular resultado',
-              style: AppTypography.bodyS.copyWith(color: AppColors.ink500)),
+              style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary)),
           tilePadding: EdgeInsets.zero,
           children: [
             const SizedBox(height: AppSpacing.sm),
@@ -347,7 +347,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Solo visible mientras configuras Veriff. Eliminar este bloque antes de producción.',
-              style: AppTypography.caption.copyWith(color: AppColors.ink500),
+              style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
             ),
           ],
         ),
@@ -396,10 +396,10 @@ class _Step extends StatelessWidget {
               children: [
                 Text(title,
                     style: AppTypography.body
-                        .copyWith(fontWeight: FontWeight.w700)),
+                        .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                 Text(subtitle,
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink500)),
+                        .copyWith(color: context.colors.textTertiary)),
               ],
             ),
           ),

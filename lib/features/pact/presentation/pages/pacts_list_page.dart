@@ -127,13 +127,13 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                       child: Text(
                         'Gestiona tus proyectos de construcción',
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.ink500),
+                            .copyWith(color: context.colors.textTertiary),
                       ),
                     ),
                     Text(
                       '${pacts.length} total',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.ink400,
+                        color: context.colors.textHint,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -146,9 +146,9 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                   decoration: InputDecoration(
                     hintText: 'Buscar obra, ciudad o NIF...',
                     hintStyle: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink400),
-                    prefixIcon: const Icon(Icons.search,
-                        color: AppColors.ink400, size: 20),
+                        .copyWith(color: context.colors.textHint),
+                    prefixIcon: Icon(Icons.search,
+                        color: context.colors.textHint, size: 20),
                     filled: true,
                     fillColor: context.colors.inputFill,
                     contentPadding: const EdgeInsets.symmetric(
@@ -189,7 +189,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                           labelStyle: AppTypography.bodyS.copyWith(
                             color: selected
                                 ? AppColors.white
-                                : AppColors.ink600,
+                                : context.colors.textSecondary,
                             fontWeight: FontWeight.w600,
                           ),
                           selectedColor: AppColors.psBlue,
@@ -247,13 +247,13 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                       child: Text(
                         'Gestiona tus proyectos de construcción',
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.ink500),
+                            .copyWith(color: context.colors.textTertiary),
                       ),
                     ),
                     Text(
                       '$active activa${active == 1 ? '' : 's'} · ${pacts.length} total',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.ink400,
+                        color: context.colors.textHint,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -267,9 +267,9 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                   decoration: InputDecoration(
                     hintText: 'Buscar obra, ciudad o NIF...',
                     hintStyle: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink400),
-                    prefixIcon: const Icon(Icons.search,
-                        color: AppColors.ink400, size: 20),
+                        .copyWith(color: context.colors.textHint),
+                    prefixIcon: Icon(Icons.search,
+                        color: context.colors.textHint, size: 20),
                     filled: true,
                     fillColor: context.colors.inputFill,
                     contentPadding: const EdgeInsets.symmetric(
@@ -312,7 +312,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                           labelStyle: AppTypography.bodyS.copyWith(
                             color: selected
                                 ? AppColors.white
-                                : AppColors.ink600,
+                                : context.colors.textSecondary,
                             fontWeight: FontWeight.w600,
                           ),
                           selectedColor: AppColors.psBlue,
@@ -399,7 +399,8 @@ class _PactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stateStyle = PactStateStyle.forPactState(pact.state);
+    final co = context.colors;
+    final stateStyle = PactStateStyle.forPactState(pact.state, context);
     final progress = pact.milestonesTotal > 0
         ? '${pact.milestonesPaid} de ${pact.milestonesTotal} hitos pagados'
         : '';
@@ -416,9 +417,9 @@ class _PactCard extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: context.colors.card,
+          color: co.card,
           borderRadius: AppRadius.mdAll,
-          border: Border.all(color: context.colors.border),
+          border: Border.all(color: co.border),
           boxShadow: AppShadows.soft,
         ),
         child: IntrinsicHeight(
@@ -444,6 +445,7 @@ class _PactCard extends StatelessWidget {
                         pact.title,
                         style: AppTypography.body.copyWith(
                           fontWeight: FontWeight.w800,
+                          color: co.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -454,21 +456,21 @@ class _PactCard extends StatelessWidget {
                           Text(
                             pact.displayId,
                             style: AppTypography.mono
-                                .copyWith(fontSize: 11),
+                                .copyWith(fontSize: 11, color: co.textTertiary),
                           ),
                           const SizedBox(width: AppSpacing.xs),
                           Text('·',
                               style: AppTypography.bodyS
-                                  .copyWith(color: AppColors.ink400)),
+                                  .copyWith(color: co.textHint)),
                           const SizedBox(width: AppSpacing.xs),
                           Icon(Icons.location_on_outlined,
-                              size: 12, color: AppColors.ink500),
+                              size: 12, color: co.textTertiary),
                           const SizedBox(width: 2),
                           Flexible(
                             child: Text(
                               pact.locationShort,
                               style: AppTypography.bodyS
-                                  .copyWith(color: AppColors.ink500),
+                                  .copyWith(color: co.textTertiary),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -488,7 +490,7 @@ class _PactCard extends StatelessWidget {
               children: [
                 Text(
                   AppFormatters.moneyShort(pact.totalAmountCents),
-                  style: AppTypography.h3.copyWith(fontSize: 18),
+                  style: AppTypography.h3.copyWith(fontSize: 18, color: co.textPrimary),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 _TypePill(pactType: pact.pactType),
@@ -505,7 +507,7 @@ class _PactCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: pact.progress,
                   minHeight: 4,
-                  backgroundColor: AppColors.ink200,
+                  backgroundColor: co.border,
                   valueColor:
                       const AlwaysStoppedAnimation(AppColors.psBlue),
                 ),
@@ -517,7 +519,7 @@ class _PactCard extends StatelessWidget {
                   Text(
                     '${pact.milestonesPaid}/${pact.milestonesTotal} hitos pagados',
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink500),
+                        .copyWith(color: co.textTertiary),
                   ),
                   if (pact.partiesAccepted < pact.partiesTotal)
                     Text(
@@ -533,7 +535,7 @@ class _PactCard extends StatelessWidget {
               Text(
                 '${pact.partiesAccepted} de ${pact.partiesTotal} partes han aceptado',
                 style: AppTypography.bodyS
-                    .copyWith(color: AppColors.ink500),
+                    .copyWith(color: co.textTertiary),
               ),
             ],
 
@@ -543,19 +545,22 @@ class _PactCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.ink50,
+                  color: co.scaffold,
                   borderRadius: AppRadius.microAll,
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.flag_outlined,
-                        size: 14, color: AppColors.ink500),
+                    Icon(Icons.flag_outlined,
+                        size: 14, color: co.textTertiary),
                     const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         'Próximo: ${pact.nextMilestoneName}',
                         style: AppTypography.bodyS
-                            .copyWith(fontWeight: FontWeight.w600),
+                            .copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: co.textPrimary,
+                            ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -565,7 +570,10 @@ class _PactCard extends StatelessWidget {
                         AppFormatters.moneyShort(
                             pact.nextMilestoneAmountCents!),
                         style: AppTypography.bodyS
-                            .copyWith(fontWeight: FontWeight.w800),
+                            .copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: co.textPrimary,
+                            ),
                       ),
                   ],
                 ),
@@ -591,17 +599,18 @@ class _TypePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     final isMenor = pactType == 'obra_menor';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.ink100,
+        color: co.chipBg,
         borderRadius: AppRadius.xlAll,
       ),
       child: Text(
         isMenor ? 'Obra menor' : 'Obra mayor',
         style: AppTypography.caption.copyWith(
-          color: AppColors.ink600,
+          color: co.chipText,
           fontSize: 10,
           fontWeight: FontWeight.w700,
         ),

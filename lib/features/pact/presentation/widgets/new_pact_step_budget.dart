@@ -71,11 +71,11 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         // === Presupuesto ===
-        Text('Presupuesto', style: AppTypography.h2),
+        Text('Presupuesto', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Importe total acordado para la obra. Podrá ajustarse con anexos firmados por las partes.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
         const SizedBox(height: AppSpacing.md),
         TextField(
@@ -119,7 +119,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                 contentPadding: EdgeInsets.zero,
                 title: Text('IVA incluido',
                     style: AppTypography.bodyS
-                        .copyWith(fontWeight: FontWeight.w600)),
+                        .copyWith(fontWeight: FontWeight.w600, color: context.colors.textPrimary)),
                 value: d.ivaIncluded,
                 onChanged: (v) {
                   widget.data.ivaIncluded = v;
@@ -135,18 +135,18 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.ink50,
+              color: context.colors.scaffold,
               borderRadius: AppRadius.microAll,
             ),
             child: Row(
               children: [
                 Text('IVA (${d.ivaRatePct.toStringAsFixed(0)} %)',
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink600)),
+                        .copyWith(color: context.colors.textSecondary)),
                 const Spacer(),
                 Text(AppFormatters.moneyShort(ivaCents),
                     style: AppTypography.bodyS
-                        .copyWith(fontWeight: FontWeight.w700)),
+                        .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
               ],
             ),
           ),
@@ -155,11 +155,11 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
             children: [
               Text('Total con IVA',
                   style: AppTypography.bodyS
-                      .copyWith(color: AppColors.ink900)),
+                      .copyWith(color: context.colors.textPrimary)),
               const Spacer(),
               Text(AppFormatters.moneyShort(totalWithIvaCents),
                   style: AppTypography.body
-                      .copyWith(fontWeight: FontWeight.w800)),
+                      .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
             ],
           ),
         ],
@@ -167,11 +167,11 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
         const SizedBox(height: AppSpacing.xl),
 
         // === Adelanto con doble garantía ===
-        Text('Adelanto', style: AppTypography.h2),
+        Text('Adelanto', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Importe que el promotor compromete al firmar. PactStream entrega la parte variable al constructor el día 1 y custodia el 10 % como reserva de finiquito.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
         const SizedBox(height: AppSpacing.md),
 
@@ -196,7 +196,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                   Text(
                     'del presupuesto',
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink600),
+                        .copyWith(color: context.colors.textSecondary),
                   ),
                   const Spacer(),
                   Text(
@@ -211,7 +211,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                 data: SliderThemeData(
                   activeTrackColor: AppColors.psBlue,
                   thumbColor: AppColors.psNavy,
-                  inactiveTrackColor: AppColors.ink200,
+                  inactiveTrackColor: context.colors.border,
                   valueIndicatorColor: AppColors.psNavy,
                   trackHeight: 4,
                 ),
@@ -232,10 +232,10 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                 children: [
                   Text('10 %',
                       style: AppTypography.caption
-                          .copyWith(color: AppColors.ink500)),
+                          .copyWith(color: context.colors.textTertiary)),
                   Text('40 %',
                       style: AppTypography.caption
-                          .copyWith(color: AppColors.ink500)),
+                          .copyWith(color: context.colors.textTertiary)),
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -260,7 +260,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: context.colors.card,
                   borderRadius: AppRadius.microAll,
                 ),
                 child: Column(
@@ -273,7 +273,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                       value: AppFormatters.moneyShort(d.advanceReserveCents),
                     ),
                     const SizedBox(height: 6),
-                    Divider(height: 1, color: AppColors.ink200),
+                    Divider(height: 1, color: context.colors.divider),
                     const SizedBox(height: 6),
                     _BreakdownRow(
                       icon: Icons.payments_outlined,
@@ -296,20 +296,20 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
-            color: AppColors.ink50,
+            color: context.colors.scaffold,
             borderRadius: AppRadius.microAll,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.info_outline,
-                  size: 16, color: AppColors.ink600),
+              Icon(Icons.info_outline,
+                  size: 16, color: context.colors.textSecondary),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
                   'Mínimo del 10 % obligatorio (la reserva). El resto se negocia con el constructor: lo habitual son 20-30 % adicionales para que pueda comprar materiales.',
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.ink600),
+                      .copyWith(color: context.colors.textSecondary),
                 ),
               ),
             ],
@@ -319,11 +319,11 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
         const SizedBox(height: AppSpacing.xl),
 
         // === Frecuencia de certificación ===
-        Text('Frecuencia de certificación', style: AppTypography.h2),
+        Text('Frecuencia de certificación', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Cada cuánto el constructor podrá emitir certificaciones de avance para cobrar.',
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+          style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
         const SizedBox(height: AppSpacing.md),
         TextField(
@@ -391,10 +391,10 @@ class _BreakdownRow extends StatelessWidget {
             children: [
               Text(label,
                   style: AppTypography.bodyS
-                      .copyWith(fontWeight: FontWeight.w700)),
+                      .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
               Text(sublabel,
                   style: AppTypography.caption
-                      .copyWith(color: AppColors.ink500)),
+                      .copyWith(color: context.colors.textTertiary)),
             ],
           ),
         ),

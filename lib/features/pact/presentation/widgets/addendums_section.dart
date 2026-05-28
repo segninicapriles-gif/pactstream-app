@@ -40,12 +40,12 @@ class AddendumsSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.assignment_outlined,
-                size: 18, color: AppColors.ink600),
+            Icon(Icons.assignment_outlined,
+                size: 18, color: context.colors.textSecondary),
             const SizedBox(width: AppSpacing.xs),
             Text('Anexos del pacto',
                 style:
-                    AppTypography.h3.copyWith(fontWeight: FontWeight.w800)),
+                    AppTypography.h3.copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
             const Spacer(),
             if (onProposeAddendum != null)
               TextButton.icon(
@@ -59,7 +59,7 @@ class AddendumsSection extends StatelessWidget {
         Text(
           'Los anexos modifican el pacto cuando hay imprevistos o cambios. '
           'Para activarse necesitan la firma de todas las partes.',
-          style: AppTypography.caption.copyWith(color: AppColors.ink500),
+          style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
         ),
         const SizedBox(height: AppSpacing.sm),
 
@@ -67,20 +67,20 @@ class AddendumsSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.ink50,
+              color: context.colors.scaffold,
               borderRadius: AppRadius.smAll,
-              border: Border.all(color: AppColors.ink200),
+              border: Border.all(color: context.colors.border),
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline,
-                    size: 18, color: AppColors.ink500),
+                Icon(Icons.info_outline,
+                    size: 18, color: context.colors.textTertiary),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Text(
                     'No hay anexos en este pacto.',
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink500),
+                        .copyWith(color: context.colors.textTertiary),
                   ),
                 ),
               ],
@@ -128,8 +128,8 @@ class _AddendumCard extends StatelessWidget {
       icon = Icons.check_circle_outline;
       stateLabel = 'Activo';
     } else if (isCancelled) {
-      accent = AppColors.ink500;
-      bg = AppColors.ink50;
+      accent = context.colors.textTertiary;
+      bg = context.colors.scaffold;
       icon = Icons.cancel_outlined;
       stateLabel = 'Cancelado';
     } else {
@@ -161,7 +161,7 @@ class _AddendumCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text('Anexo #${addendum.ordinal}',
                   style: AppTypography.bodyS
-                      .copyWith(fontWeight: FontWeight.w800)),
+                      .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
               const SizedBox(width: AppSpacing.xs),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -178,18 +178,18 @@ class _AddendumCard extends StatelessWidget {
               Text(
                 AppFormatters.timeRelative(addendum.createdAt),
                 style: AppTypography.caption
-                    .copyWith(color: AppColors.ink500),
+                    .copyWith(color: context.colors.textTertiary),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(addendum.title,
               style: AppTypography.body
-                  .copyWith(fontWeight: FontWeight.w700)),
+                  .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
           if (addendum.description != null) ...[
             const SizedBox(height: 4),
             Text(addendum.description!,
-                style: AppTypography.bodyS.copyWith(color: AppColors.ink600)),
+                style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary)),
           ],
 
           const SizedBox(height: AppSpacing.sm),
@@ -208,7 +208,7 @@ class _AddendumCard extends StatelessWidget {
                     icon: Icons.event,
                     label:
                         '${addendum.extraDays > 0 ? '+' : ''}${addendum.extraDays} días',
-                    color: AppColors.ink600),
+                    color: context.colors.textSecondary),
               ],
               if (addendum.hasDoc) ...[
                 const SizedBox(width: AppSpacing.xs),
@@ -225,12 +225,12 @@ class _AddendumCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: context.colors.card,
                 borderRadius: AppRadius.microAll,
               ),
               child: Text(addendum.justification!,
                   style:
-                      AppTypography.caption.copyWith(color: AppColors.ink600)),
+                      AppTypography.caption.copyWith(color: context.colors.textSecondary)),
             ),
           ],
 
@@ -324,13 +324,13 @@ class _SignaturePill extends StatelessWidget {
     final label = role == 'promotor'
         ? 'Promotor'
         : (role == 'constructor' ? 'Constructor' : 'Técnico');
-    final color = signed ? AppColors.success : AppColors.ink500;
+    final color = signed ? AppColors.success : context.colors.textTertiary;
 
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.card,
         borderRadius: AppRadius.mdAll,
         border: Border.all(color: color),
       ),

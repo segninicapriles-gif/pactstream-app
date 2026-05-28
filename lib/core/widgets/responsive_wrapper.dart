@@ -37,6 +37,7 @@ class ResponsiveWrapper extends StatelessWidget {
         // Tablet: wider container (room for NavigationRail + content).
         if (screenWidth <= AppBreakpoints.medium) {
           return _centeredChrome(
+            context: context,
             maxWidth: AppBreakpoints.mediumMaxWidth,
             child: child,
           );
@@ -44,6 +45,7 @@ class ResponsiveWrapper extends StatelessWidget {
 
         // Desktop / wide tablet: slightly narrower (phone-sim with rail).
         return _centeredChrome(
+          context: context,
           maxWidth: AppBreakpoints.expandedMaxWidth,
           child: child,
         );
@@ -51,22 +53,24 @@ class ResponsiveWrapper extends StatelessWidget {
     );
   }
 
-  /// Shared decoration: gray background, centered white card with shadow.
+  /// Shared decoration: gray background, centered card with shadow.
   Widget _centeredChrome({
+    required BuildContext context,
     required double maxWidth,
     required Widget child,
   }) {
+    final c = context.colors;
     return ColoredBox(
-      color: AppColors.ink100,
+      color: c.scaffold,
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: Container(
             clipBehavior: Clip.hardEdge,
-            decoration: const BoxDecoration(
-              color: AppColors.white,
+            decoration: BoxDecoration(
+              color: c.card,
               borderRadius: BorderRadius.zero,
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Color(0x0F000000),
                   blurRadius: 24,
