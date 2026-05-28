@@ -23,8 +23,8 @@ class AnimatedListItem extends StatefulWidget {
     required this.index,
     required this.child,
     this.duration = AppMotion.normal,
-    this.staggerDelay = const Duration(milliseconds: 60),
-    this.slideOffset = 0.04,
+    this.staggerDelay = const Duration(milliseconds: 40),
+    this.slideOffset = 0.03,
     this.curve = AppMotion.enter,
   });
 

@@ -9,6 +9,7 @@ import '../../../../core/widgets/animated_list_item.dart';
 import '../../data/dashboard_data.dart';
 import '../../data/dashboard_providers.dart';
 import 'dashboard_shared.dart';
+import 'mini_bar_chart.dart';
 
 /// Dashboard del Técnico (cableado a datos reales).
 ///
@@ -190,8 +191,35 @@ class _Content extends StatelessWidget {
                 ),
               ),
             ),
+        const SizedBox(height: AppSpacing.lg),
+
+        // CHART · Validaciones mensuales
+        AnimatedListItem(
+          index: animIdx++,
+          child: MiniBarChart(
+            title: 'Validaciones mensuales',
+            barColor: AppColors.tecnicoAccent,
+            data: _buildValidationData(),
+          ),
+        ),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
+  }
+
+  /// Genera datos demo de validaciones de los últimos 6 meses.
+  /// TODO(sprint-3): sustituir por datos reales de sf_get_validation_summary.
+  static List<BarChartItem> _buildValidationData() {
+    final now = DateTime.now();
+    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    // Datos demo — simula validaciones de un técnico activo.
+    const demoValues = [4.0, 6.0, 3.0, 8.0, 5.0, 7.0];
+    return List.generate(6, (i) {
+      final month = DateTime(now.year, now.month - 5 + i);
+      return BarChartItem(
+        label: months[month.month - 1],
+        value: demoValues[i],
+      );
+    });
   }
 }
