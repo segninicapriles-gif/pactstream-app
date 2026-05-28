@@ -249,81 +249,151 @@ class _ScorePanel extends StatelessWidget {
       );
     }
 
-    final color = rep!.tier.color;
-    final isElite = rep!.tier == ReputationTier.elite;
+    return _AnimatedScorePanel(rep: rep!);
+  }
+}
 
-    return SizedBox(
-      width: 72,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'TRUST SCORE',
-            style: AppTypography.caption.copyWith(
-              color: Colors.white54,
-              fontSize: 7,
-              letterSpacing: 0.8,
-            ),
-          ),
-          const SizedBox(height: 6),
-          // Score ring
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: color, width: 2.5),
-              color: color.withValues(alpha:0.12),
-            ),
-            child: Center(
-              child: isElite
-                  ? ShaderMask(
-                      shaderCallback: (b) => LinearGradient(
-                        colors: [
-                          AppColors.tierElite1,
-                          AppColors.tierElite2,
-                        ],
-                      ).createShader(b),
-                      child: Text(
-                        '${rep!.score}',
-                        style: AppTypography.body.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                          height: 1,
+/// Score panel con animación de conteo y arco progresivo.
+class _AnimatedScorePanel extends StatefulWidget {
+  const _AnimatedScorePanel({required this.rep});
+  final UserReputation rep;
+
+  @override
+  State<_AnimatedScorePanel> createState() => _AnimatedScorePanelState();
+}
+
+class _AnimatedScorePanelState extends State<_AnimatedScorePanel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _scoreAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _scoreAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rep = widget.rep;
+    final color = rep.tier.color;
+    final isElite = rep.tier == ReputationTier.elite;
+
+    return AnimatedBuilder(
+      animation: _scoreAnim,
+      builder: (context, child) {
+        final displayScore = (_scoreAnim.value * rep.score).round();
+        final ringProgress = _scoreAnim.value * (rep.score / 100);
+
+        return SizedBox(
+          width: 72,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'TRUST SCORE',
+                style: AppTypography.caption.copyWith(
+                  color: Colors.white54,
+                  fontSize: 7,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 6),
+              // Score ring con arco animado
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Arco de fondo
+                    SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: CircularProgressIndicator(
+                        value: 1.0,
+                        strokeWidth: 2.5,
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation(
+                          color.withValues(alpha: 0.2),
                         ),
                       ),
-                    )
-                  : Text(
-                      '${rep!.score}',
-                      style: AppTypography.body.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                        height: 1,
+                    ),
+                    // Arco animado de progreso
+                    SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: CircularProgressIndicator(
+                        value: ringProgress.clamp(0.0, 1.0),
+                        strokeWidth: 2.5,
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation(color),
+                        strokeCap: StrokeCap.round,
                       ),
                     ),
-            ),
+                    // Número animado
+                    isElite
+                        ? ShaderMask(
+                            shaderCallback: (b) => LinearGradient(
+                              colors: [
+                                AppColors.tierElite1,
+                                AppColors.tierElite2,
+                              ],
+                            ).createShader(b),
+                            child: Text(
+                              '$displayScore',
+                              style: AppTypography.body.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                                height: 1,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            '$displayScore',
+                            style: AppTypography.body.copyWith(
+                              color: color,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              height: 1,
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                rep.tier.label.toUpperCase(),
+                style: AppTypography.caption.copyWith(
+                  color: color,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              PactScoreShields(
+                filled: rep.shieldsFilled,
+                tier: rep.tier,
+                size: 11,
+                spacing: 2,
+              ),
+            ],
           ),
-          const SizedBox(height: 5),
-          Text(
-            rep!.tier.label.toUpperCase(),
-            style: AppTypography.caption.copyWith(
-              color: color,
-              fontSize: 8,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 4),
-          PactScoreShields(
-            filled: rep!.shieldsFilled,
-            tier: rep!.tier,
-            size: 11,
-            spacing: 2,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

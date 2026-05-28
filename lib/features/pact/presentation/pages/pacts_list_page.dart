@@ -115,8 +115,8 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
 
           final filtered = _applyFilters(pacts);
 
-          // Header count: search bar + filter chips row
-          const headerCount = 2;
+          // Header count: subtitle + search bar + filter chips row
+          const headerCount = 3;
           final ctaCount = widget.canCreate ? 1 : 0;
 
           return ListView.separated(
@@ -125,8 +125,31 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
             separatorBuilder: (_, __) =>
                 const SizedBox(height: AppSpacing.md),
             itemBuilder: (ctx, i) {
-              // ---- Search bar ----
+              // ---- Subtitle + count ----
               if (i == 0) {
+                final active = pacts.where((p) =>
+                    p.state == 'in_execution' || p.state == 'funded').length;
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Gestiona tus proyectos de construcción',
+                        style: AppTypography.bodyS
+                            .copyWith(color: AppColors.ink500),
+                      ),
+                    ),
+                    Text(
+                      '$active activa${active == 1 ? '' : 's'} · ${pacts.length} total',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.ink400,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                );
+              }
+              // ---- Search bar ----
+              if (i == 1) {
                 return TextField(
                   onChanged: (v) => setState(() => _searchQuery = v),
                   decoration: InputDecoration(
@@ -160,7 +183,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
               }
 
               // ---- Filter chips ----
-              if (i == 1) {
+              if (i == 2) {
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(

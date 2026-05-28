@@ -218,11 +218,14 @@ class _Content extends StatelessWidget {
   static List<BarChartItem> _buildMonthlyData() {
     final now = DateTime.now();
     const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    // Datos demo — simula facturación creciente de una constructora activa.
+    // Sustituir por datos del backend cuando estén disponibles.
+    const demoValues = [8500.0, 12300.0, 15800.0, 9200.0, 22400.0, 18700.0];
     return List.generate(6, (i) {
       final month = DateTime(now.year, now.month - 5 + i);
       return BarChartItem(
         label: months[month.month - 1],
-        value: 0, // Se llenará con datos reales del backend
+        value: demoValues[i],
       );
     });
   }

@@ -217,11 +217,14 @@ class _Content extends StatelessWidget {
   static List<BarChartItem> _buildFlowData() {
     final now = DateTime.now();
     const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    // Datos demo — simula flujo de fondos de un promotor con varias obras.
+    // Sustituir por datos del backend cuando estén disponibles.
+    const demoValues = [35000.0, 28000.0, 42000.0, 31500.0, 55000.0, 47200.0];
     return List.generate(6, (i) {
       final month = DateTime(now.year, now.month - 5 + i);
       return BarChartItem(
         label: months[month.month - 1],
-        value: 0, // Se llenará con datos reales del backend
+        value: demoValues[i],
       );
     });
   }
