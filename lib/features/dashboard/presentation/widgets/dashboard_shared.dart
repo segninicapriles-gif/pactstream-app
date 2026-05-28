@@ -421,14 +421,15 @@ class MiniKpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     return Semantics(
       label: '$label: $value${subtitle != null ? '. $subtitle' : ''}',
       child: Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: co.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: co.border),
         boxShadow: AppShadows.soft,
       ),
       child: IntrinsicHeight(
@@ -445,15 +446,17 @@ class MiniKpiCard extends StatelessWidget {
                   children: [
                     Text(label,
                         style: AppTypography.caption
-                            .copyWith(color: AppColors.ink500)),
+                            .copyWith(color: context.colors.textTertiary)),
                     const SizedBox(height: AppSpacing.xs),
                     Text(value,
-                        style: AppTypography.h2.copyWith(fontSize: 22)),
+                        style: AppTypography.h2.copyWith(
+                            fontSize: 22,
+                            color: context.colors.textPrimary)),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(subtitle!,
                           style: AppTypography.bodyS.copyWith(
-                              color: subtitleColor ?? AppColors.ink500)),
+                              color: subtitleColor ?? context.colors.textTertiary)),
                     ],
                   ],
                 ),
@@ -527,6 +530,7 @@ class UrgentTaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = _iconForKind(task.kind);
+    final co = context.colors;
     return Semantics(
       button: true,
       label: '${task.title}. ${task.subtitle}. ${task.badgeLabel}',
@@ -536,9 +540,9 @@ class UrgentTaskCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: co.card,
             borderRadius: AppRadius.mdAll,
-            border: Border.all(color: AppColors.ink200),
+            border: Border.all(color: co.border),
             boxShadow: AppShadows.soft,
           ),
           child: Row(
@@ -558,12 +562,13 @@ class UrgentTaskCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(task.title,
-                        style: AppTypography.body
-                            .copyWith(fontWeight: FontWeight.w700)),
+                        style: AppTypography.body.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: context.colors.textPrimary)),
                     const SizedBox(height: 2),
                     Text(task.subtitle,
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.ink500)),
+                            .copyWith(color: context.colors.textTertiary)),
                   ],
                 ),
               ),
@@ -618,6 +623,7 @@ class WorkCard extends ConsumerWidget {
       orElse: () => null,
     );
 
+    final co = context.colors;
     return Semantics(
       button: true,
       label: '${pact.title}. ${pact.city}. Progreso ${pact.progressPct}%',
@@ -627,9 +633,9 @@ class WorkCard extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: co.card,
             borderRadius: AppRadius.mdAll,
-            border: Border.all(color: AppColors.ink200),
+            border: Border.all(color: co.border),
             boxShadow: AppShadows.soft,
           ),
           child: Column(
@@ -653,13 +659,13 @@ class WorkCard extends ConsumerWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.location_on_outlined,
-                    size: 14, color: AppColors.ink500),
+                Icon(Icons.location_on_outlined,
+                    size: 14, color: context.colors.textTertiary),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(pact.city,
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink500)),
+                          .copyWith(color: context.colors.textTertiary)),
                 ),
               ],
             ),
@@ -808,22 +814,23 @@ class EmptyWorksCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final co = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.ink50,
+        color: co.scaffold,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: co.border),
       ),
       child: Row(
         children: [
-          const Icon(Icons.business_center_outlined,
-              size: 24, color: AppColors.ink500),
+          Icon(Icons.business_center_outlined,
+              size: 24, color: co.textTertiary),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(message,
                 style: AppTypography.bodyS
-                    .copyWith(color: AppColors.ink600)),
+                    .copyWith(color: co.textSecondary)),
           ),
         ],
       ),
@@ -954,7 +961,7 @@ class TecnicoValidationTaskCard extends StatelessWidget {
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: context.colors.card,
             borderRadius: AppRadius.mdAll,
             border: Border.all(color: accent.withValues(alpha: 0.3)),
             boxShadow: AppShadows.soft,
@@ -1001,7 +1008,7 @@ class TecnicoValidationTaskCard extends StatelessWidget {
                               Text(
                                 task.subtitle,
                                 style: AppTypography.bodyS
-                                    .copyWith(color: AppColors.ink500),
+                                    .copyWith(color: context.colors.textTertiary),
                               ),
                             ],
                           ),

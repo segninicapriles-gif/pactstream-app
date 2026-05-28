@@ -6,6 +6,7 @@ import 'core/constants/app_constants.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_scroll_behavior.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
 import 'core/widgets/responsive_wrapper.dart';
 
 class PactStreamApp extends ConsumerWidget {
@@ -14,15 +15,15 @@ class PactStreamApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
       scrollBehavior: const AppScrollBehavior(),
-      // Dark theme pendiente (V2). Al no declarar darkTheme, Flutter
-      // siempre usará el tema light, incluso en dispositivos con modo
-      // oscuro activo, evitando que se vea un tema oscuro sin diseñar.
       routerConfig: router,
       builder: (context, child) =>
           ResponsiveWrapper(child: child ?? const SizedBox.shrink()),

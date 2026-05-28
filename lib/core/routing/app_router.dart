@@ -11,6 +11,7 @@ import '../../features/dashboard/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_capture_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_intro_page.dart';
 import '../../features/onboarding/presentation/pages/kyc_result_page.dart';
+import '../../features/onboarding/presentation/pages/welcome_onboarding_page.dart';
 import '../../features/ai/presentation/pages/ai_assistant_page.dart';
 import '../../features/scoring/presentation/pages/trust_score_page.dart';
 import '../../features/organization/presentation/pages/accept_org_invite_page.dart';
@@ -36,7 +37,8 @@ abstract final class AppRoutes {
   static const register = '/register';
   static const verifyEmail = '/verify-email';
 
-  // Onboarding (KYC)
+  // Onboarding
+  static const welcomeOnboarding = '/onboarding/welcome';
   static const kycIntro = '/onboarding/identity';
   static const kycCapture = '/onboarding/identity/capture';
   static const kycResult = '/onboarding/identity/result';
@@ -90,7 +92,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register ||
           state.matchedLocation == AppRoutes.verifyEmail ||
-          state.matchedLocation == AppRoutes.acceptOrgInvite;
+          state.matchedLocation == AppRoutes.acceptOrgInvite ||
+          state.matchedLocation == AppRoutes.welcomeOnboarding;
 
       if (user == null && !isPublicRoute) {
         return AppRoutes.login;
@@ -130,6 +133,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // === ONBOARDING ===
+      GoRoute(
+        path: AppRoutes.welcomeOnboarding,
+        pageBuilder: (context, state) =>
+            AppMotion.fadePage(child: const WelcomeOnboardingPage()),
+      ),
       GoRoute(
         path: AppRoutes.kycIntro,
         pageBuilder: (context, state) =>

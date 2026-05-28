@@ -150,18 +150,18 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                     prefixIcon: const Icon(Icons.search,
                         color: AppColors.ink400, size: 20),
                     filled: true,
-                    fillColor: AppColors.ink50,
+                    fillColor: context.colors.inputFill,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md,
                       vertical: AppSpacing.sm,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: AppRadius.mdAll,
-                      borderSide: BorderSide(color: AppColors.ink200),
+                      borderSide: BorderSide(color: context.colors.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.mdAll,
-                      borderSide: BorderSide(color: AppColors.ink200),
+                      borderSide: BorderSide(color: context.colors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: AppRadius.mdAll,
@@ -193,7 +193,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                             fontWeight: FontWeight.w600,
                           ),
                           selectedColor: AppColors.psBlue,
-                          backgroundColor: AppColors.ink100,
+                          backgroundColor: context.colors.chipBg,
                           shape: RoundedRectangleBorder(
                             borderRadius: AppRadius.xlAll,
                             side: BorderSide.none,
@@ -271,18 +271,18 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                     prefixIcon: const Icon(Icons.search,
                         color: AppColors.ink400, size: 20),
                     filled: true,
-                    fillColor: AppColors.ink50,
+                    fillColor: context.colors.inputFill,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md,
                       vertical: AppSpacing.sm,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: AppRadius.mdAll,
-                      borderSide: BorderSide(color: AppColors.ink200),
+                      borderSide: BorderSide(color: context.colors.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.mdAll,
-                      borderSide: BorderSide(color: AppColors.ink200),
+                      borderSide: BorderSide(color: context.colors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: AppRadius.mdAll,
@@ -316,7 +316,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                             fontWeight: FontWeight.w600,
                           ),
                           selectedColor: AppColors.psBlue,
-                          backgroundColor: AppColors.ink100,
+                          backgroundColor: context.colors.chipBg,
                           shape: RoundedRectangleBorder(
                             borderRadius: AppRadius.xlAll,
                             side: BorderSide.none,
@@ -416,9 +416,9 @@ class _PactCard extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.card,
           borderRadius: AppRadius.mdAll,
-          border: Border.all(color: AppColors.ink200),
+          border: Border.all(color: context.colors.border),
           boxShadow: AppShadows.soft,
         ),
         child: IntrinsicHeight(

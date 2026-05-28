@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/success_overlay.dart';
 import '../../data/pact_actions_v2.dart';
 import '../../data/pact_detail.dart';
 
@@ -28,7 +29,7 @@ Future<bool> showFundInitialDepositSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -70,6 +71,7 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
       await PactActionsV2.fundInitialDeposit(widget.pactId);
       if (!mounted) return;
       Navigator.of(context).pop(true);
+      await showSuccessOverlay(context, message: 'Depósito confirmado');
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -151,7 +153,7 @@ Future<bool> showReplenishDepositSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -219,6 +221,7 @@ class _ReplenishDepositSheetState extends State<_ReplenishDepositSheet> {
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
+      await showSuccessOverlay(context, message: 'Depósito repuesto');
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -303,7 +306,7 @@ Future<bool> showCreateCertSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -379,6 +382,7 @@ class _CreateCertSheetState extends State<_CreateCertSheet> {
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
+      await showSuccessOverlay(context, message: 'Certificación creada');
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -460,7 +464,7 @@ Future<bool> showProposeAddendumSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -537,6 +541,7 @@ class _ProposeAddendumSheetState extends State<_ProposeAddendumSheet> {
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
+      await showSuccessOverlay(context, message: 'Anexo propuesto');
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -677,7 +682,7 @@ Future<bool> showSignAddendumSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -715,16 +720,13 @@ class _SignAddendumSheetState extends State<_SignAddendumSheet> {
     try {
       final activated = await PactActionsV2.signAddendum(widget.addendum.id);
       if (!mounted) return;
-      // Mostrar feedback diferente si la firma del caller fue la última
-      if (activated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Anexo activo · Presupuesto actualizado'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
       Navigator.of(context).pop(true);
+      await showSuccessOverlay(
+        context,
+        message: activated
+            ? 'Anexo activo · Presupuesto actualizado'
+            : 'Anexo firmado',
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -857,7 +859,7 @@ class _SheetScaffold extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.ink200,
+                    color: context.colors.borderSubtle,
                     borderRadius: AppRadius.xxsAll,
                   ),
                 ),
@@ -970,7 +972,7 @@ Future<bool> showSetupAdvanceSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -1001,6 +1003,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
       await PactActionsV2.setupAdvance(widget.detail.pact.id);
       if (!mounted) return;
       Navigator.of(context).pop(true);
+      await showSuccessOverlay(context, message: 'Adelanto configurado');
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -1148,7 +1151,7 @@ Future<bool> showPredepositMilestoneSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -1212,6 +1215,7 @@ class _PredepositMilestoneSheetState
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
+      await showSuccessOverlay(context, message: 'Pre-depósito confirmado');
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -1333,7 +1337,7 @@ Future<bool> showForceAdvanceSheet(
   return await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.sheetTop,
         ),
@@ -1367,6 +1371,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
+      await showSuccessOverlay(context, message: 'Certificación reactivada');
     } catch (e) {
       if (!mounted) return;
       setState(() {

@@ -90,7 +90,7 @@ class _ReputationContent extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
 
           // --- Divider ---
-          const Divider(color: AppColors.ink100, height: 1),
+          Divider(color: context.colors.borderSubtle, height: 1),
           const SizedBox(height: AppSpacing.lg),
 
           // --- Componentes del score ---
@@ -240,7 +240,7 @@ class _ComponentRow extends StatelessWidget {
               borderRadius: AppRadius.pillAll,
               child: LinearProgressIndicator(
                 value: pct / 100,
-                backgroundColor: AppColors.ink100,
+                backgroundColor: context.colors.borderSubtle,
                 valueColor: AlwaysStoppedAnimation<Color>(color),
                 minHeight: 5,
               ),
@@ -335,12 +335,13 @@ class _CardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.card,
         borderRadius: AppRadius.lgAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: c.border),
         boxShadow: AppShadows.soft,
       ),
       child: child,

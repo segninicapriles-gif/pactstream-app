@@ -12,6 +12,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/animated_list_item.dart';
 import '../../../../core/widgets/shimmer_box.dart';
@@ -409,8 +410,8 @@ class _ProfileHeader extends StatelessWidget {
         AppSpacing.xl,
         AppSpacing.xl,
       ),
-      decoration: const BoxDecoration(
-        gradient: AppColors.psGradientDeep,
+      decoration: BoxDecoration(
+        gradient: context.colors.headerGradient,
       ),
       child: Stack(
         alignment: Alignment.topCenter,
@@ -659,7 +660,8 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title.toUpperCase(),
-      style: AppTypography.caption.copyWith(color: AppColors.ink500),
+      style: AppTypography.caption
+          .copyWith(color: context.colors.textTertiary),
     );
   }
 }
@@ -711,10 +713,11 @@ class _KycSection extends StatelessWidget {
       ),
     };
 
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.card,
         borderRadius: AppRadius.mdAll,
         border: Border.all(color: spec.fg.withValues(alpha: 0.3)),
         boxShadow: AppShadows.soft,
@@ -743,13 +746,13 @@ class _KycSection extends StatelessWidget {
                   Text(
                     'Verificada ${AppFormatters.dateTimeDetail(DateTime.parse(spec.date!).toLocal())}',
                     style:
-                        AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                        AppTypography.bodyS.copyWith(color: c.textTertiary),
                   ),
                 ] else if (status == 'pending_review') ...[
                   const SizedBox(height: 2),
                   Text('Plazo máximo: 24h',
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.ink500)),
+                          .copyWith(color: c.textTertiary)),
                 ],
               ],
             ),
@@ -841,11 +844,12 @@ class _RoleDataCard extends StatelessWidget {
 
     final showDocsButton = role == 'tecnico' || role == 'constructor';
 
+    final c = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: c.border),
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -895,12 +899,13 @@ class _DataRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.ink500),
+          Icon(icon, size: 20, color: c.textTertiary),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -908,8 +913,10 @@ class _DataRow extends StatelessWidget {
               children: [
                 Text(label,
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.ink500)),
-                Text(value, style: AppTypography.body),
+                        .copyWith(color: c.textTertiary)),
+                Text(value,
+                    style: AppTypography.body
+                        .copyWith(color: c.textPrimary)),
               ],
             ),
           ),
@@ -946,11 +953,12 @@ class _NotificationsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: c.border),
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -1007,7 +1015,8 @@ class _NotifToggle extends StatelessWidget {
       title: Text(title,
           style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle,
-          style: AppTypography.bodyS.copyWith(color: AppColors.ink500)),
+          style: AppTypography.bodyS
+              .copyWith(color: context.colors.textTertiary)),
       value: value,
       onChanged: onChanged,
       activeThumbColor: AppColors.psBlue,
@@ -1088,15 +1097,16 @@ class _StatBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: AppSpacing.md,
         horizontal: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: c.border),
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -1113,7 +1123,7 @@ class _StatBox extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label.toUpperCase(),
-            style: AppTypography.caption.copyWith(color: AppColors.ink500),
+            style: AppTypography.caption.copyWith(color: c.textTertiary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1265,22 +1275,26 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
+        border: Border.all(color: c.border),
         boxShadow: AppShadows.soft,
       ),
       child: Column(
         children: [
+          // ── Tema (dark mode toggle) ─────────────────────────
+          _ThemeModeSelector(),
+          const Divider(height: 1, indent: 56),
           ListTile(
             leading:
                 const Icon(Icons.group_outlined, color: AppColors.psBlue),
             title: const Text('Mi equipo'),
             subtitle: Text(
               'Invita jefes de obra o técnicos a tu organización',
-              style: AppTypography.caption.copyWith(color: AppColors.ink500),
+              style: AppTypography.caption.copyWith(color: c.textTertiary),
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.myTeam),
@@ -1309,13 +1323,55 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
             ),
             subtitle: Text(
               'RGPD · derecho de supresión',
-              style: AppTypography.caption.copyWith(color: AppColors.ink500),
+              style: AppTypography.caption.copyWith(color: c.textTertiary),
             ),
             trailing: const Icon(Icons.chevron_right, color: AppColors.error),
             onTap: _deleteAccount,
           ),
         ],
       ),
+    );
+  }
+}
+
+// =====================================================================
+// THEME MODE SELECTOR · dark mode toggle
+// =====================================================================
+
+class _ThemeModeSelector extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+
+    final (IconData icon, String label, String subtitle) = switch (mode) {
+      ThemeMode.system => (
+          Icons.brightness_auto,
+          'Tema del sistema',
+          'Sigue la configuración de tu dispositivo',
+        ),
+      ThemeMode.light => (
+          Icons.light_mode,
+          'Tema claro',
+          'Interfaz clara siempre',
+        ),
+      ThemeMode.dark => (
+          Icons.dark_mode,
+          'Tema oscuro',
+          'Interfaz oscura siempre',
+        ),
+    };
+
+    return ListTile(
+      leading: Icon(icon, color: AppColors.psBlue),
+      title: Text(label),
+      subtitle: Text(
+        subtitle,
+        style: AppTypography.caption.copyWith(
+          color: context.colors.textTertiary,
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => ref.read(themeModeProvider.notifier).cycle(),
     );
   }
 }

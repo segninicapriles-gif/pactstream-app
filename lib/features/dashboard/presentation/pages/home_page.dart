@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_breakpoints.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_motion.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -95,8 +96,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             foregroundColor: AppColors.white,
             elevation: 0,
             flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.psGradientDeep,
+              decoration: BoxDecoration(
+                gradient: context.colors.headerGradient,
               ),
             ),
             actions: [
@@ -121,10 +122,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                           unread: unread,
                           onDestinationSelected: _onTabSelected,
                         ),
-                        const VerticalDivider(
+                        VerticalDivider(
                           thickness: 1,
                           width: 1,
-                          color: AppColors.ink200,
+                          color: context.colors.border,
                         ),
                         Expanded(child: _buildTabContent(profile)),
                       ],
@@ -147,14 +148,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildBottomNav(int unread) {
+    final c = context.colors;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.white,
-        border: const Border(
-            top: BorderSide(color: AppColors.ink200, width: 0.5)),
+        color: c.navBg,
+        border: Border(
+            top: BorderSide(color: c.navBorder, width: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.psNavy.withValues(alpha: 0.06),
+            color: c.shadowBase.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -211,15 +213,30 @@ class _HomePageState extends ConsumerState<HomePage> {
       _ => const SizedBox.shrink(),
     };
 
+    // Crossfade animation between tabs
+    final animatedDashboard = AnimatedSwitcher(
+      duration: AppMotion.fast,
+      switchInCurve: AppMotion.enter,
+      switchOutCurve: AppMotion.exit,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: child,
+      ),
+      child: KeyedSubtree(
+        key: ValueKey<int>(_selectedIndex),
+        child: dashboard,
+      ),
+    );
+
     if (kycBadge != null) {
       return Column(
         children: [
           kycBadge,
-          Expanded(child: dashboard),
+          Expanded(child: animatedDashboard),
         ],
       );
     }
-    return dashboard;
+    return animatedDashboard;
   }
 
   /// Saludo contextual según la hora del día.
@@ -328,22 +345,31 @@ class _BadgedIcon extends StatelessWidget {
           top: -4,
           child: MediaQuery.withClampedTextScaling(
             maxScaleFactor: 1.0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-              decoration: BoxDecoration(
-                color: AppColors.error,
-                borderRadius: AppRadius.smAll,
-                border: Border.all(color: AppColors.white, width: 1.5),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: AppMotion.normal,
+              curve: AppMotion.spring,
+              builder: (context, value, child) => Transform.scale(
+                scale: value,
+                child: child,
               ),
-              child: Center(
-                child: Text(
-                  count > 9 ? '9+' : '$count',
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    height: 1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: AppRadius.smAll,
+                  border: Border.all(color: AppColors.white, width: 1.5),
+                ),
+                child: Center(
+                  child: Text(
+                    count > 9 ? '9+' : '$count',
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      height: 1,
+                    ),
                   ),
                 ),
               ),
@@ -367,7 +393,7 @@ class _ActiveNavIcon extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.psBlue.withValues(alpha: 0.1),
+        color: context.colors.pillBg,
         borderRadius: AppRadius.pillAll,
       ),
       child: Icon(icon),
@@ -392,12 +418,13 @@ class _AdaptiveNavigationRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return NavigationRail(
       selectedIndex: selectedIndex,
       onDestinationSelected: onDestinationSelected,
       labelType: NavigationRailLabelType.all,
-      backgroundColor: AppColors.white,
-      indicatorColor: AppColors.psBlue.withValues(alpha: 0.1),
+      backgroundColor: c.navBg,
+      indicatorColor: c.pillBg,
       selectedIconTheme: const IconThemeData(color: AppColors.psBlue),
       unselectedIconTheme: const IconThemeData(color: AppColors.ink500),
       selectedLabelTextStyle: AppTypography.caption.copyWith(

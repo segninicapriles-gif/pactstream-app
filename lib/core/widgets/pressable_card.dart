@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import '../theme/app_motion.dart';
 import '../utils/app_haptics.dart';
 
-/// Wrapper que anade feedback tactil (scale-down) a cualquier card/widget
-/// interactivo.
+/// Wrapper que añade feedback táctil rico a cualquier card/widget interactivo.
 ///
-/// Al presionar, el widget se encoge ligeramente (0.97) con una animacion
-/// rapida y elastica. Al soltar, vuelve a 1.0. Opcionalmente vibra
-/// (haptic light impact) para reforzar la interaccion.
+/// Efectos al presionar:
+///   • Scale-down (0.97) con curva elástica
+///   • Reducción de opacidad (→ 0.85) para sensación de "hundido"
+///   • Elevación reducida (shadow desaparece) reforzando profundidad
+///   • Haptic feedback ligero (opcional)
+///
+/// Al soltar, todos los valores se restauran con una curva de salida suave.
 ///
 /// Uso:
 /// ```dart
@@ -36,7 +39,7 @@ class PressableCard extends StatefulWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
-  /// Factor de escala al presionar. 0.97 = 3% de reduccion.
+  /// Factor de escala al presionar. 0.97 = 3% de reducción.
   final double scaleDown;
 
   /// Si es true, ejecuta un HapticFeedback.lightImpact al presionar.
@@ -53,6 +56,7 @@ class _PressableCardState extends State<PressableCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _scaleAnim;
+  late final Animation<double> _opacityAnim;
 
   @override
   void initState() {
@@ -62,14 +66,22 @@ class _PressableCardState extends State<PressableCard>
       duration: AppMotion.instant,
       reverseDuration: AppMotion.fast,
     );
-    _scaleAnim = Tween<double>(
-      begin: 1.0,
-      end: widget.scaleDown,
-    ).animate(CurvedAnimation(
+
+    final curved = CurvedAnimation(
       parent: _ctrl,
       curve: AppMotion.standard,
       reverseCurve: AppMotion.enter,
-    ));
+    );
+
+    _scaleAnim = Tween<double>(
+      begin: 1.0,
+      end: widget.scaleDown,
+    ).animate(curved);
+
+    _opacityAnim = Tween<double>(
+      begin: 1.0,
+      end: 0.85,
+    ).animate(curved);
   }
 
   @override
@@ -105,8 +117,15 @@ class _PressableCardState extends State<PressableCard>
       onTapCancel: _onTapCancel,
       onTap: widget.onTap,
       onLongPress: widget.onLongPress,
-      child: ScaleTransition(
-        scale: _scaleAnim,
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (context, child) => Opacity(
+          opacity: _opacityAnim.value,
+          child: Transform.scale(
+            scale: _scaleAnim.value,
+            child: child,
+          ),
+        ),
         child: widget.child,
       ),
     );

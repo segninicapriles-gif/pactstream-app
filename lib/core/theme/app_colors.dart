@@ -25,7 +25,7 @@ abstract final class AppColors {
     colors: [psBlue, psNavy],
   );
 
-  // === INK (escala neutra) ===
+  // === INK (escala neutra · light) ===
   static const Color ink900 = Color(0xFF0A0E2A);
   static const Color ink800 = Color(0xFF14193D);
   static const Color ink700 = Color(0xFF2A2F5C);
@@ -44,7 +44,7 @@ abstract final class AppColors {
   static const Color error = Color(0xFFFF4D6D);
   static const Color info = psBlue;
 
-  // Backgrounds suaves para los semánticos
+  // Backgrounds suaves para los semánticos (light)
   static const Color successBg = Color(0x1A00C389); // 10% alpha
   static const Color warningBg = Color(0x24FFB020); // ~14% alpha
   static const Color errorBg = Color(0x1AFF4D6D); // 10% alpha
@@ -93,4 +93,120 @@ abstract final class AppColors {
       900: Color(0xFF000BC5),
     },
   );
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // DARK MODE PALETTE
+  // ═══════════════════════════════════════════════════════════════════════
+
+  /// Deep navy backgrounds — no pure black, keeps the brand feel.
+  static const Color darkBg = Color(0xFF0B0F28);
+  static const Color darkSurface = Color(0xFF141837);
+  static const Color darkSurfaceElevated = Color(0xFF1C2045);
+  static const Color darkSurfaceHigh = Color(0xFF252A52);
+  static const Color darkBorder = Color(0xFF2E3460);
+
+  /// Dark gradient for AppBar / headers (slightly brighter than darkBg).
+  static const LinearGradient psGradientDeepDark = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF1530B0), Color(0xFF0B0F28)],
+  );
+
+  /// Semantic backgrounds — richer tints on dark surfaces.
+  static const Color darkSuccessBg = Color(0x2600C389);
+  static const Color darkWarningBg = Color(0x30FFB020);
+  static const Color darkErrorBg = Color(0x26FF4D6D);
+  static const Color darkInfoBg = Color(0x260121DC);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTEXT EXTENSION · resolves semantic colors by brightness
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Extensión sobre BuildContext para obtener colores semánticos que
+/// se adaptan automáticamente al modo light/dark.
+///
+/// Uso: `context.colors.card` en vez de `AppColors.white`.
+extension AppColorSchemeX on BuildContext {
+  _ResolvedColors get colors =>
+      Theme.of(this).brightness == Brightness.dark
+          ? const _ResolvedColors.dark()
+          : const _ResolvedColors.light();
+}
+
+/// Set de colores semánticos resueltos para light o dark mode.
+class _ResolvedColors {
+  const _ResolvedColors.light()
+      : card = AppColors.white,
+        scaffold = AppColors.ink50,
+        border = AppColors.ink200,
+        borderSubtle = AppColors.ink100,
+        divider = AppColors.ink200,
+        textPrimary = AppColors.ink900,
+        textSecondary = AppColors.ink600,
+        textTertiary = AppColors.ink500,
+        textHint = AppColors.ink400,
+        headerGradient = AppColors.psGradientDeep,
+        successBg = AppColors.successBg,
+        warningBg = AppColors.warningBg,
+        errorBg = AppColors.errorBg,
+        infoBg = AppColors.infoBg,
+        chipBg = AppColors.ink100,
+        chipText = AppColors.ink600,
+        inputFill = AppColors.white,
+        shadowBase = AppColors.psNavy,
+        navBg = AppColors.white,
+        navBorder = AppColors.ink200,
+        pillBg = const Color(0x1A0121DC), // psBlue 10%
+        shimmerBase = AppColors.ink100,
+        shimmerHighlight = AppColors.ink50;
+
+  const _ResolvedColors.dark()
+      : card = AppColors.darkSurface,
+        scaffold = AppColors.darkBg,
+        border = AppColors.darkBorder,
+        borderSubtle = AppColors.darkSurfaceElevated,
+        divider = AppColors.darkBorder,
+        textPrimary = AppColors.ink200,
+        textSecondary = AppColors.ink400,
+        textTertiary = AppColors.ink500,
+        textHint = AppColors.ink600,
+        headerGradient = AppColors.psGradientDeepDark,
+        successBg = AppColors.darkSuccessBg,
+        warningBg = AppColors.darkWarningBg,
+        errorBg = AppColors.darkErrorBg,
+        infoBg = AppColors.darkInfoBg,
+        chipBg = AppColors.darkSurfaceElevated,
+        chipText = AppColors.ink400,
+        inputFill = AppColors.darkSurfaceElevated,
+        shadowBase = const Color(0xFF000000),
+        navBg = AppColors.darkSurface,
+        navBorder = AppColors.darkBorder,
+        pillBg = const Color(0x260121DC), // psBlue 15%
+        shimmerBase = AppColors.darkSurfaceElevated,
+        shimmerHighlight = AppColors.darkSurfaceHigh;
+
+  final Color card;
+  final Color scaffold;
+  final Color border;
+  final Color borderSubtle;
+  final Color divider;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color textHint;
+  final LinearGradient headerGradient;
+  final Color successBg;
+  final Color warningBg;
+  final Color errorBg;
+  final Color infoBg;
+  final Color chipBg;
+  final Color chipText;
+  final Color inputFill;
+  final Color shadowBase;
+  final Color navBg;
+  final Color navBorder;
+  final Color pillBg;
+  final Color shimmerBase;
+  final Color shimmerHighlight;
 }

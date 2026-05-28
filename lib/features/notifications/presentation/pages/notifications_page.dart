@@ -99,7 +99,7 @@ class NotificationsPage extends ConsumerWidget {
                     Text(
                       label,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.ink500,
+                        color: context.colors.textTertiary,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.3,
                       ),
@@ -109,13 +109,13 @@ class NotificationsPage extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 1),
                       decoration: BoxDecoration(
-                        color: AppColors.ink200,
+                        color: context.colors.chipBg,
                         borderRadius: AppRadius.xlAll,
                       ),
                       child: Text(
                         '${group.length}',
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.ink600,
+                          color: context.colors.chipText,
                           fontWeight: FontWeight.w700,
                           fontSize: 10,
                         ),
@@ -124,7 +124,7 @@ class NotificationsPage extends ConsumerWidget {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Divider(
-                        color: AppColors.ink200,
+                        color: context.colors.border,
                         thickness: 1,
                         height: 1,
                       ),
@@ -206,7 +206,7 @@ class _MarkAllReadHeaderState extends ConsumerState<_MarkAllReadHeader> {
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-      color: AppColors.infoBg,
+      color: context.colors.infoBg,
       child: Row(
         children: [
           const Icon(Icons.notifications_active,
@@ -280,6 +280,7 @@ class _NotificationCard extends ConsumerWidget {
     final spec = _specFor(item.notificationType);
     final isUnread = item.isUnread;
 
+    final c = context.colors;
     return Semantics(
       button: true,
       label: '${isUnread ? "Sin leer. " : ""}${item.title}. ${item.body}',
@@ -289,10 +290,10 @@ class _NotificationCard extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: isUnread ? AppColors.infoBg : AppColors.white,
+            color: isUnread ? c.infoBg : c.card,
             borderRadius: AppRadius.mdAll,
             border: Border.all(
-              color: isUnread ? AppColors.psBlue : AppColors.ink200,
+              color: isUnread ? AppColors.psBlue : c.border,
             ),
             boxShadow: AppShadows.soft,
           ),
@@ -321,7 +322,7 @@ class _NotificationCard extends ConsumerWidget {
                           style: AppTypography.body.copyWith(
                             fontWeight:
                                 isUnread ? FontWeight.w800 : FontWeight.w600,
-                            color: AppColors.ink900,
+                            color: c.textPrimary,
                           ),
                         ),
                       ),
@@ -341,7 +342,7 @@ class _NotificationCard extends ConsumerWidget {
                   Text(
                     item.body,
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.ink600, height: 1.4),
+                        .copyWith(color: c.textSecondary, height: 1.4),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -353,14 +354,14 @@ class _NotificationCard extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
-                            color: AppColors.ink100,
+                            color: c.chipBg,
                             borderRadius: AppRadius.microAll,
                           ),
                           child: Text(
                             item.pactDisplayId!,
                             style: AppTypography.mono.copyWith(
                               fontSize: 10,
-                              color: AppColors.ink600,
+                              color: c.chipText,
                             ),
                           ),
                         ),
@@ -369,7 +370,7 @@ class _NotificationCard extends ConsumerWidget {
                       Text(
                         AppFormatters.timeRelative(item.createdAt),
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.ink500,
+                          color: c.textTertiary,
                           letterSpacing: 0,
                           fontWeight: FontWeight.w500,
                         ),

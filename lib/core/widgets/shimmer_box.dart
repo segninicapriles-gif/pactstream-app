@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
-import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
 
 /// Caja con efecto shimmer animado para estados de carga.
@@ -49,6 +48,7 @@ class _ShimmerBoxState extends State<ShimmerBox>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (context, _) {
@@ -60,10 +60,10 @@ class _ShimmerBoxState extends State<ShimmerBox>
             gradient: LinearGradient(
               begin: Alignment(-1.0 + 2.0 * _ctrl.value, 0),
               end: Alignment(-0.5 + 2.0 * _ctrl.value, 0),
-              colors: const [
-                AppColors.ink100,
-                AppColors.ink50,
-                AppColors.ink100,
+              colors: [
+                c.shimmerBase,
+                c.shimmerHighlight,
+                c.shimmerBase,
               ],
             ),
           ),
@@ -97,17 +97,17 @@ class _CardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: c.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.ink200),
-        boxShadow: AppShadows.soft,
+        border: Border.all(color: c.border),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           ShimmerBox(height: 16, width: 180, radius: 4),
           SizedBox(height: 8),
           ShimmerBox(height: 12, width: 120, radius: 4),
