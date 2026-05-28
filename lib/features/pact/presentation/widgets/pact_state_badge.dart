@@ -147,9 +147,33 @@ class PactStateStyle {
           bg: AppColors.successBg,
           fg: AppColors.success,
         );
+      case 'paused_no_predeposit':
+        return const PactStateStyle(
+          label: 'Obra paralizada',
+          bg: AppColors.warningBg,
+          fg: AppColors.warning,
+        );
+      case 'paused_pending_tech':
+        return const PactStateStyle(
+          label: 'Pendiente técnico',
+          bg: AppColors.warningBg,
+          fg: AppColors.warning,
+        );
+      case 'cancelled':
+        return const PactStateStyle(
+          label: 'Cancelado',
+          bg: AppColors.errorBg,
+          fg: AppColors.error,
+        );
+      case 'completed':
+        return PactStateStyle(
+          label: 'Completado',
+          bg: AppColors.ink200,
+          fg: AppColors.ink700,
+        );
       default:
         return PactStateStyle(
-          label: state,
+          label: state.replaceAll('_', ' '),
           bg: AppColors.ink100,
           fg: AppColors.ink600,
         );

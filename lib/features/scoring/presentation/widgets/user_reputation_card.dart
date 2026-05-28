@@ -219,7 +219,7 @@ class _ComponentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = _labelFor(componentKey);
+    final label = _labelFor(componentKey.toLowerCase());
     final pct = (value as num).toDouble().clamp(0.0, 100.0);
     final color = tier.color;
 
@@ -267,12 +267,25 @@ class _ComponentRow extends StatelessWidget {
         'payment_speed_pct'    => 'Velocidad de pago',
         'no_disputes_pct'      => 'Sin disputas',
         'completion_rate_pct'  => 'Tasa de finalización',
+        'completion_pct'       => 'Finalización',
         'evidence_quality_pct' => 'Calidad de evidencia',
         'validation_speed_pct' => 'Velocidad validación',
         'sign_rate_pct'        => 'Tasa de firma',
-        // fallback legible
-        _  => k.replaceAll('_pct', '').replaceAll('_', ' '),
+        // Keys que el backend puede enviar sin sufijo _pct
+        'completion'           => 'Finalización',
+        'no_disputes'          => 'Sin disputas',
+        'evidence_quality'     => 'Calidad de evidencia',
+        'payment_speed'        => 'Velocidad de pago',
+        'validation_speed'     => 'Velocidad validación',
+        // fallback legible: quita sufijos técnicos y capitaliza
+        _  => _humanize(k),
       };
+
+  static String _humanize(String k) {
+    final clean = k.replaceAll('_pct', '').replaceAll('_', ' ');
+    if (clean.isEmpty) return k;
+    return clean[0].toUpperCase() + clean.substring(1);
+  }
 }
 
 // ---------------------------------------------------------------------------

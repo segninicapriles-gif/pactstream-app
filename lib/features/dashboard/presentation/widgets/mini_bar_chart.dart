@@ -44,6 +44,55 @@ class MiniBarChart extends StatelessWidget {
     if (data.isEmpty) return const SizedBox.shrink();
 
     final color = barColor ?? AppColors.psBlue;
+    final allZero = data.every((e) => e.value == 0);
+
+    // Si todos los valores son 0, mostrar empty state en vez de chart vacío
+    if (allZero) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: AppRadius.mdAll,
+          border: Border.all(color: AppColors.ink200),
+          boxShadow: AppShadows.soft,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
+            ),
+            SizedBox(height: height * 0.3),
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.bar_chart_rounded,
+                      color: AppColors.ink300, size: 40),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Aún no hay datos',
+                    style: AppTypography.bodyS.copyWith(
+                      color: AppColors.ink400,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'El gráfico se llenará con la actividad de tus obras',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.ink400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: height * 0.3),
+          ],
+        ),
+      );
+    }
+
     final computedMaxY =
         maxY ?? (data.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.3);
 
