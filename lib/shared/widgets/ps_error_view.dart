@@ -28,7 +28,7 @@ class PsErrorView extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.errorBg,
+          color: co.errorBg,
           borderRadius: AppRadius.mdAll,
         ),
         child: Row(

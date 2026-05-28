@@ -50,8 +50,8 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                   child: Container(
                     width: 72,
                     height: 72,
-                    decoration: const BoxDecoration(
-                      color: AppColors.infoBg,
+                    decoration: BoxDecoration(
+                      color: context.colors.infoBg,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.gavel,
@@ -154,7 +154,7 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.errorBg,
+                      color: context.colors.errorBg,
                       borderRadius: AppRadius.smAll,
                     ),
                     child: Row(

@@ -35,7 +35,7 @@ class PredepositPendingCard extends StatelessWidget {
     final isConstructor = myRole == 'constructor';
 
     final accent = isPaused ? AppColors.error : AppColors.warning;
-    final bg = isPaused ? AppColors.errorBg : AppColors.warningBg;
+    final bg = isPaused ? context.colors.errorBg : context.colors.warningBg;
     final stateLabel = isPaused
         ? 'OBRA PARALIZADA'
         : 'PENDIENTE DE PRE-DEPÓSITO';

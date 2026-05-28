@@ -254,7 +254,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.successBg,
+                color: context.colors.successBg,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.mail_outline,
@@ -430,7 +430,7 @@ class _RevokeMemberSheetState extends State<_RevokeMemberSheet> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.warningBg,
+              color: context.colors.warningBg,
               borderRadius: AppRadius.microAll,
             ),
             child: Row(
@@ -805,7 +805,7 @@ class _ErrorBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
-          color: AppColors.errorBg,
+          color: context.colors.errorBg,
           borderRadius: AppRadius.smAll,
         ),
         child: Row(

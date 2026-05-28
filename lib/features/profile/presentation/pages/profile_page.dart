@@ -680,7 +680,7 @@ class _KycSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final spec = switch (status) {
       'verified' => (
-        bg: AppColors.successBg,
+        bg: context.colors.successBg,
         fg: AppColors.success,
         icon: Icons.verified_user,
         label: 'Identidad verificada',
@@ -688,7 +688,7 @@ class _KycSection extends StatelessWidget {
         date: profile['kyc_verified_at'] as String?,
       ),
       'pending_review' => (
-        bg: AppColors.warningBg,
+        bg: context.colors.warningBg,
         fg: AppColors.warning,
         icon: Icons.access_time,
         label: 'En revisión manual',
@@ -696,7 +696,7 @@ class _KycSection extends StatelessWidget {
         date: null,
       ),
       'rejected' => (
-        bg: AppColors.errorBg,
+        bg: context.colors.errorBg,
         fg: AppColors.error,
         icon: Icons.error_outline,
         label: 'Verificación rechazada',
@@ -704,7 +704,7 @@ class _KycSection extends StatelessWidget {
         date: null,
       ),
       _ => (
-        bg: AppColors.warningBg,
+        bg: context.colors.warningBg,
         fg: AppColors.warning,
         icon: Icons.warning_amber_outlined,
         label: 'Identidad sin verificar',

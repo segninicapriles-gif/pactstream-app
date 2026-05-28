@@ -94,7 +94,7 @@ class _CustodyWidgetV21 extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.successBg,
+        color: context.colors.successBg,
         borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.success, width: 1),
       ),
@@ -498,8 +498,8 @@ class _DepositWidgetV20 extends StatelessWidget {
         ? AppColors.warning
         : (isUnfunded ? context.colors.brandAccent : AppColors.success);
     final bg = isLow
-        ? AppColors.warningBg
-        : (isUnfunded ? context.colors.brandAccentBg : AppColors.successBg);
+        ? context.colors.warningBg
+        : (isUnfunded ? context.colors.brandAccentBg : context.colors.successBg);
 
     final myRole = detail.me?.role;
     final isPromotor = myRole == 'promotor';

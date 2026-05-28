@@ -45,9 +45,9 @@ class _VerifiedResult extends StatelessWidget {
         Container(
           width: 104,
           height: 104,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.successBg,
+            color: context.colors.successBg,
           ),
           child: const Icon(Icons.check_circle,
               size: 56, color: AppColors.success),
@@ -65,7 +65,7 @@ class _VerifiedResult extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.successBg,
+            color: context.colors.successBg,
             borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.success),
           ),
@@ -104,9 +104,9 @@ class _PendingResult extends StatelessWidget {
         Container(
           width: 104,
           height: 104,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.warningBg,
+            color: context.colors.warningBg,
           ),
           child: const Icon(Icons.access_time,
               size: 56, color: AppColors.warning),
@@ -124,7 +124,7 @@ class _PendingResult extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.warningBg,
+            color: context.colors.warningBg,
             borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.warning),
           ),
@@ -164,9 +164,9 @@ class _RejectedResult extends StatelessWidget {
         Container(
           width: 104,
           height: 104,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.errorBg,
+            color: context.colors.errorBg,
           ),
           child: const Icon(Icons.cancel, size: 56, color: AppColors.error),
         ),
@@ -183,7 +183,7 @@ class _RejectedResult extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.errorBg,
+            color: context.colors.errorBg,
             borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.error),
           ),

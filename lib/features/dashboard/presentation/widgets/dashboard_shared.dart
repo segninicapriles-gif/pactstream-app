@@ -889,7 +889,7 @@ class DashboardErrorBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.errorBg,
+        color: context.colors.errorBg,
         borderRadius: AppRadius.mdAll,
       ),
       child: Column(

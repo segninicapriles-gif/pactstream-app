@@ -369,7 +369,7 @@ class _VerificationBody extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: AppColors.infoBg,
+                color: context.colors.infoBg,
                 borderRadius: AppRadius.xsAll,
               ),
               child: Row(
@@ -535,9 +535,9 @@ class _FindingItem extends StatelessWidget {
       AiFindingSeverity.red   => AppColors.error,
     };
     final bgColor = switch (finding.severity) {
-      AiFindingSeverity.green => AppColors.successBg,
-      AiFindingSeverity.amber => AppColors.warningBg,
-      AiFindingSeverity.red   => AppColors.errorBg,
+      AiFindingSeverity.green => context.colors.successBg,
+      AiFindingSeverity.amber => context.colors.warningBg,
+      AiFindingSeverity.red   => context.colors.errorBg,
     };
 
     return Container(

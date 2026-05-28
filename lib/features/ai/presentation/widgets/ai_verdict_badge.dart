@@ -32,7 +32,7 @@ class AiVerdictBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (color, bg, icon, label) = _attrs(verdict);
+    final (color, bg, icon, label) = _attrs(verdict, context);
     final fontSize = compact ? 10.0 : 11.0;
     final iconSize = compact ? 12.0 : 14.0;
     final hPad = compact ? 6.0 : 8.0;
@@ -67,26 +67,26 @@ class AiVerdictBadge extends StatelessWidget {
     );
   }
 
-  static (Color, Color, IconData, String) _attrs(AiVerdict v) {
+  static (Color, Color, IconData, String) _attrs(AiVerdict v, BuildContext context) {
     switch (v) {
       case AiVerdict.ok:
         return (
           AppColors.success,
-          AppColors.successBg,
+          context.colors.successBg,
           Icons.check_circle_outline,
           'Sin objeciones',
         );
       case AiVerdict.reviewNeeded:
         return (
           AppColors.warning,
-          AppColors.warningBg,
+          context.colors.warningBg,
           Icons.warning_amber_outlined,
           'Revisar',
         );
       case AiVerdict.block:
         return (
           AppColors.error,
-          AppColors.errorBg,
+          context.colors.errorBg,
           Icons.block_outlined,
           'Bloqueante',
         );

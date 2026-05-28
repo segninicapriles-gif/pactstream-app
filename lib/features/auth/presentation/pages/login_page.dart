@@ -265,7 +265,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.errorBg,
+                      color: context.colors.errorBg,
                       borderRadius: AppRadius.smAll,
                     ),
                     child: Text(

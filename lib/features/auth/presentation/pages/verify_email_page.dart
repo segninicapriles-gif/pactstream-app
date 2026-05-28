@@ -122,9 +122,9 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
               Container(
                 width: 96,
                 height: 96,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.infoBg,
+                  color: context.colors.infoBg,
                 ),
                 child: Icon(
                   Icons.mark_email_read_outlined,
@@ -163,7 +163,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.infoBg,
+                  color: context.colors.infoBg,
                   borderRadius: AppRadius.mdAll,
                 ),
                 child: Column(

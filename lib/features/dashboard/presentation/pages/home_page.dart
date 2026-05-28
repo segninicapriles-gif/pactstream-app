@@ -461,23 +461,23 @@ class _KycStatusBadge extends StatelessWidget {
   final String status;
 
   ({Color bg, Color fg, IconData icon, String label, String? cta})
-      get _spec => switch (status) {
+      _spec(BuildContext context) => switch (status) {
             'pending_review' => (
-              bg: AppColors.warningBg,
+              bg: context.colors.warningBg,
               fg: AppColors.warning,
               icon: Icons.access_time,
               label: 'Verificación en revisión (24h)',
               cta: null,
             ),
             'rejected' => (
-              bg: AppColors.errorBg,
+              bg: context.colors.errorBg,
               fg: AppColors.error,
               icon: Icons.error_outline,
               label: 'Verificación rechazada',
               cta: 'Reintentar',
             ),
             _ => (
-              bg: AppColors.warningBg,
+              bg: context.colors.warningBg,
               fg: AppColors.warning,
               icon: Icons.warning_amber_outlined,
               label: 'Verifica tu identidad para operar',
@@ -487,7 +487,7 @@ class _KycStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spec = _spec;
+    final spec = _spec(context);
     return Semantics(
       liveRegion: true,
       label: spec.label,

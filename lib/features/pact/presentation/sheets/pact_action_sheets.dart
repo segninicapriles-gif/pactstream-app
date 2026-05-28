@@ -609,7 +609,7 @@ class _ProposeAddendumSheetState extends State<_ProposeAddendumSheet> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.warningBg,
+              color: context.colors.warningBg,
               borderRadius: AppRadius.microAll,
             ),
             child: Row(
@@ -940,7 +940,7 @@ class _ErrorBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
-          color: AppColors.errorBg,
+          color: context.colors.errorBg,
           borderRadius: AppRadius.microAll,
         ),
         child: Row(
@@ -1402,7 +1402,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.warningBg,
+            color: context.colors.warningBg,
             borderRadius: AppRadius.smAll,
             border: Border.all(color: AppColors.warning, width: 1),
           ),
@@ -1444,7 +1444,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.errorBg,
+            color: context.colors.errorBg,
             borderRadius: AppRadius.smAll,
             border: Border.all(color: AppColors.error, width: 1),
           ),

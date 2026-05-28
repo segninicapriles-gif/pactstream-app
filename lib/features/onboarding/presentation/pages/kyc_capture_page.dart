@@ -243,9 +243,9 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
           child: Container(
             width: 88,
             height: 88,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.infoBg,
+              color: context.colors.infoBg,
             ),
             child: Icon(
               Icons.shield_outlined,
@@ -289,7 +289,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.errorBg,
+              color: context.colors.errorBg,
               borderRadius: AppRadius.smAll,
             ),
             child: Text(_errorMessage!,

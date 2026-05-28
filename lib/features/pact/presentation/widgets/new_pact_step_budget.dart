@@ -179,7 +179,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.infoBg,
+            color: context.colors.infoBg,
             borderRadius: AppRadius.mdAll,
             border: Border.all(color: AppColors.psBlue, width: 1),
           ),

@@ -135,7 +135,7 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
               // Banner contextual
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                color: AppColors.warningBg,
+                color: context.colors.warningBg,
                 child: Row(
                   children: [
                     const Icon(Icons.gavel,
@@ -313,8 +313,8 @@ class _SignSuccess extends StatelessWidget {
                 child: Container(
                   width: 96,
                   height: 96,
-                  decoration: const BoxDecoration(
-                    color: AppColors.successBg,
+                  decoration: BoxDecoration(
+                    color: context.colors.successBg,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.verified,

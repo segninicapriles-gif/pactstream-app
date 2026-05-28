@@ -326,7 +326,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.errorBg,
+                  color: context.colors.errorBg,
                   borderRadius: AppRadius.smAll,
                 ),
                 child: Text(
@@ -710,7 +710,7 @@ class _RoleCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.infoBg,
+                  color: context.colors.infoBg,
                   borderRadius: AppRadius.mdAll,
                 ),
                 child: Icon(option.icon, color: context.colors.brandAccent),
@@ -1026,8 +1026,8 @@ class _InvalidInviteScreen extends StatelessWidget {
                 Container(
                   width: 88,
                   height: 88,
-                  decoration: const BoxDecoration(
-                    color: AppColors.errorBg,
+                  decoration: BoxDecoration(
+                    color: context.colors.errorBg,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.link_off,

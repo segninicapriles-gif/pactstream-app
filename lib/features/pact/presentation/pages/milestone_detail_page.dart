@@ -405,7 +405,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.successBg,
+                          color: context.colors.successBg,
                           borderRadius: AppRadius.microAll,
                         ),
                         child: Text('TÚ',
@@ -547,8 +547,8 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
       return Container(
         height: 120,
         padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: const BoxDecoration(
-          color: AppColors.errorBg,
+        decoration: BoxDecoration(
+          color: context.colors.errorBg,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppSpacing.md),
           ),
@@ -1187,7 +1187,7 @@ class _ReworkBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: rejected ? AppColors.errorBg : AppColors.warningBg,
+        color: rejected ? context.colors.errorBg : context.colors.warningBg,
         borderRadius: AppRadius.mdAll,
         border: Border.all(
           color: rejected ? AppColors.error : AppColors.warning,
@@ -1246,7 +1246,7 @@ class _PaidBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.successBg,
+        color: context.colors.successBg,
         borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.success, width: 1),
       ),
@@ -1299,7 +1299,7 @@ class _DisputeBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.errorBg,
+        color: context.colors.errorBg,
         borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.error, width: 1),
       ),

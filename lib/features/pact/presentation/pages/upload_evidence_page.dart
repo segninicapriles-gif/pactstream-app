@@ -216,7 +216,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.errorBg,
+                    color: context.colors.errorBg,
                     borderRadius: AppRadius.smAll,
                   ),
                   child: Row(
@@ -365,7 +365,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.successBg,
+          color: context.colors.successBg,
           borderRadius: AppRadius.smAll,
           border: Border.all(color: AppColors.success, width: 1),
         ),

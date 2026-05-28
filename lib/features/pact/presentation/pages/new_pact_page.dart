@@ -382,8 +382,8 @@ class _SuccessScreen extends StatelessWidget {
                 child: Container(
                   width: 96,
                   height: 96,
-                  decoration: const BoxDecoration(
-                    color: AppColors.successBg,
+                  decoration: BoxDecoration(
+                    color: context.colors.successBg,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.check_circle,
@@ -404,7 +404,7 @@ class _SuccessScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.infoBg,
+                  color: context.colors.infoBg,
                   borderRadius: AppRadius.smAll,
                   border: Border.all(color: AppColors.psBlue, width: 1),
                 ),

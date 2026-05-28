@@ -442,7 +442,7 @@ class _ToolCallProposal extends StatelessWidget {
       margin: const EdgeInsets.only(left: 36),
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.warningBg,
+        color: context.colors.warningBg,
         borderRadius: AppRadius.smAll,
         border: Border.all(
             color: AppColors.warning.withValues(alpha: 0.4)),
@@ -775,7 +775,7 @@ class _ErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.errorBg,
+      color: context.colors.errorBg,
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(

@@ -39,7 +39,7 @@ class KycIntroPage extends ConsumerWidget {
                 height: 88,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.infoBg,
+                  color: context.colors.infoBg,
                 ),
                 child: Icon(
                   Icons.verified_user_outlined,
@@ -111,9 +111,9 @@ class _BulletPoint extends StatelessWidget {
           Container(
             width: 24,
             height: 24,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.successBg,
+              color: context.colors.successBg,
             ),
             child: const Icon(Icons.check, size: 14, color: AppColors.success),
           ),

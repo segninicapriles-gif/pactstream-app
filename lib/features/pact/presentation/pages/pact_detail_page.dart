@@ -290,6 +290,10 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
               if (_contractAvailable(detail.pact.state))
                 _ContractPdfLink(pactId: detail.pact.id),
               if (_contractAvailable(detail.pact.state))
+                const SizedBox(height: AppSpacing.sm),
+              if (_contractAvailable(detail.pact.state))
+                _ObraReportLink(pactId: detail.pact.id),
+              if (_contractAvailable(detail.pact.state))
                 const SizedBox(height: AppSpacing.md),
               AnimatedListItem(
                 index: _ai++,
@@ -344,7 +348,7 @@ class _ContractPdfLink extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.errorBg,
+                color: co.errorBg,
                 borderRadius: AppRadius.smAll,
               ),
               child: const Icon(Icons.picture_as_pdf,
@@ -364,6 +368,63 @@ class _ContractPdfLink extends StatelessWidget {
                   Text('Ver, descargar o imprimir el contrato firmado',
                       style: AppTypography.bodyS
                           .copyWith(color: co.textTertiary)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: co.textHint),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ObraReportLink extends StatelessWidget {
+  const _ObraReportLink({required this.pactId});
+
+  final String pactId;
+
+  @override
+  Widget build(BuildContext context) {
+    final co = context.colors;
+    return InkWell(
+      onTap: () => context.push('/pacts/$pactId/obra-report'),
+      borderRadius: AppRadius.mdAll,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: co.card,
+          borderRadius: AppRadius.mdAll,
+          border: Border.all(color: co.border),
+          boxShadow: AppShadows.soft,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.psCyan.withValues(alpha: 0.15),
+                borderRadius: AppRadius.smAll,
+              ),
+              child: const Icon(Icons.menu_book_outlined,
+                  color: AppColors.psBlue, size: 22),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Libro de la Obra · PDF',
+                      style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: co.textPrimary,
+                      )),
+                  Text(
+                    'Expediente completo: hitos, anexos y firmas',
+                    style: AppTypography.bodyS
+                        .copyWith(color: co.textTertiary),
+                  ),
                 ],
               ),
             ),
@@ -679,7 +740,7 @@ class _PartyTile extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
-                          color: AppColors.successBg,
+                          color: co.successBg,
                           borderRadius: AppRadius.microAll,
                         ),
                         child: Text('TÚ',

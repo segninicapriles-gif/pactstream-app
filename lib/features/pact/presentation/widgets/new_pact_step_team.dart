@@ -120,7 +120,7 @@ class _NewPactStepTeamState extends State<NewPactStepTeam> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.warningBg,
+              color: context.colors.warningBg,
               borderRadius: AppRadius.smAll,
             ),
             child: Row(
@@ -152,7 +152,7 @@ class _MyselfCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.successBg,
+        color: context.colors.successBg,
         borderRadius: AppRadius.mdAll,
         border: Border.all(color: AppColors.success, width: 1),
       ),
@@ -246,7 +246,7 @@ class _InviteCardState extends State<_InviteCard> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.infoBg,
+                  color: context.colors.infoBg,
                   borderRadius: AppRadius.smAll,
                 ),
                 child: Icon(_iconFor(widget.invite.role),

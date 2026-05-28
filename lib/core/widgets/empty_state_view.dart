@@ -168,8 +168,8 @@ class ErrorStateView extends StatelessWidget {
             Container(
               width: 88,
               height: 88,
-              decoration: const BoxDecoration(
-                color: AppColors.errorBg,
+              decoration: BoxDecoration(
+                color: context.colors.errorBg,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.wifi_off_rounded,

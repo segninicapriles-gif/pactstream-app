@@ -418,45 +418,45 @@ _NotifSpec _specFor(String type, BuildContext context) {
         fg: context.colors.brandAccent,
       );
     case 'pact_funded':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.play_arrow_rounded,
-        bg: AppColors.successBg,
+        bg: context.colors.successBg,
         fg: AppColors.success,
       );
     case 'milestone_pending_tech_review':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.architecture,
-        bg: AppColors.warningBg,
+        bg: context.colors.warningBg,
         fg: AppColors.tecnicoAccent,
       );
     case 'milestone_pending_promotor':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.account_balance_wallet_outlined,
-        bg: AppColors.warningBg,
+        bg: context.colors.warningBg,
         fg: AppColors.warning,
       );
     case 'milestone_needs_rework':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.help_outline,
-        bg: AppColors.errorBg,
+        bg: context.colors.errorBg,
         fg: AppColors.error,
       );
     case 'milestone_paid':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.verified,
-        bg: AppColors.successBg,
+        bg: context.colors.successBg,
         fg: AppColors.success,
       );
     case 'milestone_disputed':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.gavel,
-        bg: AppColors.errorBg,
+        bg: context.colors.errorBg,
         fg: AppColors.error,
       );
     case 'pact_completed':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.celebration,
-        bg: AppColors.successBg,
+        bg: context.colors.successBg,
         fg: AppColors.success,
       );
     default:

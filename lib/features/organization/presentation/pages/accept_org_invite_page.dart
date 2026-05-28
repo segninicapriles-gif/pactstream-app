@@ -162,8 +162,8 @@ class _SuccessView extends StatelessWidget {
         Container(
           width: 96,
           height: 96,
-          decoration: const BoxDecoration(
-            color: AppColors.successBg,
+          decoration: BoxDecoration(
+            color: context.colors.successBg,
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.check_circle,
@@ -265,8 +265,8 @@ class _ErrorView extends StatelessWidget {
         Container(
           width: 96,
           height: 96,
-          decoration: const BoxDecoration(
-            color: AppColors.errorBg,
+          decoration: BoxDecoration(
+            color: context.colors.errorBg,
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.error_outline,
@@ -279,7 +279,7 @@ class _ErrorView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.errorBg,
+            color: context.colors.errorBg,
             borderRadius: AppRadius.smAll,
           ),
           child: Text(

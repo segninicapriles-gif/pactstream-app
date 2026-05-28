@@ -114,7 +114,7 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.warningBg,
+              color: context.colors.warningBg,
               borderRadius: AppRadius.smAll,
               border: Border.all(color: AppColors.warning, width: 1),
             ),
@@ -257,7 +257,7 @@ class _PactTypeCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? AppColors.infoBg : context.colors.card,
+          color: selected ? context.colors.infoBg : context.colors.card,
           borderRadius: AppRadius.mdAll,
           border: Border.all(
             color: selected ? AppColors.psBlue : context.colors.border,

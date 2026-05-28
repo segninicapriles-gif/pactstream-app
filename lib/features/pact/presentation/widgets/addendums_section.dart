@@ -124,7 +124,7 @@ class _AddendumCard extends StatelessWidget {
     String stateLabel;
     if (isActive) {
       accent = AppColors.success;
-      bg = AppColors.successBg;
+      bg = context.colors.successBg;
       icon = Icons.check_circle_outline;
       stateLabel = 'Activo';
     } else if (isCancelled) {

@@ -159,7 +159,7 @@ class _FinancingCtaCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: unlocked
                   ? Colors.white.withValues(alpha:0.15)
-                  : AppColors.infoBg,
+                  : context.colors.infoBg,
               borderRadius: AppRadius.mdAll,
             ),
             child: Icon(
@@ -188,7 +188,7 @@ class _FinancingCtaCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.infoBg,
+                          color: context.colors.infoBg,
                           borderRadius: AppRadius.pillAll,
                         ),
                         child: Text(
