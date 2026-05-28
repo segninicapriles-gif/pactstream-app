@@ -392,12 +392,12 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                 Row(
                   children: [
                     Icon(_iconFor(ev.evidenceType),
-                        size: 16, color: AppColors.psBlue),
+                        size: 16, color: context.colors.brandAccent),
                     const SizedBox(width: 4),
                     Text(_typeLabel(ev.evidenceType),
                         style: AppTypography.bodyS.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.psBlue,
+                          color: context.colors.brandAccent,
                         )),
                     const Spacer(),
                     if (ev.isMine)

@@ -277,7 +277,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                     const SizedBox(height: 6),
                     _BreakdownRow(
                       icon: Icons.payments_outlined,
-                      iconColor: AppColors.psBlue,
+                      iconColor: context.colors.brandAccent,
                       label:
                           'Anticipo al constructor (${d.advanceVariablePct.toStringAsFixed(0)} %)',
                       sublabel: d.advancePct == 10

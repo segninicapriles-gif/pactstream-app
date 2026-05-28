@@ -209,14 +209,14 @@ class _MarkAllReadHeaderState extends ConsumerState<_MarkAllReadHeader> {
       color: context.colors.infoBg,
       child: Row(
         children: [
-          const Icon(Icons.notifications_active,
-              color: AppColors.psBlue, size: 16),
+          Icon(Icons.notifications_active,
+              color: context.colors.brandAccent, size: 16),
           const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
               '${widget.unread} sin leer',
               style: AppTypography.bodyS.copyWith(
-                color: AppColors.psBlue,
+                color: context.colors.brandAccent,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -238,7 +238,7 @@ class _MarkAllReadHeaderState extends ConsumerState<_MarkAllReadHeader> {
               child: Text(
                 'Marcar todas leídas',
                 style: AppTypography.bodyS.copyWith(
-                  color: AppColors.psBlue,
+                  color: context.colors.brandAccent,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -293,7 +293,7 @@ class _NotificationCard extends ConsumerWidget {
             color: isUnread ? c.infoBg : c.card,
             borderRadius: AppRadius.mdAll,
             border: Border.all(
-              color: isUnread ? AppColors.psBlue : c.border,
+              color: isUnread ? c.brandAccent : c.border,
             ),
             boxShadow: AppShadows.soft,
           ),
@@ -405,17 +405,17 @@ class _NotifSpec {
 _NotifSpec _specFor(String type, BuildContext context) {
   switch (type) {
     case 'pact_invitation':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.mail_outline,
-        bg: AppColors.infoBg,
-        fg: AppColors.psBlue,
+        bg: context.colors.brandAccentBg,
+        fg: context.colors.brandAccent,
       );
     case 'all_parties_accepted':
     case 'contract_fully_signed':
-      return const _NotifSpec(
+      return _NotifSpec(
         icon: Icons.draw_outlined,
-        bg: AppColors.infoBg,
-        fg: AppColors.psBlue,
+        bg: context.colors.brandAccentBg,
+        fg: context.colors.brandAccent,
       );
     case 'pact_funded':
       return const _NotifSpec(

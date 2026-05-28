@@ -41,10 +41,10 @@ class KycIntroPage extends ConsumerWidget {
                   shape: BoxShape.circle,
                   color: AppColors.infoBg,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.verified_user_outlined,
                   size: 44,
-                  color: AppColors.psBlue,
+                  color: context.colors.brandAccent,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),

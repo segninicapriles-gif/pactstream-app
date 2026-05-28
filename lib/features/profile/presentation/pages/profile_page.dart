@@ -1013,10 +1013,10 @@ class _NotifToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return SwitchListTile(
       title: Text(title,
-          style: AppTypography.body.copyWith(fontWeight: FontWeight.w600)),
+          style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: context.colors.textPrimary)),
       subtitle: Text(subtitle,
           style: AppTypography.bodyS
-              .copyWith(color: context.colors.textTertiary)),
+              .copyWith(color: context.colors.textSecondary)),
       value: value,
       onChanged: onChanged,
       activeThumbColor: AppColors.psBlue,
@@ -1112,18 +1112,18 @@ class _StatBox extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: AppColors.psBlue),
+          Icon(icon, size: 18, color: c.brandAccent),
           const SizedBox(height: 4),
           Text(
             value,
-            style: AppTypography.h3.copyWith(color: AppColors.psBlue),
+            style: AppTypography.h3.copyWith(color: c.brandAccent),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
           Text(
             label.toUpperCase(),
-            style: AppTypography.caption.copyWith(color: c.textTertiary),
+            style: AppTypography.caption.copyWith(color: c.textSecondary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

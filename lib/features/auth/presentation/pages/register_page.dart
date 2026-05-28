@@ -700,7 +700,7 @@ class _RoleCard extends StatelessWidget {
             color: context.colors.card,
             borderRadius: AppRadius.lgAll,
             border: Border.all(
-              color: selected ? AppColors.psBlue : context.colors.border,
+              color: selected ? context.colors.brandAccent : context.colors.border,
               width: selected ? 2 : 1.5,
             ),
           ),
@@ -713,7 +713,7 @@ class _RoleCard extends StatelessWidget {
                   color: AppColors.infoBg,
                   borderRadius: AppRadius.mdAll,
                 ),
-                child: Icon(option.icon, color: AppColors.psBlue),
+                child: Icon(option.icon, color: context.colors.brandAccent),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -730,7 +730,7 @@ class _RoleCard extends StatelessWidget {
                 ),
               ),
               if (selected)
-                const Icon(Icons.check_circle, color: AppColors.psBlue),
+                Icon(Icons.check_circle, color: context.colors.brandAccent),
             ],
           ),
         ),
@@ -853,7 +853,7 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: AppColors.psBlue),
+          Icon(icon, size: 18, color: context.colors.brandAccent),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -915,7 +915,7 @@ class _ConsentRow extends StatelessWidget {
                       TextSpan(
                         text: linkLabel,
                         style: AppTypography.body.copyWith(
-                          color: AppColors.psBlue,
+                          color: context.colors.brandAccent,
                           decoration: TextDecoration.underline,
                           fontWeight: FontWeight.w700,
                         ),

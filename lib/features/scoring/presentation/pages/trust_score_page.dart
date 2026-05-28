@@ -164,7 +164,7 @@ class _FinancingCtaCard extends StatelessWidget {
             ),
             child: Icon(
               Icons.account_balance_outlined,
-              color: unlocked ? Colors.white : AppColors.psBlue,
+              color: unlocked ? Colors.white : context.colors.brandAccent,
               size: 22,
             ),
           ),

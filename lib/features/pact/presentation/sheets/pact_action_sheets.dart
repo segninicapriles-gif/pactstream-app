@@ -86,14 +86,14 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
     return _SheetScaffold(
       title: 'Depositar en custodia',
       icon: Icons.shield_outlined,
-      iconColor: AppColors.psBlue,
+      iconColor: context.colors.brandAccent,
       children: [
         Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.infoBg,
+            color: context.colors.brandAccentBg,
             borderRadius: AppRadius.mdAll,
-            border: Border.all(color: AppColors.psBlue, width: 1),
+            border: Border.all(color: context.colors.brandAccent, width: 1),
           ),
           child: Column(
             children: [
@@ -397,7 +397,7 @@ class _CreateCertSheetState extends State<_CreateCertSheet> {
     return _SheetScaffold(
       title: 'Nueva certificación',
       icon: Icons.add_chart,
-      iconColor: AppColors.psBlue,
+      iconColor: context.colors.brandAccent,
       children: [
         Text(
           'Describe el avance certificado y su importe. Recuerda adjuntar la factura desde el detalle de la certificación antes de enviarla a revisión.',
@@ -556,7 +556,7 @@ class _ProposeAddendumSheetState extends State<_ProposeAddendumSheet> {
     return _SheetScaffold(
       title: 'Proponer anexo',
       icon: Icons.assignment_outlined,
-      iconColor: AppColors.psBlue,
+      iconColor: context.colors.brandAccent,
       children: [
         Text(
           'Los anexos modifican el pacto cuando hay imprevistos o cambios de alcance. '
@@ -743,7 +743,7 @@ class _SignAddendumSheetState extends State<_SignAddendumSheet> {
     return _SheetScaffold(
       title: 'Firmar anexo #${a.ordinal}',
       icon: Icons.edit_note,
-      iconColor: AppColors.psBlue,
+      iconColor: context.colors.brandAccent,
       children: [
         Text(a.title,
             style: AppTypography.body.copyWith(fontWeight: FontWeight.w800)),
@@ -1021,14 +1021,14 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
     return _SheetScaffold(
       title: 'Configurar Adelanto',
       icon: Icons.shield_outlined,
-      iconColor: AppColors.psBlue,
+      iconColor: context.colors.brandAccent,
       children: [
         Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.infoBg,
+            color: context.colors.brandAccentBg,
             borderRadius: AppRadius.mdAll,
-            border: Border.all(color: AppColors.psBlue, width: 1),
+            border: Border.all(color: context.colors.brandAccent, width: 1),
           ),
           child: Column(
             children: [
@@ -1067,7 +1067,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
               const SizedBox(height: AppSpacing.sm),
               _kvRow(
                 icon: Icons.payments_outlined,
-                iconColor: AppColors.psBlue,
+                iconColor: context.colors.brandAccent,
                 label: 'Anticipo al constructor',
                 sublabel:
                     'Se entrega hoy. Cobertura inicial de la póliza de caución.',

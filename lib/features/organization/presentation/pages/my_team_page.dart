@@ -182,8 +182,8 @@ class _OrgHeaderCard extends StatelessWidget {
                   color: AppColors.infoBg,
                   borderRadius: AppRadius.smAll,
                 ),
-                child: const Icon(Icons.business_center_outlined,
-                    color: AppColors.psBlue, size: 24),
+                child: Icon(Icons.business_center_outlined,
+                    color: context.colors.brandAccent, size: 24),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(

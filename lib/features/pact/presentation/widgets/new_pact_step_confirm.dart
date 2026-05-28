@@ -54,8 +54,8 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                       color: AppColors.infoBg,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.gavel,
-                        color: AppColors.psBlue, size: 36),
+                    child: Icon(Icons.gavel,
+                        color: context.colors.brandAccent, size: 36),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -239,7 +239,7 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: AppColors.psBlue),
+              Icon(icon, size: 18, color: context.colors.brandAccent),
               const SizedBox(width: AppSpacing.xs),
               Text(title,
                   style: AppTypography.bodyS

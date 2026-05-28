@@ -126,10 +126,10 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                   shape: BoxShape.circle,
                   color: AppColors.infoBg,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.mark_email_read_outlined,
                   size: 48,
-                  color: AppColors.psBlue,
+                  color: context.colors.brandAccent,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -210,7 +210,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                 Text(
                   _resendMessage!,
                   textAlign: TextAlign.center,
-                  style: AppTypography.bodyS.copyWith(color: AppColors.psBlue),
+                  style: AppTypography.bodyS.copyWith(color: context.colors.brandAccent),
                 ),
                 const SizedBox(height: AppSpacing.md),
               ],

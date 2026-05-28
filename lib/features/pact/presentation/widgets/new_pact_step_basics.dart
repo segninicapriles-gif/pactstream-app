@@ -296,7 +296,7 @@ class _PactTypeCard extends StatelessWidget {
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle, color: AppColors.psBlue),
+              Icon(Icons.check_circle, color: context.colors.brandAccent),
           ],
         ),
       ),

@@ -411,8 +411,8 @@ class _SuccessScreen extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.info_outline,
-                        color: AppColors.psBlue, size: 18),
+                    Icon(Icons.info_outline,
+                        color: context.colors.brandAccent, size: 18),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(

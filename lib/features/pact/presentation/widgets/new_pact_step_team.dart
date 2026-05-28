@@ -250,7 +250,7 @@ class _InviteCardState extends State<_InviteCard> {
                   borderRadius: AppRadius.smAll,
                 ),
                 child: Icon(_iconFor(widget.invite.role),
-                    color: AppColors.psBlue, size: 18),
+                    color: context.colors.brandAccent, size: 18),
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(_labelFor(widget.invite.role),

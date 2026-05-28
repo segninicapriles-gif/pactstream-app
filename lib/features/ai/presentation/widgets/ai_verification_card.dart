@@ -375,8 +375,8 @@ class _VerificationBody extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.lightbulb_outline,
-                      size: 14, color: AppColors.psBlue),
+                  Icon(Icons.lightbulb_outline,
+                      size: 14, color: context.colors.brandAccent),
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(

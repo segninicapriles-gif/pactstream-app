@@ -273,13 +273,13 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.infoBg,
+            color: context.colors.brandAccentBg,
             borderRadius: AppRadius.smAll,
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline,
-                  color: AppColors.psBlue, size: 18),
+              Icon(Icons.info_outline,
+                  color: context.colors.brandAccent, size: 18),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
@@ -436,10 +436,10 @@ class _PickerOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: primary ? AppColors.infoBg : context.colors.card,
+          color: primary ? context.colors.brandAccentBg : context.colors.card,
           borderRadius: AppRadius.mdAll,
           border: Border.all(
-            color: primary ? AppColors.psBlue : context.colors.border,
+            color: primary ? context.colors.brandAccent : context.colors.border,
             width: primary ? 2 : 1,
           ),
         ),

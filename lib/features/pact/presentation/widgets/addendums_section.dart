@@ -133,8 +133,8 @@ class _AddendumCard extends StatelessWidget {
       icon = Icons.cancel_outlined;
       stateLabel = 'Cancelado';
     } else {
-      accent = AppColors.psBlue;
-      bg = AppColors.infoBg;
+      accent = context.colors.brandAccent;
+      bg = context.colors.brandAccentBg;
       icon = Icons.pending_outlined;
       stateLabel = addendum.state == 'proposed' ? 'Propuesto' : 'En firma';
     }

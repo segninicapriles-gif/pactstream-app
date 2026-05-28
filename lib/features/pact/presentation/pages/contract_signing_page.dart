@@ -217,13 +217,13 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                               const EdgeInsets.only(bottom: AppSpacing.sm),
                           child: Row(
                             children: [
-                              const Icon(Icons.timer_outlined,
-                                  color: AppColors.psBlue, size: 16),
+                              Icon(Icons.timer_outlined,
+                                  color: context.colors.brandAccent, size: 16),
                               const SizedBox(width: AppSpacing.xs),
                               Text(
                                 'Tómate unos segundos para revisar el contrato',
                                 style: AppTypography.bodyS.copyWith(
-                                    color: AppColors.psBlue,
+                                    color: context.colors.brandAccent,
                                     fontWeight: FontWeight.w700),
                               ),
                             ],

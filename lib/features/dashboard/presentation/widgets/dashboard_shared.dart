@@ -503,7 +503,7 @@ class DashboardSectionHeader extends StatelessWidget {
           child: Text(
             viewAllLabel,
             style: AppTypography.bodyS.copyWith(
-              color: AppColors.psBlue,
+              color: context.colors.brandAccent,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -551,10 +551,10 @@ class UrgentTaskCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.infoBg,
+                  color: co.brandAccentBg,
                   borderRadius: AppRadius.smAll,
                 ),
-                child: Icon(icon, color: AppColors.psBlue, size: 20),
+                child: Icon(icon, color: co.brandAccent, size: 20),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(

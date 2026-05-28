@@ -729,8 +729,8 @@ class _PartyTile extends StatelessWidget {
                 const Icon(Icons.verified,
                     color: AppColors.success, size: 22)
               else if (party.hasAccepted)
-                const Icon(Icons.check_circle_outline,
-                    color: AppColors.psBlue, size: 22)
+                Icon(Icons.check_circle_outline,
+                    color: co.brandAccent, size: 22)
               else
                 const Icon(Icons.hourglass_empty,
                     color: AppColors.warning, size: 22),
@@ -746,7 +746,7 @@ class _PartyTile extends StatelessWidget {
                   ),
                   child: Text('Reenviar',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.psBlue,
+                        color: co.brandAccent,
                         letterSpacing: 0,
                         fontWeight: FontWeight.w700,
                       )),
@@ -981,7 +981,7 @@ class _MilestoneTile extends StatelessWidget {
                         AppFormatters.moneyShort(milestone.amountCents),
                         style: AppTypography.body.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.psBlue,
+                          color: context.colors.brandAccent,
                         ),
                       ),
                       if (milestone.targetDate != null) ...[
@@ -1397,15 +1397,15 @@ class _InfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.infoBg,
+        color: co.brandAccentBg,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.psBlue, width: 1),
+        border: Border.all(color: co.brandAccent, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.lightbulb_outline,
-              color: AppColors.psBlue, size: 18),
+          Icon(Icons.lightbulb_outline,
+              color: co.brandAccent, size: 18),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
@@ -1590,7 +1590,7 @@ class _InlineTrustScoreCard extends ConsumerWidget {
         decoration: BoxDecoration(
           borderRadius: AppRadius.lgAll,
           color: co.card,
-          border: Border.all(color: AppColors.psBlue, width: 1.2),
+          border: Border.all(color: co.brandAccent, width: 1.2),
           boxShadow: AppShadows.soft,
         ),
         child: ClipRRect(
@@ -1600,7 +1600,7 @@ class _InlineTrustScoreCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Accent bar izquierdo azul
-                Container(width: 4, color: AppColors.psBlue),
+                Container(width: 4, color: co.brandAccent),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.lg),
@@ -1622,7 +1622,7 @@ class _InlineTrustScoreCard extends ConsumerWidget {
                               Text(
                                 'TRUST SCORE',
                                 style: AppTypography.caption.copyWith(
-                                  color: AppColors.psBlue,
+                                  color: co.brandAccent,
                                   letterSpacing: 1.2,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -1664,14 +1664,14 @@ class _InlineTrustScoreCard extends ConsumerWidget {
                               Text(
                                 'Ver factores detallados →',
                                 style: AppTypography.caption
-                                    .copyWith(color: AppColors.psBlue),
+                                    .copyWith(color: co.brandAccent),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.chevron_right,
-                          color: AppColors.psBlue,
+                          color: co.brandAccent,
                           size: 20,
                         ),
                       ],

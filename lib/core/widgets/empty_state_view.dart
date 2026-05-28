@@ -92,11 +92,11 @@ class _EmptyStateViewState extends State<EmptyStateView>
               Container(
                 width: 96,
                 height: 96,
-                decoration: const BoxDecoration(
-                  color: AppColors.infoBg,
+                decoration: BoxDecoration(
+                  color: context.colors.brandAccentBg,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(widget.icon, color: AppColors.psBlue, size: 48),
+                child: Icon(widget.icon, color: context.colors.brandAccent, size: 48),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(

@@ -146,6 +146,8 @@ class _ResolvedColors {
         textSecondary = AppColors.ink600,
         textTertiary = AppColors.ink500,
         textHint = AppColors.ink400,
+        brandAccent = AppColors.psBlue,
+        brandAccentBg = AppColors.infoBg,
         headerGradient = AppColors.psGradientDeep,
         successBg = AppColors.successBg,
         warningBg = AppColors.warningBg,
@@ -171,6 +173,8 @@ class _ResolvedColors {
         textSecondary = AppColors.ink400,
         textTertiary = AppColors.ink500,
         textHint = AppColors.ink600,
+        brandAccent = const Color(0xFF7B9FFF),
+        brandAccentBg = AppColors.darkInfoBg,
         headerGradient = AppColors.psGradientDeepDark,
         successBg = AppColors.darkSuccessBg,
         warningBg = AppColors.darkWarningBg,
@@ -195,6 +199,10 @@ class _ResolvedColors {
   final Color textSecondary;
   final Color textTertiary;
   final Color textHint;
+  /// Brand blue adapted for dark surfaces — brighter in dark mode.
+  final Color brandAccent;
+  /// Subtle brand-tinted background.
+  final Color brandAccentBg;
   final LinearGradient headerGradient;
   final Color successBg;
   final Color warningBg;

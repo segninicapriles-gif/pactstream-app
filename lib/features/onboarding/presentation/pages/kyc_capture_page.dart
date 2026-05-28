@@ -247,10 +247,10 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
               shape: BoxShape.circle,
               color: AppColors.infoBg,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.shield_outlined,
               size: 44,
-              color: AppColors.psBlue,
+              color: context.colors.brandAccent,
             ),
           ),
         ),

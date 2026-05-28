@@ -378,16 +378,16 @@ class _MessageBubble extends StatelessWidget {
             size: 13, color: AppColors.psCyan),
       );
 
-  Widget _UserDot() => Container(
+  Widget _UserDot() => Builder(builder: (context) => Container(
         width: 28,
         height: 28,
         decoration: BoxDecoration(
-          color: AppColors.psBlue.withValues(alpha: 0.15),
+          color: context.colors.brandAccent.withValues(alpha: 0.15),
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.person_outline,
-            size: 15, color: AppColors.psBlue),
-      );
+        child: Icon(Icons.person_outline,
+            size: 15, color: context.colors.brandAccent),
+      ));
 
   Widget _DemoBadge() => Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),

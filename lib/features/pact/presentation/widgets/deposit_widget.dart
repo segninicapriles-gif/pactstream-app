@@ -144,7 +144,7 @@ class _CustodyWidgetV21 extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             _CustodyBlock(
               icon: Icons.savings_outlined,
-              iconColor: AppColors.psBlue,
+              iconColor: context.colors.brandAccent,
               label: 'Pre-depósitos en curso',
               sublabel: 'Esperando validación técnica para liberar',
               value: AppFormatters.moneyLong(
@@ -206,17 +206,17 @@ class _UnfundedV21 extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.infoBg,
+        color: context.colors.brandAccentBg,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.psBlue, width: 1),
+        border: Border.all(color: context.colors.brandAccent, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              const Icon(Icons.shield_outlined,
-                  size: 18, color: AppColors.psBlue),
+              Icon(Icons.shield_outlined,
+                  size: 18, color: context.colors.brandAccent),
               const SizedBox(width: AppSpacing.xs),
               Text('Configurar Adelanto',
                   style: AppTypography.bodyS
@@ -264,8 +264,8 @@ class _UnfundedV21 extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.payments_outlined,
-                        size: 14, color: AppColors.psBlue),
+                    Icon(Icons.payments_outlined,
+                        size: 14, color: context.colors.brandAccent),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text('Anticipo al constructor (día 1)',
@@ -384,8 +384,8 @@ class _AdvanceCoverageBlock extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.payments_outlined,
-                  size: 18, color: AppColors.psBlue),
+              Icon(Icons.payments_outlined,
+                  size: 18, color: context.colors.brandAccent),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Column(
@@ -496,10 +496,10 @@ class _DepositWidgetV20 extends StatelessWidget {
     final isUnfunded = pact.state == 'signed';
     final accent = isLow
         ? AppColors.warning
-        : (isUnfunded ? AppColors.psBlue : AppColors.success);
+        : (isUnfunded ? context.colors.brandAccent : AppColors.success);
     final bg = isLow
         ? AppColors.warningBg
-        : (isUnfunded ? AppColors.infoBg : AppColors.successBg);
+        : (isUnfunded ? context.colors.brandAccentBg : AppColors.successBg);
 
     final myRole = detail.me?.role;
     final isPromotor = myRole == 'promotor';
