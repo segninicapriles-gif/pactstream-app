@@ -215,7 +215,7 @@ class _AddendumCard extends StatelessWidget {
                 _Badge(
                     icon: Icons.description_outlined,
                     label: 'Doc',
-                    color: AppColors.psBlue),
+                    color: context.colors.brandAccent),
               ],
             ],
           ),

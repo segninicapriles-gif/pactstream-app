@@ -92,7 +92,7 @@ class _CreateOrgSheetState extends State<_CreateOrgSheet> {
     return _SheetScaffold(
       title: 'Crear organización',
       icon: Icons.business_center_outlined,
-      iconColor: AppColors.psBlue,
+      iconColor: context.colors.brandAccent,
       children: [
         Text(
           'Crea tu organización para poder invitar a jefes de obra (constructor) o técnicos del estudio que te ayuden en el día a día.',
@@ -280,7 +280,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
     return _SheetScaffold(
       title: 'Invitar miembro',
       icon: Icons.person_add_outlined,
-      iconColor: AppColors.psBlue,
+      iconColor: context.colors.brandAccent,
       children: [
         Text(
           'Invita a un jefe de obra para que pueda subir evidencias de las obras en su dispositivo. No necesita pasar verificación de identidad.',
@@ -564,7 +564,7 @@ class _UpdatePermissionsSheetState extends State<_UpdatePermissionsSheet> {
     return _SheetScaffold(
       title: 'Permisos · ${widget.member.displayName}',
       icon: Icons.shield_outlined,
-      iconColor: AppColors.psBlue,
+      iconColor: context.colors.brandAccent,
       children: [
         // ── Visibilidad económica ───────────────────────────────────
         _PermissionTile(

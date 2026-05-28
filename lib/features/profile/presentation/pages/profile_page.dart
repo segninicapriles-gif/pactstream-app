@@ -866,15 +866,15 @@ class _RoleDataCard extends StatelessWidget {
           if (showDocsButton) ...[
             const Divider(height: 1, indent: 56),
             ListTile(
-              leading: const Icon(Icons.upload_file_outlined,
-                  color: AppColors.psBlue),
+              leading: Icon(Icons.upload_file_outlined,
+                  color: context.colors.brandAccent),
               title: Text(
                 role == 'tecnico'
                     ? 'Subir certificado profesional (PDF)'
                     : 'Subir documentación de empresa',
-                style: AppTypography.body.copyWith(color: AppColors.psBlue),
+                style: AppTypography.body.copyWith(color: context.colors.brandAccent),
               ),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.psBlue),
+              trailing: Icon(Icons.chevron_right, color: context.colors.brandAccent),
               onTap: () {
                 // TODO(sprint-2): subida de documentos
               },
@@ -1290,7 +1290,7 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
           const Divider(height: 1, indent: 56),
           ListTile(
             leading:
-                const Icon(Icons.group_outlined, color: AppColors.psBlue),
+                Icon(Icons.group_outlined, color: context.colors.brandAccent),
             title: const Text('Mi equipo'),
             subtitle: Text(
               'Invita jefes de obra o técnicos a tu organización',
@@ -1362,7 +1362,7 @@ class _ThemeModeSelector extends ConsumerWidget {
     };
 
     return ListTile(
-      leading: Icon(icon, color: AppColors.psBlue),
+      leading: Icon(icon, color: context.colors.brandAccent),
       title: Text(label),
       subtitle: Text(
         subtitle,

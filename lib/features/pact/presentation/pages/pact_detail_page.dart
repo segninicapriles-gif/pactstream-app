@@ -632,7 +632,7 @@ class _PartyTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final co = context.colors;
-    final roleSpec = _roleSpec(party.role);
+    final roleSpec = _roleSpec(party.role, context);
     final statusLabel = _statusLabel();
     // El nombre real puede faltar en pactos antiguos; usamos email de
     // fallback para pactos creados antes de la validación obligatoria.
@@ -765,13 +765,13 @@ class _PartyTile extends StatelessWidget {
     return 'Pendiente de aceptar';
   }
 
-  ({String label, IconData icon, Color color}) _roleSpec(String role) {
+  ({String label, IconData icon, Color color}) _roleSpec(String role, BuildContext context) {
     switch (role) {
       case 'promotor':
         return (
           label: 'Promotor',
           icon: Icons.account_balance_wallet_outlined,
-          color: AppColors.psBlue,
+          color: context.colors.brandAccent,
         );
       case 'constructor':
         return (
@@ -1024,10 +1024,10 @@ class _MilestoneTile extends StatelessWidget {
                             color: AppColors.success,
                           ),
                         if (milestone.hasDetailedDoc)
-                          const _MilestoneBadge(
+                          _MilestoneBadge(
                             icon: Icons.description_outlined,
                             label: 'Doc',
-                            color: AppColors.psBlue,
+                            color: co.brandAccent,
                           ),
                         if (milestone.isEdited)
                           _MilestoneBadge(

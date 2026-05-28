@@ -331,8 +331,8 @@ class _NotificationCard extends ConsumerWidget {
                           width: 8,
                           height: 8,
                           margin: const EdgeInsets.only(left: 6, top: 6),
-                          decoration: const BoxDecoration(
-                            color: AppColors.psBlue,
+                          decoration: BoxDecoration(
+                            color: context.colors.brandAccent,
                             shape: BoxShape.circle,
                           ),
                         ),

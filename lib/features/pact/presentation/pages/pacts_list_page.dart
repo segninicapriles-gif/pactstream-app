@@ -629,7 +629,7 @@ class _RolePill extends StatelessWidget {
     final spec = switch (role) {
       'promotor' => (
         label: 'Promotor',
-        color: AppColors.psBlue,
+        color: context.colors.brandAccent,
       ),
       'tecnico' => (
         label: 'Técnico',

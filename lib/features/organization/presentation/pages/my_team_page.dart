@@ -204,12 +204,12 @@ class _OrgHeaderCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.xs, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.psBlue.withValues(alpha: 0.12),
+                    color: context.colors.brandAccent.withValues(alpha: 0.12),
                     borderRadius: AppRadius.smAll,
                   ),
                   child: Text('OWNER',
                       style: AppTypography.caption.copyWith(
-                          color: AppColors.psBlue,
+                          color: context.colors.brandAccent,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5)),
                 ),
@@ -403,7 +403,7 @@ class _MemberTile extends StatelessWidget {
           CircleAvatar(
             radius: 22,
             backgroundColor: member.isOwner
-                ? AppColors.psBlue
+                ? context.colors.brandAccent
                 : context.colors.border,
             child: Text(
               _initials(member.displayName),
@@ -453,7 +453,7 @@ class _MemberTile extends StatelessWidget {
                     _MiniPill(
                       label: member.isOwner ? 'Owner' : 'Miembro',
                       color: member.isOwner
-                          ? AppColors.psBlue
+                          ? context.colors.brandAccent
                           : context.colors.textSecondary,
                     ),
                     _MiniPill(

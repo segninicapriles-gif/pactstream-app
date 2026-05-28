@@ -38,8 +38,8 @@ class PactStateStyle {
       case 'signed':
         return PactStateStyle(
           label: 'Firmado',
-          bg: AppColors.infoBg,
-          fg: AppColors.psBlue,
+          bg: context.colors.infoBg,
+          fg: context.colors.brandAccent,
         );
       case 'funding':
         return PactStateStyle(
@@ -92,10 +92,10 @@ class PactStateStyle {
         );
       case 'in_execution':
       case 'in_progress':
-        return const PactStateStyle(
+        return PactStateStyle(
           label: 'En curso',
-          bg: AppColors.infoBg,
-          fg: AppColors.psBlue,
+          bg: context.colors.infoBg,
+          fg: context.colors.brandAccent,
         );
       case 'ready_for_review':
         return const PactStateStyle(
@@ -122,10 +122,10 @@ class PactStateStyle {
           fg: AppColors.error,
         );
       case 'approved_by_tech':
-        return const PactStateStyle(
+        return PactStateStyle(
           label: 'Aprob. técnico',
-          bg: AppColors.infoBg,
-          fg: AppColors.psBlue,
+          bg: context.colors.infoBg,
+          fg: context.colors.brandAccent,
         );
       case 'awaiting_promotor':
         return const PactStateStyle(
