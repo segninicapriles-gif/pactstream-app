@@ -94,6 +94,7 @@ class HeroKpiScoreCard extends ConsumerWidget {
     this.secondaryLabel,
     this.secondaryValue,
     this.icon = Icons.shield_outlined,
+    this.gradientColors,
   });
 
   final String eyebrow;
@@ -105,18 +106,24 @@ class HeroKpiScoreCard extends ConsumerWidget {
   final String? secondaryValue;
   final IconData icon;
 
+  /// Optional custom gradient colors. Defaults to [AppColors.psNavy, AppColors.ink800].
+  /// Pass a custom list to differentiate hero cards per role (e.g. técnico).
+  final List<Color>? gradientColors;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repAsync = ref.watch(myReputationProvider);
+
+    final colors = gradientColors ?? const [AppColors.psNavy, AppColors.ink800];
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         borderRadius: AppRadius.mdAll,
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.psNavy, AppColors.ink800],
+          colors: colors,
         ),
       ),
       child: Row(
@@ -829,5 +836,150 @@ class DashboardErrorBlock extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// =====================================================================
+// Técnico validation task card (prominent card with "Validar ahora" CTA)
+// =====================================================================
+
+/// A more prominent task card for técnico validation tasks.
+///
+/// Shows a green/accent left bar, task info, and a filled "Validar ahora"
+/// button on the right. Uses [AppColors.tecnicoAccent] color scheme.
+class TecnicoValidationTaskCard extends StatelessWidget {
+  const TecnicoValidationTaskCard({
+    super.key,
+    required this.task,
+    required this.onTap,
+    this.ctaLabel = 'Validar ahora',
+    this.onCtaTap,
+    this.accentColor,
+  });
+
+  final DashboardUrgentTask task;
+
+  /// Called when tapping the card body (navigates to pact detail).
+  final VoidCallback onTap;
+
+  /// Label for the CTA button.
+  final String ctaLabel;
+
+  /// Called when tapping the CTA button. Defaults to [onTap] if null.
+  final VoidCallback? onCtaTap;
+
+  /// Override the accent color. Defaults to [AppColors.tecnicoAccent].
+  final Color? accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = accentColor ?? AppColors.tecnicoAccent;
+
+    return Semantics(
+      button: true,
+      label: '${task.title}. ${task.subtitle}. $ctaLabel',
+      child: PressableCard(
+        onTap: onTap,
+        borderRadius: AppRadius.mdAll,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(color: accent.withValues(alpha: 0.3)),
+            boxShadow: AppShadows.soft,
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ─── Left accent bar ───
+                Container(width: 4, color: accent),
+                // ─── Content ───
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Row(
+                      children: [
+                        // Icon
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.12),
+                            borderRadius: AppRadius.smAll,
+                          ),
+                          child: Icon(
+                            _iconForValidationKind(task.kind),
+                            color: accent,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        // Title + subtitle
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                task.title,
+                                style: AppTypography.body
+                                    .copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                task.subtitle,
+                                style: AppTypography.bodyS
+                                    .copyWith(color: AppColors.ink500),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        // CTA button
+                        FilledButton(
+                          onPressed: onCtaTap ?? onTap,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: accent,
+                            foregroundColor: AppColors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md,
+                              vertical: AppSpacing.sm,
+                            ),
+                            textStyle: AppTypography.bodyS.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: AppRadius.smAll,
+                            ),
+                          ),
+                          child: Text(ctaLabel),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static IconData _iconForValidationKind(String kind) {
+    switch (kind) {
+      case 'milestone_pending_tech_review':
+        return Icons.verified_outlined;
+      case 'milestone_pending_validation':
+        return Icons.checklist_outlined;
+      case 'addendum_sign':
+        return Icons.assignment_outlined;
+      case 'contract_sign':
+        return Icons.draw_outlined;
+      default:
+        return Icons.task_alt_outlined;
+    }
   }
 }

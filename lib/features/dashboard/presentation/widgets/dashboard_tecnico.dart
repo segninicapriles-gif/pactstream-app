@@ -64,6 +64,12 @@ class _Content extends StatelessWidget {
   final DashboardData data;
   final VoidCallback? onViewAllPacts;
 
+  /// Returns true if the task kind involves validation by the técnico.
+  static bool _isValidationKind(String kind) {
+    return kind == 'milestone_pending_tech_review' ||
+        kind == 'milestone_pending_validation';
+  }
+
   @override
   Widget build(BuildContext context) {
     var animIdx = 0;
@@ -72,6 +78,8 @@ class _Content extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // HERO · Obras supervisadas + Trust Score del tecnico
+        // Uses a custom gradient incorporating tecnicoAccent to
+        // visually differentiate from promotor/constructor dashboards.
         AnimatedListItem(
           index: animIdx++,
           child: HeroKpiScoreCard(
@@ -84,6 +92,10 @@ class _Content extends StatelessWidget {
                 ? AppColors.success
                 : AppColors.psCyan,
             icon: Icons.architecture_outlined,
+            gradientColors: const [
+              AppColors.psNavy,
+              AppColors.tecnicoAccentDark,
+            ],
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -135,10 +147,15 @@ class _Content extends StatelessWidget {
               index: animIdx++,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: UrgentTaskCard(
-                  task: t,
-                  onTap: () => context.push('/pacts/${t.pactId}'),
-                ),
+                child: _isValidationKind(t.kind)
+                    ? TecnicoValidationTaskCard(
+                        task: t,
+                        onTap: () => context.push('/pacts/${t.pactId}'),
+                      )
+                    : UrgentTaskCard(
+                        task: t,
+                        onTap: () => context.push('/pacts/${t.pactId}'),
+                      ),
               ),
             ),
           const SizedBox(height: AppSpacing.lg),

@@ -28,6 +28,7 @@ dependencies:
   flutter_svg: ^2.0.16
   cached_network_image: ^3.4.1
   flutter_animate: ^4.5.2
+  fl_chart: ^0.70.2
 
   # Utils
   intl: ^0.20.2 # versión pinned por flutter_localizations (Flutter 3.41+)

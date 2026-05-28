@@ -24,14 +24,64 @@ import '../widgets/pact_state_badge.dart';
 ///   - empty: ilustración + CTA "Crear nueva obra"
 ///   - data: cards con resumen, click → detalle
 ///   - error: mensaje + retry
-class PactsListPage extends ConsumerWidget {
+class PactsListPage extends ConsumerStatefulWidget {
   const PactsListPage({super.key, this.canCreate = true});
 
   /// Si el rol del usuario puede crear pactos. El constructor no.
   final bool canCreate;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PactsListPage> createState() => _PactsListPageState();
+}
+
+class _PactsListPageState extends ConsumerState<PactsListPage> {
+  String _searchQuery = '';
+  String _selectedFilter = 'Todas';
+
+  static const _filters = [
+    'Todas',
+    'Activas',
+    'Pendiente',
+    'Completadas',
+    'En disputa',
+  ];
+
+  List<PactSummary> _applyFilters(List<PactSummary> pacts) {
+    var filtered = pacts;
+
+    // State filter
+    if (_selectedFilter != 'Todas') {
+      filtered = filtered.where((p) {
+        return switch (_selectedFilter) {
+          'Activas' =>
+            p.state == 'in_execution' || p.state == 'funded',
+          'Pendiente' =>
+            p.state == 'inviting' ||
+            p.state == 'signing' ||
+            p.state == 'signed' ||
+            p.state == 'paused_pending_tech',
+          'Completadas' => p.state == 'completed',
+          'En disputa' => p.state == 'disputed',
+          _ => true,
+        };
+      }).toList();
+    }
+
+    // Search filter
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      filtered = filtered.where((p) {
+        return p.title.toLowerCase().contains(q) ||
+            p.displayId.toLowerCase().contains(q) ||
+            p.locationShort.toLowerCase().contains(q);
+      }).toList();
+    }
+
+    return filtered;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final pactsAsync = ref.watch(myPactsProvider);
 
     return RefreshIndicator(
@@ -50,28 +100,119 @@ class PactsListPage extends ConsumerWidget {
           if (pacts.isEmpty) {
             return EmptyStateView(
               icon: Icons.folder_outlined,
-              title: canCreate ? 'Aún no tienes obras' : 'Sin obras asignadas',
-              subtitle: canCreate
+              title: widget.canCreate
+                  ? 'Aún no tienes obras'
+                  : 'Sin obras asignadas',
+              subtitle: widget.canCreate
                   ? 'Crea tu primera obra para empezar a gestionar pagos por hitos con custodia.'
                   : 'Cuando un promotor o técnico te invite a una obra, aparecerá aquí.',
-              actionLabel: canCreate ? 'Crear nueva obra' : null,
-              onAction: canCreate ? () => context.push(AppRoutes.pactNew) : null,
+              actionLabel: widget.canCreate ? 'Crear nueva obra' : null,
+              onAction: widget.canCreate
+                  ? () => context.push(AppRoutes.pactNew)
+                  : null,
             );
           }
+
+          final filtered = _applyFilters(pacts);
+
+          // Header count: search bar + filter chips row
+          const headerCount = 2;
+          final ctaCount = widget.canCreate ? 1 : 0;
+
           return ListView.separated(
             padding: const EdgeInsets.all(AppSpacing.lg),
-            itemCount: pacts.length + (canCreate ? 1 : 0),
+            itemCount: headerCount + ctaCount + filtered.length,
             separatorBuilder: (_, __) =>
                 const SizedBox(height: AppSpacing.md),
             itemBuilder: (ctx, i) {
-              if (canCreate && i == 0) {
+              // ---- Search bar ----
+              if (i == 0) {
+                return TextField(
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  decoration: InputDecoration(
+                    hintText: 'Buscar obra, ciudad o NIF...',
+                    hintStyle: AppTypography.bodyS
+                        .copyWith(color: AppColors.ink400),
+                    prefixIcon: const Icon(Icons.search,
+                        color: AppColors.ink400, size: 20),
+                    filled: true,
+                    fillColor: AppColors.ink50,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: AppRadius.mdAll,
+                      borderSide: BorderSide(color: AppColors.ink200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: AppRadius.mdAll,
+                      borderSide: BorderSide(color: AppColors.ink200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: AppRadius.mdAll,
+                      borderSide:
+                          BorderSide(color: AppColors.psBlue, width: 1.5),
+                    ),
+                  ),
+                  style: AppTypography.bodyS,
+                );
+              }
+
+              // ---- Filter chips ----
+              if (i == 1) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _filters.map((label) {
+                      final selected = _selectedFilter == label;
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(right: AppSpacing.xs),
+                        child: ChoiceChip(
+                          label: Text(label),
+                          selected: selected,
+                          onSelected: (_) =>
+                              setState(() => _selectedFilter = label),
+                          labelStyle: AppTypography.bodyS.copyWith(
+                            color: selected
+                                ? AppColors.white
+                                : AppColors.ink600,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          selectedColor: AppColors.psBlue,
+                          backgroundColor: AppColors.ink100,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.xlAll,
+                            side: BorderSide.none,
+                          ),
+                          side: BorderSide.none,
+                          showCheckmark: false,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: 2,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                );
+              }
+
+              // ---- Create CTA ----
+              if (widget.canCreate && i == headerCount) {
                 return AnimatedListItem(
                   index: 0,
                   child: const _CreateCta(),
                 );
               }
-              final idx = i - (canCreate ? 1 : 0);
-              final pact = pacts[idx];
+
+              // ---- Pact cards ----
+              final idx = i - headerCount - ctaCount;
+              if (idx < 0 || idx >= filtered.length) {
+                return const SizedBox.shrink();
+              }
+              final pact = filtered[idx];
               return AnimatedListItem(
                 index: i,
                 child: _PactCard(

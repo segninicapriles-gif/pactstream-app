@@ -48,25 +48,107 @@ class NotificationsPage extends ConsumerWidget {
               subtitle: 'Aquí verás invitaciones, validaciones pendientes, pagos liberados y otras alertas de tus obras.',
             );
           }
-          return Column(
-            children: [
-              if (unread > 0) _MarkAllReadHeader(unread: unread),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                      vertical: AppSpacing.sm),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(height: AppSpacing.xs),
-                  itemBuilder: (ctx, i) => AnimatedListItem(
-                    index: i,
-                    child: _NotificationCard(item: items[i]),
-                  ),
+
+          // --- Temporal grouping ---
+          final now = DateTime.now();
+          final todayStart = DateTime(now.year, now.month, now.day);
+          final weekStart = todayStart.subtract(const Duration(days: 7));
+
+          final hoy = <NotificationItem>[];
+          final estaSemana = <NotificationItem>[];
+          final anteriores = <NotificationItem>[];
+
+          for (final n in items) {
+            if (!n.createdAt.isBefore(todayStart)) {
+              hoy.add(n);
+            } else if (!n.createdAt.isBefore(weekStart)) {
+              estaSemana.add(n);
+            } else {
+              anteriores.add(n);
+            }
+          }
+
+          final groups = <(String, List<NotificationItem>)>[
+            if (hoy.isNotEmpty) ('Hoy', hoy),
+            if (estaSemana.isNotEmpty) ('Esta semana', estaSemana),
+            if (anteriores.isNotEmpty) ('Anteriores', anteriores),
+          ];
+
+          // Build a flat list of widgets: section headers + cards
+          var globalIndex = 0;
+          final slivers = <Widget>[];
+
+          if (unread > 0) {
+            slivers.add(SliverToBoxAdapter(
+              child: _MarkAllReadHeader(unread: unread),
+            ));
+          }
+
+          for (final (label, group) in groups) {
+            // Section header
+            slivers.add(SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: AppSpacing.lg,
+                  right: AppSpacing.lg,
+                  top: AppSpacing.md,
+                  bottom: AppSpacing.xs,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      label,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.ink500,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Divider(
+                        color: AppColors.ink200,
+                        thickness: 1,
+                        height: 1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          );
+            ));
+
+            // Cards for this group
+            slivers.add(SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.xs,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (ctx, i) {
+                    final animIndex = globalIndex + i;
+                    final child = AnimatedListItem(
+                      index: animIndex,
+                      child: _NotificationCard(item: group[i]),
+                    );
+                    // Add spacing between cards
+                    if (i < group.length - 1) {
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: AppSpacing.xs),
+                        child: child,
+                      );
+                    }
+                    return child;
+                  },
+                  childCount: group.length,
+                ),
+              ),
+            ));
+            globalIndex += group.length;
+          }
+
+          return CustomScrollView(slivers: slivers);
         },
       ),
     );

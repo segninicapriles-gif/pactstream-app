@@ -16,6 +16,8 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
 import '../../data/profile_providers.dart';
+import '../../../dashboard/data/dashboard_providers.dart';
+import '../../../scoring/data/scoring_providers.dart';
 import '../../../scoring/presentation/widgets/user_reputation_card.dart';
 
 /// Tab "Perfil" de PactStream.
@@ -215,6 +217,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           onEditTap: _showEditSheet,
           onAvatarTap: _pickAndUploadAvatar,
         ),
+
+        // ── Stats summary row ───────────────────────────────────────
+        _ProfileStatsRow(ref: ref),
 
         // ── Resto del contenido con padding horizontal ──────────────
         Padding(
@@ -961,6 +966,112 @@ class _NotifToggle extends StatelessWidget {
       activeThumbColor: AppColors.psBlue,
       contentPadding:
           const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+    );
+  }
+}
+
+// =====================================================================
+// PROFILE STATS ROW · 3 mini KPIs entre header y contenido
+// =====================================================================
+
+class _ProfileStatsRow extends StatelessWidget {
+  const _ProfileStatsRow({required this.ref});
+
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    // Datos del dashboard (obras activas)
+    final dashAsync = ref.watch(dashboardDataProvider);
+    final activeWorks = dashAsync.whenOrNull(data: (d) => d.activeWorks);
+
+    // Datos de reputación (trust score + éxito %)
+    final repAsync = ref.watch(myReputationProvider);
+    final trustScore = repAsync.whenOrNull(data: (r) => r.score);
+    final successPct = repAsync.whenOrNull(data: (r) {
+      final total = r.pactsTotal;
+      if (total == 0) return null;
+      return ((r.pactsCompleted / total) * 100).round();
+    });
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatBox(
+              value: activeWorks != null ? '$activeWorks' : '—',
+              label: 'Obras',
+              icon: Icons.construction_outlined,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: _StatBox(
+              value: trustScore != null ? '$trustScore' : '—',
+              label: 'Trust Score',
+              icon: Icons.shield_outlined,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: _StatBox(
+              value: successPct != null ? '$successPct %' : '—',
+              label: 'Éxito',
+              icon: Icons.trending_up_outlined,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatBox extends StatelessWidget {
+  const _StatBox({
+    required this.value,
+    required this.label,
+    required this.icon,
+  });
+
+  final String value;
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.md,
+        horizontal: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: AppRadius.mdAll,
+        border: Border.all(color: AppColors.ink200),
+        boxShadow: AppShadows.soft,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: AppColors.psBlue),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: AppTypography.h3.copyWith(color: AppColors.psBlue),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label.toUpperCase(),
+            style: AppTypography.caption.copyWith(color: AppColors.ink500),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

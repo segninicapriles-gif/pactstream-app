@@ -10,6 +10,7 @@ import '../../../../core/widgets/animated_list_item.dart';
 import '../../data/dashboard_data.dart';
 import '../../data/dashboard_providers.dart';
 import 'dashboard_shared.dart';
+import 'mini_bar_chart.dart';
 
 /// Dashboard del Constructor (cableado a datos reales).
 ///
@@ -196,9 +197,34 @@ class _Content extends StatelessWidget {
                 ),
               ),
             ),
+        const SizedBox(height: AppSpacing.lg),
+
+        // CHART · Facturación mensual
+        AnimatedListItem(
+          index: animIdx++,
+          child: MiniBarChart(
+            title: 'Facturación mensual',
+            barColor: AppColors.success,
+            data: _buildMonthlyData(),
+          ),
+        ),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
+  }
+
+  /// Genera datos de los últimos 6 meses para el gráfico de facturación.
+  /// TODO(sprint-3): sustituir por datos reales de sf_get_billing_summary.
+  static List<BarChartItem> _buildMonthlyData() {
+    final now = DateTime.now();
+    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    return List.generate(6, (i) {
+      final month = DateTime(now.year, now.month - 5 + i);
+      return BarChartItem(
+        label: months[month.month - 1],
+        value: 0, // Se llenará con datos reales del backend
+      );
+    });
   }
 
   static String _dateLabel(DateTime? d) {
