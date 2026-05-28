@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,10 @@ import '../../../../core/widgets/empty_state_view.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../data/contract_pdf_builder.dart';
 import '../../data/pact_providers.dart';
+
+// Conditional import: web usa iframe nativo, mobile usa PdfPreview.
+import '../widgets/pdf_iframe_stub.dart'
+    if (dart.library.js_interop) '../widgets/pdf_iframe_web.dart';
 
 /// Pantalla de lectura del contrato + firma con consentimiento explícito.
 ///
@@ -147,46 +152,48 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                   ],
                 ),
               ),
+              // En web PdfPreview no funciona (requiere pdf.js),
+              // usamos el iframe nativo del navegador como en
+              // ContractPdfPreviewPage.
               Expanded(
-                child: PdfPreview(
-                  build: (format) async {
-                    try {
-                      return await builder
-                          .buildBytes()
-                          .timeout(const Duration(seconds: 15));
-                    } catch (e) {
-                      // Si falla la generación del PDF, crear un PDF
-                      // mínimo con mensaje de error para que PdfPreview
-                      // no quede colgado.
-                      final errorDoc = pw.Document();
-                      errorDoc.addPage(pw.Page(
-                        build: (_) => pw.Center(
-                          child: pw.Text(
-                            'Error al generar el contrato.\n'
-                            'Intenta recargar la página.\n\n'
-                            '$e',
-                          ),
+                child: kIsWeb
+                    ? _WebSigningPdfView(builder: builder)
+                    : PdfPreview(
+                        build: (format) async {
+                          try {
+                            return await builder
+                                .buildBytes()
+                                .timeout(const Duration(seconds: 15));
+                          } catch (e) {
+                            final errorDoc = pw.Document();
+                            errorDoc.addPage(pw.Page(
+                              build: (_) => pw.Center(
+                                child: pw.Text(
+                                  'Error al generar el contrato.\n'
+                                  'Intenta recargar la página.\n\n'
+                                  '$e',
+                                ),
+                              ),
+                            ));
+                            return errorDoc.save();
+                          }
+                        },
+                        canChangePageFormat: false,
+                        canChangeOrientation: false,
+                        canDebug: false,
+                        allowPrinting: true,
+                        allowSharing: true,
+                        pdfFileName:
+                            'PactStream_${detail.pact.displayId}_contrato.pdf',
+                        actionBarTheme: const PdfActionBarTheme(
+                          backgroundColor: AppColors.psNavy,
+                          iconColor: AppColors.white,
                         ),
-                      ));
-                      return errorDoc.save();
-                    }
-                  },
-                  canChangePageFormat: false,
-                  canChangeOrientation: false,
-                  canDebug: false,
-                  allowPrinting: true,
-                  allowSharing: true,
-                  pdfFileName:
-                      'PactStream_${detail.pact.displayId}_contrato.pdf',
-                  actionBarTheme: const PdfActionBarTheme(
-                    backgroundColor: AppColors.psNavy,
-                    iconColor: AppColors.white,
-                  ),
-                  previewPageMargin:
-                      const EdgeInsets.all(AppSpacing.sm),
-                  loadingWidget:
-                      const Center(child: CircularProgressIndicator()),
-                ),
+                        previewPageMargin:
+                            const EdgeInsets.all(AppSpacing.sm),
+                        loadingWidget:
+                            const Center(child: CircularProgressIndicator()),
+                      ),
               ),
 
               // Footer fijo: checkbox + firmar
@@ -358,5 +365,78 @@ class _SignSuccess extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Visor de PDF para Flutter Web dentro de la pantalla de firma.
+///
+/// Genera los bytes del PDF asincrónicamente y los muestra en un iframe
+/// nativo del navegador (Chrome PDF Viewer), evitando el bug de
+/// PdfPreview en Flutter Web.
+class _WebSigningPdfView extends StatefulWidget {
+  const _WebSigningPdfView({required this.builder});
+
+  final ContractPdfBuilder builder;
+
+  @override
+  State<_WebSigningPdfView> createState() => _WebSigningPdfViewState();
+}
+
+class _WebSigningPdfViewState extends State<_WebSigningPdfView> {
+  Uint8List? _bytes;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _generatePdf();
+  }
+
+  Future<void> _generatePdf() async {
+    try {
+      final bytes = await widget.builder
+          .buildBytes()
+          .timeout(const Duration(seconds: 15));
+      if (mounted) setState(() => _bytes = bytes);
+    } catch (e) {
+      if (mounted) setState(() => _error = e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+            const SizedBox(height: AppSpacing.md),
+            Text('No se pudo generar el PDF',
+                style: AppTypography.body.copyWith(color: AppColors.ink800)),
+            const SizedBox(height: AppSpacing.sm),
+            Text(_error.toString(),
+                style: AppTypography.bodyS.copyWith(color: AppColors.ink500),
+                textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.md),
+            TextButton.icon(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                setState(() {
+                  _error = null;
+                  _bytes = null;
+                });
+                _generatePdf();
+              },
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      );
+    }
+    if (_bytes == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return buildPdfIframe(_bytes!);
   }
 }
