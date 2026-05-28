@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -148,7 +149,28 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
               ),
               Expanded(
                 child: PdfPreview(
-                  build: (format) async => await builder.buildBytes(),
+                  build: (format) async {
+                    try {
+                      return await builder
+                          .buildBytes()
+                          .timeout(const Duration(seconds: 15));
+                    } catch (e) {
+                      // Si falla la generación del PDF, crear un PDF
+                      // mínimo con mensaje de error para que PdfPreview
+                      // no quede colgado.
+                      final errorDoc = pw.Document();
+                      errorDoc.addPage(pw.Page(
+                        build: (_) => pw.Center(
+                          child: pw.Text(
+                            'Error al generar el contrato.\n'
+                            'Intenta recargar la página.\n\n'
+                            '$e',
+                          ),
+                        ),
+                      ));
+                      return errorDoc.save();
+                    }
+                  },
                   canChangePageFormat: false,
                   canChangeOrientation: false,
                   canDebug: false,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -50,20 +51,32 @@ class ContractPdfBuilder {
       subject: 'Contrato de ejecución de obra con custodia por hitos',
     );
 
-    // Intentar descargar Google Fonts con timeout. Si falla, usar fuentes
-    // integradas del PDF (Helvetica / Courier) para que el contrato siempre
-    // se genere, aunque sin la tipografía ideal.
-    final results = await Future.wait([
-      _tryGoogleFont(PdfGoogleFonts.merriweatherRegular),
-      _tryGoogleFont(PdfGoogleFonts.merriweatherBold),
-      _tryGoogleFont(PdfGoogleFonts.merriweatherItalic),
-      _tryGoogleFont(PdfGoogleFonts.jetBrainsMonoRegular),
-    ]);
+    // En web, PdfGoogleFonts puede colgar indefinidamente (CORS, fetch
+    // sin timeout real en el navegador). Usamos directamente las fuentes
+    // integradas del PDF que están siempre disponibles sin red.
+    // En móvil/desktop intentamos Google Fonts con un timeout corto.
+    late final pw.Font font;
+    late final pw.Font fontBold;
+    late final pw.Font fontItalic;
+    late final pw.Font fontMono;
 
-    final font = results[0] ?? pw.Font.helvetica();
-    final fontBold = results[1] ?? pw.Font.helveticaBold();
-    final fontItalic = results[2] ?? pw.Font.helvetica();
-    final fontMono = results[3] ?? pw.Font.courier();
+    if (kIsWeb) {
+      font = pw.Font.helvetica();
+      fontBold = pw.Font.helveticaBold();
+      fontItalic = pw.Font.helvetica();
+      fontMono = pw.Font.courier();
+    } else {
+      final results = await Future.wait([
+        _tryGoogleFont(PdfGoogleFonts.merriweatherRegular),
+        _tryGoogleFont(PdfGoogleFonts.merriweatherBold),
+        _tryGoogleFont(PdfGoogleFonts.merriweatherItalic),
+        _tryGoogleFont(PdfGoogleFonts.jetBrainsMonoRegular),
+      ]);
+      font = results[0] ?? pw.Font.helvetica();
+      fontBold = results[1] ?? pw.Font.helveticaBold();
+      fontItalic = results[2] ?? pw.Font.helvetica();
+      fontMono = results[3] ?? pw.Font.courier();
+    }
 
     final theme = pw.ThemeData.withFont(
       base: font,
