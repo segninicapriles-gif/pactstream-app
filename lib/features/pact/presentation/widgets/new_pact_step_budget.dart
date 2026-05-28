@@ -209,10 +209,10 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
               const SizedBox(height: AppSpacing.xs),
               SliderTheme(
                 data: SliderThemeData(
-                  activeTrackColor: AppColors.psBlue,
-                  thumbColor: AppColors.psNavy,
+                  activeTrackColor: context.colors.brandAccent,
+                  thumbColor: context.colors.brandAccent,
                   inactiveTrackColor: context.colors.border,
-                  valueIndicatorColor: AppColors.psNavy,
+                  valueIndicatorColor: context.colors.brandAccent,
                   trackHeight: 4,
                 ),
                 child: Slider(

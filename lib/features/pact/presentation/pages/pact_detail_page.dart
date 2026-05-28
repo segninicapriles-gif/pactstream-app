@@ -1522,10 +1522,10 @@ class _ViaOrgBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.psNavy.withValues(alpha: 0.04),
+        color: context.colors.borderSubtle,
         borderRadius: AppRadius.mdAll,
         border: Border.all(
-          color: AppColors.psNavy.withValues(alpha: 0.18),
+          color: context.colors.border,
           width: 1,
         ),
       ),

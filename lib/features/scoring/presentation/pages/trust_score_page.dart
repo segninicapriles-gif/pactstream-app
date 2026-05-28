@@ -194,7 +194,7 @@ class _FinancingCtaCard extends StatelessWidget {
                         child: Text(
                           'Score ≥ 75',
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.psBlue,
+                            color: context.colors.brandAccent,
                           ),
                         ),
                       ),

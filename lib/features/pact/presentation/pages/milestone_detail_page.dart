@@ -453,10 +453,10 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
-                          color: AppColors.psNavy.withValues(alpha: 0.08),
+                          color: context.colors.borderSubtle,
                           borderRadius: AppRadius.microAll,
                           border: Border.all(
-                            color: AppColors.psNavy.withValues(alpha: 0.2),
+                            color: context.colors.border,
                           ),
                         ),
                         child: Row(
