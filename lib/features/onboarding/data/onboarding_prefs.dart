@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _kOnboardingCompleteKey = 'pactstream_onboarding_complete';
+const _kGuidedTourCompleteKey = 'pactstream_guided_tour_complete';
 
 /// Whether the user has completed the welcome onboarding flow.
 ///
@@ -35,5 +36,39 @@ class OnboardingNotifier extends StateNotifier<bool> {
     state = false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kOnboardingCompleteKey);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Guided Tour (in-app coach marks on first visit to home)
+// ---------------------------------------------------------------------------
+
+/// Whether the user has completed the guided tour overlay on the home screen.
+final guidedTourCompleteProvider =
+    StateNotifierProvider<GuidedTourNotifier, bool>(
+  (ref) => GuidedTourNotifier(),
+);
+
+class GuidedTourNotifier extends StateNotifier<bool> {
+  GuidedTourNotifier() : super(true) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(_kGuidedTourCompleteKey) ?? false;
+  }
+
+  Future<void> complete() async {
+    state = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kGuidedTourCompleteKey, true);
+  }
+
+  /// Reset for testing — shows guided tour again.
+  Future<void> reset() async {
+    state = false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kGuidedTourCompleteKey);
   }
 }

@@ -10,9 +10,11 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_haptics.dart';
+import '../../../../core/widgets/coach_mark_overlay.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
 import '../../../notifications/data/notifications_providers.dart';
 import '../../../notifications/presentation/pages/notifications_page.dart';
+import '../../../onboarding/data/onboarding_prefs.dart';
 import '../../../pact/presentation/pages/pacts_list_page.dart';
 import '../../../profile/data/profile_providers.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
@@ -36,6 +38,13 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   int _selectedIndex = 0;
+  bool _tourScheduled = false;
+
+  // GlobalKeys for guided tour targets
+  final _dashboardKey = GlobalKey();
+  final _obrasNavKey = GlobalKey();
+  final _notificationsNavKey = GlobalKey();
+  final _profileNavKey = GlobalKey();
 
   static const List<({IconData icon, IconData activeIcon, String label})> _tabs = [
     (icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Inicio'),
@@ -48,6 +57,71 @@ class _HomePageState extends ConsumerState<HomePage> {
     await SupabaseConfig.client.auth.signOut();
     if (!mounted) return;
     context.go(AppRoutes.login);
+  }
+
+  /// Launch the guided tour if not yet completed.
+  void _maybeShowGuidedTour() {
+    if (_tourScheduled) return;
+    final tourComplete = ref.read(guidedTourCompleteProvider);
+    if (tourComplete) return;
+
+    _tourScheduled = true;
+
+    // Delay to let the UI settle after first render
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      CoachMarkOverlay.show(
+        context: context,
+        steps: _buildTourSteps(),
+        onComplete: () {
+          ref.read(guidedTourCompleteProvider.notifier).complete();
+        },
+      );
+    });
+  }
+
+  List<CoachMarkStep> _buildTourSteps() {
+    return [
+      CoachMarkStep(
+        title: '¡Bienvenido a PactStream!',
+        description:
+            'Este es tu panel principal. Aquí verás un resumen de tus obras activas, pagos pendientes y tareas urgentes.',
+        icon: Icons.dashboard_rounded,
+        targetKey: _dashboardKey,
+        alignment: CoachMarkAlignment.bottom,
+      ),
+      CoachMarkStep(
+        title: 'Tus obras',
+        description:
+            'Gestiona todos tus proyectos de construcción. Crea nuevas obras, revisa el progreso y controla los pagos.',
+        icon: Icons.folder_rounded,
+        targetKey: _obrasNavKey,
+        alignment: CoachMarkAlignment.top,
+      ),
+      CoachMarkStep(
+        title: 'Notificaciones',
+        description:
+            'Recibirás avisos de cada movimiento importante: firmas, validaciones, pagos liberados y más.',
+        icon: Icons.notifications_rounded,
+        targetKey: _notificationsNavKey,
+        alignment: CoachMarkAlignment.top,
+      ),
+      CoachMarkStep(
+        title: 'Tu perfil y Trust Score',
+        description:
+            'Tu perfil profesional con verificación de identidad y Trust Score. Cuanto mayor sea tu score, mejores condiciones obtendrás.',
+        icon: Icons.person_rounded,
+        targetKey: _profileNavKey,
+        alignment: CoachMarkAlignment.top,
+      ),
+      const CoachMarkStep(
+        title: 'Custodia segura',
+        description:
+            'Todos los fondos están protegidos en custodia. El promotor deposita, PactStream custodia, y el constructor cobra al completar cada hito verificado.',
+        icon: Icons.shield_rounded,
+        alignment: CoachMarkAlignment.center,
+      ),
+    ];
   }
 
   // Helpers to extract from the reactive profile data.
@@ -114,28 +188,40 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
           body: isLoading
               ? const DetailSkeleton()
-              : useRail
-                  ? Row(
-                      children: [
-                        _AdaptiveNavigationRail(
-                          selectedIndex: _selectedIndex,
-                          unread: unread,
-                          onDestinationSelected: _onTabSelected,
-                        ),
-                        VerticalDivider(
-                          thickness: 1,
-                          width: 1,
-                          color: context.colors.border,
-                        ),
-                        Expanded(child: _buildTabContent(profile)),
-                      ],
-                    )
-                  : _buildTabContent(profile),
+              : _buildBodyWithTour(useRail, profile),
           bottomNavigationBar:
               useRail ? null : _buildBottomNav(unread),
         );
       },
     );
+  }
+
+  /// Builds the body and schedules the guided tour on first load.
+  Widget _buildBodyWithTour(bool useRail, Map<String, dynamic>? profile) {
+    // Schedule tour after first successful data load
+    _maybeShowGuidedTour();
+
+    if (useRail) {
+      return Row(
+        children: [
+          _AdaptiveNavigationRail(
+            selectedIndex: _selectedIndex,
+            unread: ref.watch(unreadNotificationsProvider).maybeWhen(
+                  data: (n) => n,
+                  orElse: () => 0,
+                ),
+            onDestinationSelected: _onTabSelected,
+          ),
+          VerticalDivider(
+            thickness: 1,
+            width: 1,
+            color: context.colors.border,
+          ),
+          Expanded(child: _buildTabContent(profile)),
+        ],
+      );
+    }
+    return _buildTabContent(profile);
   }
 
   void _onTabSelected(int index) {
@@ -169,10 +255,20 @@ class _HomePageState extends ConsumerState<HomePage> {
           final i = entry.key;
           final tab = entry.value;
           final showBadge = i == 2 && unread > 0;
+          // Assign GlobalKeys for guided tour highlights
+          final navKey = switch (i) {
+            1 => _obrasNavKey,
+            2 => _notificationsNavKey,
+            3 => _profileNavKey,
+            _ => null,
+          };
           return BottomNavigationBarItem(
-            icon: showBadge
-                ? _BadgedIcon(icon: tab.icon, count: unread)
-                : Icon(tab.icon),
+            icon: KeyedSubtree(
+              key: navKey,
+              child: showBadge
+                  ? _BadgedIcon(icon: tab.icon, count: unread)
+                  : Icon(tab.icon),
+            ),
             activeIcon: showBadge
                 ? _BadgedIcon(icon: tab.activeIcon, count: unread)
                 : _ActiveNavIcon(icon: tab.activeIcon),
@@ -206,7 +302,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         userRole == 'constructor' || userRole == 'promotor' || userRole == 'tecnico';
 
     final dashboard = switch (_selectedIndex) {
-      0 => _buildDashboardForRole(profile),
+      0 => KeyedSubtree(key: _dashboardKey, child: _buildDashboardForRole(profile)),
       1 => PactsListPage(canCreate: canCreate),
       2 => const NotificationsPage(),
       3 => const ProfilePage(),
