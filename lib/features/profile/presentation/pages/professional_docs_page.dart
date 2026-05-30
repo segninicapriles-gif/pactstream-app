@@ -1,6 +1,6 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
 
 import '../../../../core/theme/app_colors.dart';
@@ -165,19 +165,85 @@ class _ProfessionalDocsPageState extends ConsumerState<ProfessionalDocsPage> {
   }
 
   Future<void> _pickAndUpload(_DocType docType) async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.any,
-      withData: true,
+    // Use image_picker which works reliably on web and mobile
+    final picker = ImagePicker();
+    final XFile? picked;
+
+    // Show a dialog to choose between camera image or gallery
+    final source = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: context.colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Subir: ${docType.label}',
+                style: AppTypography.h3.copyWith(color: ctx.colors.textPrimary),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                docType.sublabel,
+                style: AppTypography.bodyS.copyWith(color: ctx.colors.textTertiary),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ListTile(
+                leading: Icon(Icons.photo_library_outlined, color: ctx.colors.brandAccent),
+                title: const Text('Seleccionar imagen del documento'),
+                subtitle: Text('JPG, PNG', style: AppTypography.caption.copyWith(color: ctx.colors.textTertiary)),
+                onTap: () => Navigator.pop(ctx, 'gallery'),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt_outlined, color: ctx.colors.brandAccent),
+                title: const Text('Hacer foto al documento'),
+                subtitle: Text('Captura directa', style: AppTypography.caption.copyWith(color: ctx.colors.textTertiary)),
+                onTap: () => Navigator.pop(ctx, 'camera'),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+          ),
+        ),
+      ),
     );
 
-    if (result == null || result.files.isEmpty) return;
-    final file = result.files.first;
-    if (file.bytes == null) return;
+    if (source == null || !mounted) return;
+
+    try {
+      picked = await picker.pickImage(
+        source: source == 'camera' ? ImageSource.camera : ImageSource.gallery,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 90,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo acceder a los archivos: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (picked == null) return;
+
+    final bytes = await picked.readAsBytes();
+    final fileName = picked.name;
 
     AppHaptics.medium();
     setState(() {
       _uploadedDocs[docType.id] = _UploadedDoc(
-        fileName: file.name,
+        fileName: fileName,
         uploadedAt: DateTime.now(),
         uploading: true,
       );
@@ -185,7 +251,7 @@ class _ProfessionalDocsPageState extends ConsumerState<ProfessionalDocsPage> {
 
     try {
       final uid = SupabaseConfig.currentUser!.id;
-      final ext = file.name.split('.').last.toLowerCase();
+      final ext = fileName.split('.').last.toLowerCase();
       final path = '$uid/docs/${docType.id}.$ext';
 
       // Upload to Supabase Storage
@@ -193,7 +259,7 @@ class _ProfessionalDocsPageState extends ConsumerState<ProfessionalDocsPage> {
           .from('professional-docs')
           .uploadBinary(
             path,
-            file.bytes!,
+            bytes,
             fileOptions: FileOptions(
               contentType: ext == 'pdf' ? 'application/pdf' : 'image/$ext',
               upsert: true,
@@ -209,7 +275,7 @@ class _ProfessionalDocsPageState extends ConsumerState<ProfessionalDocsPage> {
         await SupabaseConfig.client.from('user_professional_docs').upsert({
           'user_id': uid,
           'doc_type': docType.id,
-          'file_name': file.name,
+          'file_name': fileName,
           'file_url': url,
           'uploaded_at': DateTime.now().toIso8601String(),
         }, onConflict: 'user_id,doc_type');
@@ -221,7 +287,7 @@ class _ProfessionalDocsPageState extends ConsumerState<ProfessionalDocsPage> {
       AppHaptics.success();
       setState(() {
         _uploadedDocs[docType.id] = _UploadedDoc(
-          fileName: file.name,
+          fileName: fileName,
           uploadedAt: DateTime.now(),
           url: url,
         );
