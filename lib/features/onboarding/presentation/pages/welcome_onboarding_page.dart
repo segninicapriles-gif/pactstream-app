@@ -346,74 +346,22 @@ class _DotIndicator extends StatelessWidget {
 // All abstract/geometric — no image assets needed.
 // ═════════════════════════════════════════════════════════════════
 
-/// Step 1: Welcome — PactStream logo + radiating circles.
+/// Step 1: Welcome — PactStream logo clean, no background elements.
 class _WelcomeIllustration extends StatelessWidget {
   const _WelcomeIllustration({required this.isDark});
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Radiating circles
-        CustomPaint(
-          size: const Size(220, 220),
-          painter: _RadiatingCirclesPainter(isDark: isDark),
-        ),
-        // Central logo
-        Container(
-          width: 88,
-          height: 88,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.psCyan, AppColors.psBlue],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.psBlue.withValues(alpha: 0.35),
-                blurRadius: 32,
-                spreadRadius: 4,
-              ),
-            ],
-          ),
-          child: const Center(
-            child: PactStreamLogo(
-              height: 36,
-              variant: PactStreamLogoVariant.light,
-            ),
-          ),
-        ),
-      ],
+    return Center(
+      child: PactStreamLogo(
+        height: 64,
+        variant: isDark
+            ? PactStreamLogoVariant.light
+            : PactStreamLogoVariant.dark,
+      ),
     );
   }
-}
-
-class _RadiatingCirclesPainter extends CustomPainter {
-  _RadiatingCirclesPainter({required this.isDark});
-  final bool isDark;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final baseColor = isDark
-        ? AppColors.psBlue.withValues(alpha: 0.15)
-        : AppColors.psBlue.withValues(alpha: 0.08);
-
-    for (int i = 3; i >= 1; i--) {
-      final paint = Paint()
-        ..color = baseColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5;
-      canvas.drawCircle(center, 40.0 + i * 30.0, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 /// Step 2: Works management — stacked cards with checkmarks.
