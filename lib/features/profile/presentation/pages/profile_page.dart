@@ -17,6 +17,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/animated_list_item.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
+import '../../../onboarding/data/onboarding_prefs.dart';
 import '../../data/profile_providers.dart';
 import '../../../dashboard/data/dashboard_providers.dart';
 import '../../../scoring/data/scoring_providers.dart';
@@ -1305,6 +1306,30 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
             title: const Text('Cambiar contraseña'),
             trailing: const Icon(Icons.chevron_right),
             onTap: _changePassword,
+          ),
+          const Divider(height: 1, indent: 56),
+          ListTile(
+            leading: Icon(Icons.play_circle_outline,
+                color: context.colors.brandAccent),
+            title: const Text('Repetir tour guiado'),
+            subtitle: Text(
+              'Vuelve a ver la guía de la app',
+              style: AppTypography.caption.copyWith(color: c.textTertiary),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              ref.read(guidedTourCompleteProvider.notifier).reset();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Vuelve al inicio para ver el tour'),
+                  backgroundColor: context.colors.brandAccent,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppRadius.mdAll,
+                  ),
+                ),
+              );
+            },
           ),
           const Divider(height: 1, indent: 56),
           ListTile(
