@@ -131,6 +131,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
           if (filtered.isEmpty) {
             return ListView(
               padding: const EdgeInsets.all(AppSpacing.lg),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               children: [
                 // Keep subtitle row
                 Row(
@@ -245,6 +246,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
 
           return ListView.separated(
             padding: const EdgeInsets.all(AppSpacing.lg),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             itemCount: headerCount + ctaCount + filtered.length,
             separatorBuilder: (_, __) =>
                 const SizedBox(height: AppSpacing.md),

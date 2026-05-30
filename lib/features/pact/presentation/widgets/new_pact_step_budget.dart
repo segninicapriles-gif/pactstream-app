@@ -69,6 +69,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
         // === Presupuesto ===
         Text('Presupuesto', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),

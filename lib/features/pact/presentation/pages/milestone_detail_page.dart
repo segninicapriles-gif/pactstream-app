@@ -51,6 +51,7 @@ class MilestoneDetailPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Refrescar',
             onPressed: () =>
                 ref.invalidate(milestoneDetailProvider(milestoneId)),
           ),

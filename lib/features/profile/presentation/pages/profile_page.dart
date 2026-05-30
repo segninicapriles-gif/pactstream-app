@@ -205,8 +205,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
     }
 
-    return ListView(
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView(
       padding: EdgeInsets.zero,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
         // ── Header edge-to-edge (sin padding del ListView) ──────────
         _ProfileHeader(
@@ -352,6 +355,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
         ),
       ],
+    ),
     );
   }
 

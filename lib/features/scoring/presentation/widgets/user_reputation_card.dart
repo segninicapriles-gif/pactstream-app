@@ -10,6 +10,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../data/scoring_models.dart';
 import '../../data/scoring_providers.dart';
 import 'pact_score_shields.dart';
@@ -26,9 +27,17 @@ class UserReputationCard extends ConsumerWidget {
 
     return repAsync.when(
       loading: () => _CardShell(
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
-          child: Center(child: CircularProgressIndicator()),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          child: Column(
+            children: const [
+              ShimmerBox(height: 68, width: 68, radius: 34),
+              SizedBox(height: AppSpacing.md),
+              ShimmerBox(height: 14, width: 120, radius: 4),
+              SizedBox(height: AppSpacing.sm),
+              ShimmerBox(height: 10, width: 180, radius: 4),
+            ],
+          ),
         ),
       ),
       error: (_, __) => _CardShell(

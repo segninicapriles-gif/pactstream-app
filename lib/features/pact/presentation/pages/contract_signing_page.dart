@@ -9,6 +9,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -70,6 +71,8 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
       _error = null;
     });
 
+    AppHaptics.heavy();
+
     try {
       final repo = ref.read(pactsRepositoryProvider);
       final res = await repo.signContract(
@@ -81,6 +84,8 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
       // Invalidar caches para que la lista y detalle reflejen el cambio
       ref.invalidate(myPactsProvider);
       ref.invalidate(pactDetailProvider(widget.pactId));
+
+      AppHaptics.success();
 
       if (!mounted) return;
       setState(() {

@@ -69,7 +69,13 @@ class TrustScorePage extends ConsumerWidget {
           onRetry: () => ref.invalidate(pactHealthProvider(pactId)),
           scrollable: false,
         ),
-        data: (health) => _ScoreBody(health: health),
+        data: (health) => RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(pactHealthProvider(pactId));
+            await ref.read(pactHealthProvider(pactId).future);
+          },
+          child: _ScoreBody(health: health),
+        ),
       ),
     );
   }

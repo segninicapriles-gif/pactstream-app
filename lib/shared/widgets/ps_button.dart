@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/app_haptics.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_typography.dart';
@@ -90,19 +91,27 @@ class PsButton extends StatelessWidget {
       ],
     );
 
+    VoidCallback? wrappedOnPressed;
+    if (!disabled && onPressed != null) {
+      wrappedOnPressed = () {
+        AppHaptics.medium();
+        onPressed!();
+      };
+    }
+
     final Widget button = switch (_variant) {
       _PsButtonVariant.primary => _PrimaryButton(
-          onPressed: disabled ? null : onPressed,
+          onPressed: wrappedOnPressed,
           glow: glow,
           isDestructive: _isDestructive,
           child: child,
         ),
       _PsButtonVariant.secondary => OutlinedButton(
-          onPressed: disabled ? null : onPressed,
+          onPressed: wrappedOnPressed,
           child: child,
         ),
       _PsButtonVariant.text => TextButton(
-          onPressed: disabled ? null : onPressed,
+          onPressed: wrappedOnPressed,
           child: child,
         ),
     };

@@ -52,6 +52,7 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
         Text('¿Qué tipo de obra es?', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
         const SizedBox(height: AppSpacing.xs),

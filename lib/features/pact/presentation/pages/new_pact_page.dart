@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -67,6 +68,8 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
     if (!_canAdvance) return;
     if (_currentStep >= _totalSteps - 1) return;
 
+    AppHaptics.selection();
+
     setState(() {
       _currentStep++;
       _errorMessage = null;
@@ -123,6 +126,8 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
       _submitting = true;
       _errorMessage = null;
     });
+
+    AppHaptics.heavy();
 
     try {
       final client = SupabaseConfig.client;
@@ -196,6 +201,8 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
       // Invalidar la lista para que el usuario vea el nuevo pacto al volver.
       ref.invalidate(myPactsProvider);
 
+      AppHaptics.success();
+
       if (!mounted) return;
       setState(() {
         _submitting = false;
@@ -237,6 +244,7 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
+            tooltip: 'Volver',
             onPressed: _previous,
           ),
           title: Text(_titleForStep(_currentStep),

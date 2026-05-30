@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../data/obra_report_builder.dart';
 import '../../data/pact_providers.dart';
 
@@ -55,7 +56,7 @@ class ObraReportPreviewPage extends ConsumerWidget {
         ],
       ),
       body: detailAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const DetailSkeleton(),
         error: (e, _) => ErrorStateView(
           title: 'No se pudo cargar la obra',
           message: e.toString(),
