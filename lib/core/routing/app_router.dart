@@ -16,6 +16,7 @@ import '../../features/ai/presentation/pages/ai_assistant_page.dart';
 import '../../features/scoring/presentation/pages/trust_score_page.dart';
 import '../../features/organization/presentation/pages/accept_org_invite_page.dart';
 import '../../features/organization/presentation/pages/my_team_page.dart';
+import '../../features/profile/presentation/pages/professional_docs_page.dart';
 import '../../features/pact/presentation/pages/contract_pdf_preview_page.dart';
 import '../../features/pact/presentation/pages/obra_report_preview_page.dart';
 import '../../features/pact/presentation/pages/contract_signing_page.dart';
@@ -80,6 +81,9 @@ abstract final class AppRoutes {
 
   // Libro de la Obra (Sprint 8)
   static const obraReport = '/pacts/:id/obra-report';
+
+  // Professional docs
+  static const professionalDocs = '/profile/professional-docs';
 }
 
 /// GoRouter de la app con redirección por estado de auth + KYC.
@@ -259,6 +263,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.myTeam,
         pageBuilder: (context, state) =>
             AppMotion.slideRightPage(child: const MyTeamPage()),
+      ),
+
+      // === PROFESSIONAL DOCS ===
+      GoRoute(
+        path: AppRoutes.professionalDocs,
+        pageBuilder: (context, state) {
+          final role = state.uri.queryParameters['role'] ?? 'constructor';
+          return AppMotion.slideRightPage(
+            child: ProfessionalDocsPage(role: role),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.acceptOrgInvite,

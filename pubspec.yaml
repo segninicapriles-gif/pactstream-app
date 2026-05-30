@@ -66,6 +66,7 @@ dependencies:
   # Logging y errores
   logger: ^2.5.0
   sentry_flutter: ^8.11.0
+  file_picker: ^11.0.2
 
 dev_dependencies:
   flutter_test:

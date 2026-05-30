@@ -880,9 +880,9 @@ class _RoleDataCard extends StatelessWidget {
                 style: AppTypography.body.copyWith(color: context.colors.brandAccent),
               ),
               trailing: Icon(Icons.chevron_right, color: context.colors.brandAccent),
-              onTap: () {
-                // TODO(sprint-2): subida de documentos
-              },
+              onTap: () => context.push(
+                '${AppRoutes.professionalDocs}?role=$role',
+              ),
             ),
           ],
         ],
