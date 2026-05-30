@@ -10,6 +10,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../scoring/data/scoring_providers.dart';
+import '../../data/pact_archive_prefs.dart';
 import '../../data/pact_detail.dart';
 import '../../data/pact_providers.dart';
 import '../sheets/pact_action_sheets.dart';
@@ -44,6 +45,86 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
   Future<void> _refresh() async {
     ref.invalidate(pactDetailProvider(pactId));
     await ref.read(pactDetailProvider(pactId).future);
+  }
+
+  Widget _buildOverflowMenu(BuildContext context, WidgetRef ref) {
+    final isArchived = ref.watch(archivedPactIdsProvider).contains(pactId);
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert),
+      tooltip: 'Más opciones',
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+      onSelected: (value) {
+        switch (value) {
+          case 'archive':
+            final notifier = ref.read(archivedPactIdsProvider.notifier);
+            if (isArchived) {
+              notifier.unarchive(pactId);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(Icons.unarchive_outlined, color: AppColors.white, size: 18),
+                      SizedBox(width: AppSpacing.sm),
+                      Text('Obra restaurada'),
+                    ],
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+                ),
+              );
+            } else {
+              notifier.archive(pactId);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(Icons.archive_outlined, color: AppColors.white, size: 18),
+                      SizedBox(width: AppSpacing.sm),
+                      Text('Obra archivada'),
+                    ],
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+                  action: SnackBarAction(
+                    label: 'Deshacer',
+                    textColor: AppColors.psCyan,
+                    onPressed: () => notifier.unarchive(pactId),
+                  ),
+                ),
+              );
+            }
+          case 'report':
+            context.push('/pacts/$pactId/obra-report');
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'report',
+          child: Row(
+            children: [
+              Icon(Icons.description_outlined, size: 20, color: context.colors.textSecondary),
+              const SizedBox(width: AppSpacing.sm),
+              const Text('Libro de la Obra'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'archive',
+          child: Row(
+            children: [
+              Icon(
+                isArchived ? Icons.unarchive_outlined : Icons.archive_outlined,
+                size: 20,
+                color: context.colors.textSecondary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(isArchived ? 'Restaurar obra' : 'Archivar obra'),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   /// Handlers de las acciones v2.0. Cada uno abre su sheet y, si la
@@ -184,6 +265,7 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
             tooltip: 'Refrescar',
             onPressed: () => ref.invalidate(pactDetailProvider(pactId)),
           ),
+          _buildOverflowMenu(context, ref),
         ],
       ),
       floatingActionButton: fab,

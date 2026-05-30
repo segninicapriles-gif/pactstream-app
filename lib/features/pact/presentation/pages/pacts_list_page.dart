@@ -13,6 +13,7 @@ import '../../../../core/widgets/animated_list_item.dart';
 import '../../../../core/widgets/empty_state_view.dart';
 import '../../../../core/widgets/pressable_card.dart';
 import '../../../../core/widgets/shimmer_box.dart';
+import '../../data/pact_archive_prefs.dart';
 import '../../data/pact_providers.dart';
 import '../../data/pact_summary.dart';
 import '../widgets/pact_state_badge.dart';
@@ -44,27 +45,37 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
     'Pendiente',
     'Completadas',
     'En disputa',
+    'Archivadas',
   ];
 
-  List<PactSummary> _applyFilters(List<PactSummary> pacts) {
+  List<PactSummary> _applyFilters(List<PactSummary> pacts, Set<String> archivedIds) {
     var filtered = pacts;
 
-    // State filter
-    if (_selectedFilter != 'Todas') {
-      filtered = filtered.where((p) {
-        return switch (_selectedFilter) {
-          'Activas' =>
-            p.state == 'in_execution' || p.state == 'funded',
-          'Pendiente' =>
-            p.state == 'inviting' ||
-            p.state == 'signing' ||
-            p.state == 'signed' ||
-            p.state == 'paused_pending_tech',
-          'Completadas' => p.state == 'completed',
-          'En disputa' => p.state == 'disputed',
-          _ => true,
-        };
-      }).toList();
+    // Archive filter
+    if (_selectedFilter == 'Archivadas') {
+      filtered = filtered.where((p) => archivedIds.contains(p.pactId)).toList();
+    } else {
+      // All other tabs exclude archived pacts
+      filtered = filtered.where((p) => !archivedIds.contains(p.pactId)).toList();
+
+      // State filter
+      if (_selectedFilter != 'Todas') {
+        filtered = filtered.where((p) {
+          return switch (_selectedFilter) {
+            'Activas' =>
+              p.state == 'in_execution' || p.state == 'funded',
+            'Pendiente' =>
+              p.state == 'inviting' ||
+              p.state == 'signing' ||
+              p.state == 'signed' ||
+              p.state == 'paused_pending_tech',
+            'Completadas' =>
+              p.state == 'completed' || p.state == 'closed',
+            'En disputa' => p.state == 'disputed',
+            _ => true,
+          };
+        }).toList();
+      }
     }
 
     // Search filter
@@ -83,6 +94,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
   @override
   Widget build(BuildContext context) {
     final pactsAsync = ref.watch(myPactsProvider);
+    final archivedIds = ref.watch(archivedPactIdsProvider);
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -113,7 +125,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
             );
           }
 
-          final filtered = _applyFilters(pacts);
+          final filtered = _applyFilters(pacts, archivedIds);
 
           // Show a friendly empty state when filters yield no results
           if (filtered.isEmpty) {
@@ -348,17 +360,110 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                 return const SizedBox.shrink();
               }
               final pact = filtered[idx];
+              final isArchived = archivedIds.contains(pact.pactId);
               return AnimatedListItem(
                 index: i,
-                child: _PactCard(
+                child: _SwipeablePactCard(
                   pact: pact,
+                  isArchived: isArchived,
                   onTap: () => context.push('/pacts/${pact.pactId}'),
+                  onArchive: () {
+                    final notifier = ref.read(archivedPactIdsProvider.notifier);
+                    if (isArchived) {
+                      notifier.unarchive(pact.pactId);
+                      _showSnackBar(context, 'Obra restaurada', Icons.unarchive_outlined);
+                    } else {
+                      notifier.archive(pact.pactId);
+                      _showSnackBar(context, 'Obra archivada', Icons.archive_outlined,
+                        undoAction: () => notifier.unarchive(pact.pactId),
+                      );
+                    }
+                  },
                 ),
               );
             },
           );
         },
       ),
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message, IconData icon,
+      {VoidCallback? undoAction}) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: AppColors.white, size: 18),
+            const SizedBox(width: AppSpacing.sm),
+            Text(message),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+        action: undoAction != null
+            ? SnackBarAction(
+                label: 'Deshacer',
+                textColor: AppColors.psCyan,
+                onPressed: undoAction,
+              )
+            : null,
+      ),
+    );
+  }
+}
+
+/// Pact card with swipe-to-archive gesture.
+class _SwipeablePactCard extends StatelessWidget {
+  const _SwipeablePactCard({
+    required this.pact,
+    required this.isArchived,
+    required this.onTap,
+    required this.onArchive,
+  });
+
+  final PactSummary pact;
+  final bool isArchived;
+  final VoidCallback onTap;
+  final VoidCallback onArchive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: ValueKey('pact_${pact.pactId}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) async {
+        onArchive();
+        return false; // Don't actually remove — we handle state via provider
+      },
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppSpacing.xl),
+        decoration: BoxDecoration(
+          color: isArchived ? AppColors.psBlue : AppColors.ink500,
+          borderRadius: AppRadius.mdAll,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isArchived ? Icons.unarchive_outlined : Icons.archive_outlined,
+              color: AppColors.white,
+              size: 22,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              isArchived ? 'Restaurar' : 'Archivar',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.white,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: _PactCard(pact: pact, onTap: onTap),
     );
   }
 }
