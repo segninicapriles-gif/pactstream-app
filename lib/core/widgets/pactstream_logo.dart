@@ -39,7 +39,7 @@ class PactStreamLogo extends StatelessWidget {
     final wordmarkColor = isLight ? Colors.white : const Color(0xFF080D42);
     final taglineColor = isLight
         ? Colors.white.withValues(alpha: 0.65)
-        : const Color(0xFF767BA3);
+        : const Color(0xFF4D5380); // ink600 — legible en fondos claros
 
     return Row(
       mainAxisSize: MainAxisSize.min,

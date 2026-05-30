@@ -82,8 +82,13 @@ class _SplashPageState extends ConsumerState<SplashPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo oficial de PactStream
-              const PactStreamLogo(height: 52),
+              // Logo oficial de PactStream — adapta variante al tema
+              PactStreamLogo(
+                height: 52,
+                variant: Theme.of(context).brightness == Brightness.dark
+                    ? PactStreamLogoVariant.light
+                    : PactStreamLogoVariant.dark,
+              ),
               const SizedBox(height: AppSpacing.xxxl),
               const SizedBox(
                 width: 28,
