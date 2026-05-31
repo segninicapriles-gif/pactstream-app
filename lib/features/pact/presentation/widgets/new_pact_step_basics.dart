@@ -12,10 +12,12 @@ class NewPactStepBasics extends StatefulWidget {
     super.key,
     required this.data,
     required this.onChange,
+    this.showErrors = false,
   });
 
   final PactCreationData data;
   final VoidCallback onChange;
+  final bool showErrors;
 
   @override
   State<NewPactStepBasics> createState() => _NewPactStepBasicsState();
@@ -162,9 +164,12 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
 
         TextField(
           controller: _titleCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Nombre / título de la obra',
-            hintText: 'Ej: Reforma Integral Malasaña',
+          decoration: InputDecoration(
+            labelText: 'Nombre / titulo de la obra *',
+            hintText: 'Ej: Reforma Integral Malasana',
+            errorText: widget.showErrors && widget.data.title.trim().isEmpty
+                ? 'El nombre de la obra es obligatorio'
+                : null,
           ),
           textCapitalization: TextCapitalization.sentences,
           onChanged: (v) {
@@ -189,9 +194,12 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _addressCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Dirección',
-            hintText: 'Calle, número, piso',
+          decoration: InputDecoration(
+            labelText: 'Direccion *',
+            hintText: 'Calle, numero, piso',
+            errorText: widget.showErrors && widget.data.addressLine.trim().isEmpty
+                ? 'La direccion es obligatoria'
+                : null,
           ),
           textCapitalization: TextCapitalization.words,
           onChanged: (v) {
@@ -206,7 +214,12 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
               flex: 2,
               child: TextField(
                 controller: _provinceCtrl,
-                decoration: const InputDecoration(labelText: 'Provincia'),
+                decoration: InputDecoration(
+                  labelText: 'Provincia *',
+                  errorText: widget.showErrors && widget.data.province.trim().isEmpty
+                      ? 'Obligatorio'
+                      : null,
+                ),
                 textCapitalization: TextCapitalization.words,
                 onChanged: (v) {
                   widget.data.province = v;
@@ -219,7 +232,12 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
               flex: 1,
               child: TextField(
                 controller: _cpCtrl,
-                decoration: const InputDecoration(labelText: 'CP'),
+                decoration: InputDecoration(
+                  labelText: 'CP *',
+                  errorText: widget.showErrors && widget.data.postalCode.trim().length < 4
+                      ? 'Min. 4 digitos'
+                      : null,
+                ),
                 keyboardType: TextInputType.number,
                 onChanged: (v) {
                   widget.data.postalCode = v;

@@ -39,6 +39,7 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
   final PactCreationData _data = PactCreationData();
   int _currentStep = 0;
   bool _submitting = false;
+  bool _showErrors = false;
   String? _errorMessage;
   String? _createdPactDisplayId;
 
@@ -65,13 +66,20 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
   }
 
   void _next() {
-    if (!_canAdvance) return;
     if (_currentStep >= _totalSteps - 1) return;
+
+    if (!_canAdvance) {
+      // Show validation errors
+      AppHaptics.warning();
+      setState(() => _showErrors = true);
+      return;
+    }
 
     AppHaptics.selection();
 
     setState(() {
       _currentStep++;
+      _showErrors = false;
       _errorMessage = null;
     });
     _pageController.nextPage(
@@ -261,10 +269,12 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
                   children: [
                     NewPactStepBasics(
                       data: _data,
+                      showErrors: _showErrors && _currentStep == 0,
                       onChange: () => setState(() {}),
                     ),
                     NewPactStepBudget(
                       data: _data,
+                      showErrors: _showErrors && _currentStep == 1,
                       onChange: () => setState(() {}),
                     ),
                     NewPactStepTeam(
@@ -301,7 +311,7 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: _canAdvance ? _next : null,
+                onPressed: _next,
                 child: Text(_currentStep == _totalSteps - 2
                     ? 'Revisar y crear'
                     : 'Continuar'),

@@ -19,10 +19,12 @@ class NewPactStepBudget extends StatefulWidget {
     super.key,
     required this.data,
     required this.onChange,
+    this.showErrors = false,
   });
 
   final PactCreationData data;
   final VoidCallback onChange;
+  final bool showErrors;
 
   @override
   State<NewPactStepBudget> createState() => _NewPactStepBudgetState();
@@ -83,9 +85,12 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
           controller: _totalCtrl,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: const InputDecoration(
-            labelText: 'Importe total',
+          decoration: InputDecoration(
+            labelText: 'Importe total *',
             suffixText: '€',
+            errorText: widget.showErrors && widget.data.totalAmountCents < 50000
+                ? 'Minimo 500 €'
+                : null,
           ),
           onChanged: (v) {
             final euros = int.tryParse(v) ?? 0;
@@ -329,9 +334,12 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _freqCtrl,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Frecuencia acordada *',
-            hintText: 'Ej: Mensual, por avance > 20 %, según hitos…',
+            hintText: 'Ej: Mensual, por avance > 20 %, segun hitos...',
+            errorText: widget.showErrors && widget.data.certificationFrequency.trim().isEmpty
+                ? 'Selecciona o escribe la frecuencia'
+                : null,
           ),
           textCapitalization: TextCapitalization.sentences,
           onChanged: (v) {
