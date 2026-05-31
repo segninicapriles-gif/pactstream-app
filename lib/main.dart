@@ -18,6 +18,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Cargar variables de entorno
+  // SECURITY: .env is bundled as a Flutter asset for convenience during
+  // pre-MVP. It must contain ONLY public keys (Supabase anon key) and
+  // empty placeholders — never service-role keys or private secrets.
+  // For production, migrate to --dart-define or --dart-define-from-file.
   await dotenv.load(fileName: '.env');
 
   // Inicializar locale español
@@ -42,8 +46,16 @@ Future<void> main() async {
       (options) {
         options.dsn = sentryDsn;
         options.environment = dotenv.env['SENTRY_ENVIRONMENT'] ?? 'development';
-        options.tracesSampleRate = 1.0; // 100% en pre-MVP, bajar en prod
-        options.attachScreenshot = true;
+        // SECURITY: Disable PII collection — Sentry must not capture
+        // user IP addresses, cookies, or authorization headers.
+        options.sendDefaultPii = false;
+        // SECURITY: Disable screenshot capture to avoid leaking
+        // sensitive on-screen data (KYC documents, contracts, etc.).
+        options.attachScreenshot = false;
+        // SECURITY: Reduce trace sampling — 100% is excessive and
+        // increases the surface for data exposure. 20% is sufficient
+        // for pre-MVP error monitoring.
+        options.tracesSampleRate = 0.2;
       },
       appRunner: () => runApp(const ProviderScope(child: PactStreamApp())),
     );

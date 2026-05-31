@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -315,42 +316,44 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
 
         const SizedBox(height: AppSpacing.md),
 
-        // Modo dev fallback
-        ExpansionTile(
-          title: Text('Modo desarrollo · Simular resultado',
-              style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary)),
-          tilePadding: EdgeInsets.zero,
-          children: [
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                OutlinedButton(
-                  onPressed:
-                      _processing ? null : () => _simulateMock('verified'),
-                  child: const Text('✓ Simular Aprobado'),
-                ),
-                OutlinedButton(
-                  onPressed: _processing
-                      ? null
-                      : () => _simulateMock('pending_review'),
-                  child: const Text('⏳ Simular En revisión'),
-                ),
-                OutlinedButton(
-                  onPressed:
-                      _processing ? null : () => _simulateMock('rejected'),
-                  child: const Text('✗ Simular Rechazado'),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Solo visible mientras configuras Veriff. Eliminar este bloque antes de producción.',
-              style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
-            ),
-          ],
-        ),
+        // SECURITY: Mock KYC controls are hidden in release builds to
+        // prevent users from bypassing identity verification.
+        if (kDebugMode)
+          ExpansionTile(
+            title: Text('Modo desarrollo · Simular resultado',
+                style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary)),
+            tilePadding: EdgeInsets.zero,
+            children: [
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  OutlinedButton(
+                    onPressed:
+                        _processing ? null : () => _simulateMock('verified'),
+                    child: const Text('✓ Simular Aprobado'),
+                  ),
+                  OutlinedButton(
+                    onPressed: _processing
+                        ? null
+                        : () => _simulateMock('pending_review'),
+                    child: const Text('⏳ Simular En revisión'),
+                  ),
+                  OutlinedButton(
+                    onPressed:
+                        _processing ? null : () => _simulateMock('rejected'),
+                    child: const Text('✗ Simular Rechazado'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Solo visible mientras configuras Veriff. Eliminar este bloque antes de producción.',
+                style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
+              ),
+            ],
+          ),
       ],
     );
   }

@@ -143,7 +143,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         password: _passwordController.text,
       );
       if (!mounted) return;
-      context.go(AppRoutes.home);
+      // Route through splash so KYC/onboarding checks run properly
+      context.go(AppRoutes.splash);
     } on Exception catch (e) {
       setState(() => _errorMessage = e.toString());
     } finally {

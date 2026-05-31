@@ -88,3 +88,6 @@ coverage/
 # Logs temporales de análisis
 analyze_output.txt
 *.analysis.log
+
+# Supabase temp files (local dev artifacts)
+supabase/.temp/
