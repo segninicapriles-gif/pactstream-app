@@ -10,10 +10,12 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Revoke KYC mock — only service_role (admin) should be able to simulate
-REVOKE EXECUTE ON FUNCTION sf_simulate_kyc_verification(text) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION sf_simulate_kyc_verification(text) FROM anon;
+-- Signature: (p_decision text DEFAULT 'verified', p_reason text DEFAULT NULL)
+REVOKE EXECUTE ON FUNCTION sf_simulate_kyc_verification(text, text) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION sf_simulate_kyc_verification(text, text) FROM anon;
 
 -- Revoke mock fund — only service_role (admin) should bypass real payment
+-- Signature: (p_pact_id uuid)
 REVOKE EXECUTE ON FUNCTION sf_mock_fund_pact(uuid) FROM authenticated;
 REVOKE EXECUTE ON FUNCTION sf_mock_fund_pact(uuid) FROM anon;
 
@@ -31,7 +33,7 @@ ALTER TABLE milestone_state_transitions ENABLE ROW LEVEL SECURITY;
 -- audit_log: users can only read their own entries
 CREATE POLICY "Users can view own audit entries"
   ON audit_log FOR SELECT
-  USING (user_id = auth.uid());
+  USING (actor_user_id = auth.uid());
 
 -- webhook_events: no direct access from client — service_role only
 -- (No policies = deny all for authenticated/anon, allow for service_role)
