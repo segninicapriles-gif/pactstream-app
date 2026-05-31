@@ -53,7 +53,8 @@ serve(async (req: Request) => {
       return jsonResponse({ error: 'Not authenticated' }, 401);
     }
 
-    console.log('Auth user:', userData.user.id, userData.user.email);
+    // Log without PII — only user ID, no email
+    console.log('Auth user:', userData.user.id);
 
     // Leer perfil — usar service role para evitar RLS y diagnosticar mejor
     const adminClient = createClient(
@@ -67,7 +68,8 @@ serve(async (req: Request) => {
       .eq('auth_provider_id', userData.user.id)
       .maybeSingle();
 
-    console.log('Profile query result:', { profile, error: profileError });
+    // Log without PII — only profile ID and error status
+    console.log('Profile query:', { found: !!profile, error: !!profileError });
 
     if (profileError) {
       console.error('Profile query error:', profileError);
@@ -78,11 +80,11 @@ serve(async (req: Request) => {
     }
 
     if (!profile) {
-      console.error('Profile not found for auth_provider_id:', userData.user.id);
+      console.error('Profile not found for user');
       return jsonResponse(
         {
           error: 'Profile not found',
-          hint: `No se encontró perfil con auth_provider_id=${userData.user.id}`,
+          hint: 'No se encontro perfil para este usuario',
         },
         404,
       );

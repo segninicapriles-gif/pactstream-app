@@ -53,6 +53,26 @@ serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // --- Auth: require a valid JWT or cron secret ---
+  const authHeader = req.headers.get('authorization');
+  const cronSecret = Deno.env.get('CRON_SECRET');
+  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+    // Cron invocation with shared secret — allowed
+  } else if (authHeader) {
+    // JWT-based auth — verify the token is valid
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { authorization: authHeader } } },
+    );
+    const { error: authErr } = await userClient.auth.getUser();
+    if (authErr) {
+      return json({ error: 'Invalid or expired token' }, 401);
+    }
+  } else {
+    return json({ error: 'Authorization required' }, 401);
+  }
+
   if (!RESEND_API_KEY) {
     return json({ error: 'RESEND_API_KEY no configurada' }, 500);
   }

@@ -136,12 +136,26 @@ serve(async (req: Request) => {
     });
 
     // Idempotencia + auditoría del webhook
+    // SECURITY: Redact PII from payload before storage (GDPR Art. 5(1)(c))
+    // Only keep fields needed for audit — strip person, documents, biometrics
+    const redactedPayload = {
+      status: payload.status,
+      verification: verification ? {
+        id: verification.id,
+        status: verification.status,
+        code: verification.code,
+        reason: verification.reason,
+        vendorData: verification.vendorData,
+        // person, document images, biometric data intentionally omitted
+      } : undefined,
+    };
+
     await adminClient.from('webhook_events').upsert(
       {
         provider: 'veriff',
         external_id: sessionId,
         event_type: veriffStatus,
-        payload,
+        payload: redactedPayload,
         signature_valid: true,
         processed_at: new Date().toISOString(),
         processed_result: 'success',

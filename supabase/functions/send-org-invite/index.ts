@@ -39,6 +39,22 @@ serve(async (req: Request) => {
     return json({ error: 'RESEND_API_KEY no configurada' }, 500);
   }
 
+  // --- Auth: verify JWT ---
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader) {
+    return json({ error: 'Authorization header required' }, 401);
+  }
+
+  const userClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { authorization: authHeader } } },
+  );
+  const { data: { user }, error: authErr } = await userClient.auth.getUser();
+  if (authErr || !user) {
+    return json({ error: 'Invalid or expired token' }, 401);
+  }
+
   let body: { member_id?: string };
   try {
     body = await req.json();
@@ -108,12 +124,12 @@ serve(async (req: Request) => {
   const orgName = org.trade_name || org.legal_name;
   const inviterName = inviter.full_name || inviter.email;
 
-  // 2. Construir HTML del email
+  // 2. Construir HTML del email — escape all user input to prevent XSS
   const subject = `${inviterName} te invita a unirte a ${orgName} en PactStream`;
   const html = buildHtml({
-    memberName: m.full_name || m.invited_email,
-    inviterName,
-    orgName,
+    memberName: escapeHtml(m.full_name || m.invited_email),
+    inviterName: escapeHtml(inviterName),
+    orgName: escapeHtml(orgName),
     canViewEconomics: m.can_view_economics,
     inviteUrl,
   });
@@ -140,12 +156,12 @@ serve(async (req: Request) => {
   }
 
   const resendData = await resendRes.json();
-  console.log('Email enviado a', m.invited_email, '· resend_id:', resendData.id);
+  // Log without PII — only IDs, no emails/names
+  console.log('Invite email sent · member_id:', memberId, '· resend_id:', resendData.id);
 
   return json({
     success: true,
     resend_id: resendData.id,
-    sent_to: m.invited_email,
   });
 });
 
@@ -154,6 +170,19 @@ function json(payload: unknown, status = 200): Response {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+// =====================================================================
+// Security: HTML escape to prevent XSS/injection in email templates
+// =====================================================================
+
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // =====================================================================
