@@ -37,11 +37,16 @@ class PactCreationData {
   /// Presupuesto total en céntimos
   int totalAmountCents = 0;
 
-  /// Tipo de IVA aplicable (10 reformas vivienda · 21 obra nueva)
+  /// Tipo de IVA aplicable (10 reformas vivienda · 21 obra nueva · -1 reforma dual)
+  /// -1 significa "IVA reforma": MO al 10 % + materiales al 21 %, ya incluido en el total.
   double ivaRatePct = 10;
 
   /// Si el importe total ya incluye IVA o no
   bool ivaIncluded = true;
+
+  /// Si el IVA es del tipo "Reforma": MO 10 % + materiales 21 %.
+  /// En este caso ivaIncluded = true y el importe entra ya con IVA calculado.
+  bool get isIvaReforma => ivaRatePct == -1;
 
   /// % total del Adelanto que el promotor compromete al firmar.
   /// Rango: 10-40, default 30.
@@ -85,8 +90,13 @@ class PactCreationData {
   bool _inviteFilled(PartyInvite i) =>
       _isValidEmail(i.email) && i.fullName.trim().isNotEmpty;
 
+  /// Si la obra se guarda como borrador (sin enviar invitaciones aún).
+  bool isDraft = false;
+
   bool get step3Valid {
     if (pactType == null) return false;
+    // En modo borrador no se requieren partes — se añaden después.
+    if (isDraft) return true;
     final filled = invites.where(_inviteFilled).toList();
     if (pactType == 'obra_menor') return filled.isNotEmpty;
     return filled.length >= 2;
@@ -136,6 +146,7 @@ class PactCreationData {
     totalAmountCents = 0;
     ivaRatePct = 10;
     ivaIncluded = true;
+    isDraft = false;
     advancePct = 30;
     certificationFrequency = '';
   }

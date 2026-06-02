@@ -195,16 +195,20 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
         );
       }
 
-      // 2. Invitar partes (las RPCs v1 de invitación siguen siendo válidas).
-      for (final invite in _data.invites.where((i) => i.email.isNotEmpty)) {
-        await client.rpc('sf_invite_party', params: invite.toRpcArgs(pactId));
+      // 2. Invitar partes — solo si no es borrador.
+      if (!_data.isDraft) {
+        for (final invite in _data.invites.where((i) => i.email.isNotEmpty)) {
+          await client.rpc('sf_invite_party', params: invite.toRpcArgs(pactId));
+        }
+
+        // 3. Finalizar borrador v2.1 → estado 'inviting' (envía emails).
+        await client.rpc('sf_finalize_pact_v21', params: {'p_pact_id': pactId});
+
+        // Drenar la cola de emails (notificaciones de invitación a las partes)
+        ref.read(pactsRepositoryProvider).kickEmailSender();
       }
-
-      // 3. Finalizar borrador v2.1 → estado 'inviting'.
-      await client.rpc('sf_finalize_pact_v21', params: {'p_pact_id': pactId});
-
-      // Drenar la cola de emails (notificaciones de invitación a las partes)
-      ref.read(pactsRepositoryProvider).kickEmailSender();
+      // En modo borrador: el pacto queda en estado 'draft', sin emails enviados.
+      // El usuario puede invitar a las partes más tarde desde el detalle de obra.
 
       // Invalidar la lista para que el usuario vea el nuevo pacto al volver.
       ref.invalidate(myPactsProvider);
@@ -299,6 +303,9 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
   }
 
   Widget _buildBottomBar() {
+    // En el paso de equipo (paso 2), mostrar también "Guardar borrador"
+    final isTeamStep = _currentStep == 2;
+
     return SafeArea(
       top: false,
       child: Container(
@@ -307,15 +314,35 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
           color: context.colors.card,
           border: Border(top: BorderSide(color: context.colors.border, width: 1)),
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _next,
-                child: Text(_currentStep == _totalSteps - 2
-                    ? 'Revisar y crear'
-                    : 'Continuar'),
+            if (isTeamStep) ...[
+              OutlinedButton.icon(
+                icon: const Icon(Icons.save_outlined, size: 18),
+                label: const Text('Guardar borrador'),
+                onPressed: () {
+                  _data.isDraft = true;
+                  _next();
+                },
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44),
+                  foregroundColor: context.colors.textSecondary,
+                ),
               ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+            ElevatedButton(
+              onPressed: () {
+                _data.isDraft = false;
+                _next();
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 44),
+              ),
+              child: Text(_currentStep == _totalSteps - 2
+                  ? 'Revisar y crear'
+                  : 'Continuar'),
             ),
           ],
         ),

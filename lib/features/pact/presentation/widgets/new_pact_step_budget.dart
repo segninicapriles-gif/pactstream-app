@@ -108,6 +108,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                 initialValue: d.ivaRatePct,
                 decoration: const InputDecoration(labelText: 'IVA'),
                 items: const [
+                  DropdownMenuItem(value: -1, child: Text('Reforma (10 % M.O. + 21 % Mat.)')),
                   DropdownMenuItem(value: 10, child: Text('10 % (vivienda)')),
                   DropdownMenuItem(value: 21, child: Text('21 % (general)')),
                   DropdownMenuItem(value: 0, child: Text('Exento')),
@@ -115,6 +116,8 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                 onChanged: (v) {
                   if (v == null) return;
                   widget.data.ivaRatePct = v;
+                  // IVA reforma siempre viene incluido (ConstructPro lo calcula)
+                  if (v == -1) widget.data.ivaIncluded = true;
                   widget.onChange();
                 },
               ),
@@ -136,7 +139,32 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
           ],
         ),
 
-        if (!d.ivaIncluded && d.totalAmountCents > 0) ...[
+        // Nota informativa para IVA reforma
+        if (d.isIvaReforma) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: context.colors.infoBg,
+              borderRadius: AppRadius.microAll,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline, size: 16, color: context.colors.brandAccent),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    'El importe total ya incluye IVA calculado: 10 % sobre mano de obra y 21 % sobre materiales. Introduce el total con IVA.',
+                    style: AppTypography.caption.copyWith(color: context.colors.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+
+        if (!d.ivaIncluded && d.totalAmountCents > 0 && !d.isIvaReforma) ...[
           const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
