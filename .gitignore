@@ -84,6 +84,7 @@ coverage/
 **/*.key
 **/*.jks
 **/*.keystore
+**/key.properties
 .claude/settings.local.json
 .mcp.json
 
