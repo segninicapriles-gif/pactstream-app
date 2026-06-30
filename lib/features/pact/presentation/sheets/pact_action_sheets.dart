@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/services/biometric_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -63,6 +64,11 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
   String? _error;
 
   Future<void> _submit() async {
+    final authenticated = await BiometricService.authenticate(
+      reason: 'Confirma tu identidad para depositar en custodia',
+    );
+    if (!authenticated) return;
+
     setState(() {
       _loading = true;
       _error = null;
@@ -210,6 +216,12 @@ class _ReplenishDepositSheetState extends State<_ReplenishDepositSheet> {
       setState(() => _error = 'El importe debe ser positivo');
       return;
     }
+
+    final authenticated = await BiometricService.authenticate(
+      reason: 'Confirma tu identidad para reponer el depósito',
+    );
+    if (!authenticated) return;
+
     setState(() {
       _loading = true;
       _error = null;
@@ -713,6 +725,11 @@ class _SignAddendumSheetState extends State<_SignAddendumSheet> {
   String? _error;
 
   Future<void> _submit() async {
+    final authenticated = await BiometricService.authenticate(
+      reason: 'Confirma tu identidad para firmar el anexo',
+    );
+    if (!authenticated) return;
+
     setState(() {
       _loading = true;
       _error = null;
@@ -995,6 +1012,11 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
   String? _error;
 
   Future<void> _submit() async {
+    final authenticated = await BiometricService.authenticate(
+      reason: 'Confirma tu identidad para configurar el Adelanto',
+    );
+    if (!authenticated) return;
+
     setState(() {
       _loading = true;
       _error = null;
@@ -1204,6 +1226,12 @@ class _PredepositMilestoneSheetState
           'El importe excede lo pendiente (${AppFormatters.moneyShort(widget.milestone.predepositRemainingCents)})');
       return;
     }
+
+    final authenticated = await BiometricService.authenticate(
+      reason: 'Confirma tu identidad para pre-depositar',
+    );
+    if (!authenticated) return;
+
     setState(() {
       _loading = true;
       _error = null;
@@ -1360,6 +1388,11 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
   String? _error;
 
   Future<void> _submit() async {
+    final authenticated = await BiometricService.authenticate(
+      reason: 'Confirma tu identidad para avanzar bajo responsabilidad',
+    );
+    if (!authenticated) return;
+
     setState(() {
       _loading = true;
       _error = null;

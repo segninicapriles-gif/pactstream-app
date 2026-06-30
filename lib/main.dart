@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -16,6 +17,11 @@ Future<void> main() async {
   if (kIsWeb) usePathUrlStrategy();
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // SECURITY: Disable runtime font fetching from Google CDN.
+  // Fonts must be bundled locally to prevent tracking and MITM risks.
+  // Fonts used: Nunito, JetBrains Mono (UI), Merriweather (PDF generation).
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Variables de entorno via --dart-define-from-file (no bundled en APK).
 

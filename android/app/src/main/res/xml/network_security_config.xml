@@ -5,4 +5,15 @@
             <certificates src="system" />
         </trust-anchors>
     </base-config>
+    <domain-config>
+        <domain includeSubdomains="true">supabase.co</domain>
+        <pin-set expiration="2027-01-01">
+            <!-- ISRG Root X1 (Let's Encrypt root) -->
+            <pin digest="SHA-256">C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=</pin>
+            <!-- Cloudflare Inc ECC CA-3 (intermediate) -->
+            <pin digest="SHA-256">jQJTbIh0grw0/1TkHSumWb+Fs0Ggogr621gT3PvPKG0=</pin>
+            <!-- Backup pin: DigiCert Global Root G2 -->
+            <pin digest="SHA-256">i7WTqTvh0OioIruIfFR4kMPnBqrS2rdiVPl/s2uC/CY=</pin>
+        </pin-set>
+    </domain-config>
 </network-security-config>
