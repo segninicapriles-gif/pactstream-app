@@ -32,7 +32,7 @@ dependencies:
 
   # Utils
   intl: ^0.20.2 # versión pinned por flutter_localizations (Flutter 3.41+)
-  flutter_dotenv: ^5.2.1
+  # flutter_dotenv: ^5.2.1  # REMOVED — secrets now via --dart-define-from-file
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
   uuid: ^4.5.1
@@ -94,12 +94,10 @@ flutter:
   uses-material-design: true
   generate: true
 
-  # .env debe declararse como asset para que flutter_dotenv lo cargue en
-  # runtime. Las fuentes Nunito vienen de google_fonts (descarga en runtime).
+  # Las fuentes Nunito vienen de google_fonts (descarga en runtime).
   # Antes de producción, descargar los .ttf y declararlos localmente para
   # builds offline.
   assets:
-    - .env
     - assets/images/pactstream_logo.png
     - assets/images/pactstream_logo.svg
     - assets/images/pactstream_logo_white.svg

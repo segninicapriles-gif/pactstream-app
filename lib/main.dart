@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -18,12 +17,7 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Cargar variables de entorno
-  // SECURITY: .env is bundled as a Flutter asset for convenience during
-  // pre-MVP. It must contain ONLY public keys (Supabase anon key) and
-  // empty placeholders — never service-role keys or private secrets.
-  // For production, migrate to --dart-define or --dart-define-from-file.
-  await dotenv.load(fileName: '.env');
+  // Variables de entorno via --dart-define-from-file (no bundled en APK).
 
   // Inicializar locale español
   await initializeDateFormatting('es_ES');
@@ -61,15 +55,14 @@ Future<void> main() async {
   await SupabaseConfig.initialize();
 
   // Inicializar Sentry para captura de errores (solo con DSN real)
-  final sentryDsn = dotenv.env['SENTRY_DSN'];
-  final hasValidSentry = sentryDsn != null &&
-      sentryDsn.isNotEmpty &&
-      !sentryDsn.contains('xxxxx');
+  const sentryDsn = String.fromEnvironment('SENTRY_DSN');
+  const hasValidSentry = sentryDsn != '' && !sentryDsn.contains('xxxxx');
   if (hasValidSentry) {
     await SentryFlutter.init(
       (options) {
         options.dsn = sentryDsn;
-        options.environment = dotenv.env['SENTRY_ENVIRONMENT'] ?? 'development';
+        const sentryEnv = String.fromEnvironment('SENTRY_ENVIRONMENT', defaultValue: 'development');
+        options.environment = sentryEnv;
         // SECURITY: Disable PII collection — Sentry must not capture
         // user IP addresses, cookies, or authorization headers.
         options.sendDefaultPii = false;

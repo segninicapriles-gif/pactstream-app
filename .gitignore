@@ -70,6 +70,7 @@ android/**/GeneratedPluginRegistrant.java
 .env
 .env.local
 .env.*.local
+dart_defines.env
 
 # Firebase / Google services
 google-services.json

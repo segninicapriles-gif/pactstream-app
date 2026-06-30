@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../../data/datasources/supabase/supabase_client.dart';
 
 /// Service que encapsula las llamadas a las RPCs de organizaciones.
@@ -88,8 +90,9 @@ class OrganizationActions {
       emailSent = (data?['success'] as bool?) ?? false;
     } catch (e) {
       // No interrumpimos el flujo: la invitación quedó en BD. Solo log.
-      // ignore: avoid_print
-      print('Aviso: no se pudo enviar el email de invitación. $e');
+      if (kDebugMode) {
+        debugPrint('Aviso: no se pudo enviar el email de invitación. $e');
+      }
     }
 
     return (memberId: memberId, invitationToken: token, emailSent: emailSent);
