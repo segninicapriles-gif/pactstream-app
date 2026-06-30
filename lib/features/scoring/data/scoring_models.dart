@@ -115,7 +115,7 @@ class PactHealthScore {
       validationSpeedPct:
           (json['validation_speed_pct'] as num?)?.toDouble() ?? 0,
       noDisputesPct: (json['no_disputes_pct'] as num?)?.toDouble() ?? 0,
-      iaEvidenceScore: (json['ia_evidence_score'] as num?)?.toDouble() ?? 75,
+      iaEvidenceScore: (json['ia_evidence_score'] as num?)?.toDouble() ?? 0,
       calculatedAt: json['calculated_at'] != null
           ? DateTime.parse(json['calculated_at'] as String)
           : DateTime.now(),

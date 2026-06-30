@@ -156,8 +156,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             fileOptions: FileOptions(contentType: mime, upsert: true),
           );
 
-      final url =
-          SupabaseConfig.client.storage.from('avatars').getPublicUrl(path);
+      final url = await SupabaseConfig.client.storage
+          .from('avatars')
+          .createSignedUrl(path, 3600);
 
       // Añadir cache-buster para forzar recarga en CachedNetworkImage
       final cacheBustedUrl = '$url?v=${DateTime.now().millisecondsSinceEpoch}';

@@ -266,9 +266,9 @@ class _ProfessionalDocsPageState extends ConsumerState<ProfessionalDocsPage> {
             ),
           );
 
-      final url = SupabaseConfig.client.storage
+      final url = await SupabaseConfig.client.storage
           .from('professional-docs')
-          .getPublicUrl(path);
+          .createSignedUrl(path, 1800);
 
       // Try to record in DB (may fail if table doesn't exist yet)
       try {

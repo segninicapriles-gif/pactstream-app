@@ -295,8 +295,8 @@ class PactCore {
           ((j['advance_outstanding_cents'] as num?) ?? 0).toInt(),
       // Sprint 6
       isMemberViaOrg: (j['is_member_via_org'] as bool?) ?? false,
-      canViewEconomics: (j['can_view_economics'] as bool?) ?? true,
-      canMoveMoney: (j['can_move_money'] as bool?) ?? true,
+      canViewEconomics: (j['can_view_economics'] as bool?) ?? false,
+      canMoveMoney: (j['can_move_money'] as bool?) ?? false,
     );
   }
 }

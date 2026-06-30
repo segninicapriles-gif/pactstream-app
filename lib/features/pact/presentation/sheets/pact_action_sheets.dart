@@ -1367,7 +1367,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
     try {
       await PactActionsV2.forceAdvanceMilestone(
         milestoneId: widget.milestone.id,
-        disclaimerAccepted: true,
+        disclaimerAccepted: _accepted,
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);

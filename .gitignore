@@ -81,6 +81,11 @@ coverage/
 # Secrets
 **/secrets.json
 **/api_keys.dart
+**/*.key
+**/*.jks
+**/*.keystore
+.claude/settings.local.json
+.mcp.json
 
 # Cloudflare Wrangler local cache
 .wrangler/
