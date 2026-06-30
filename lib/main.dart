@@ -8,6 +8,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'app.dart';
+import 'core/utils/security_checks.dart';
 import 'data/datasources/supabase/supabase_client.dart';
 
 Future<void> main() async {
@@ -32,6 +33,29 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Security: detect rooted/jailbroken devices
+  await SecurityChecks.run();
+  if (SecurityChecks.isCompromised) {
+    runApp(MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              'PactStream no puede ejecutarse en este dispositivo.\n\n'
+              '${SecurityChecks.reason}.\n\n'
+              'Por seguridad, las aplicaciones financieras no funcionan '
+              'en dispositivos comprometidos.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+        ),
+      ),
+    ));
+    return;
+  }
 
   // Inicializar Supabase
   await SupabaseConfig.initialize();

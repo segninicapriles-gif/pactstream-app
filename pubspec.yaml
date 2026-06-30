@@ -63,6 +63,10 @@ dependencies:
   # Web platform interop (iframe PDF viewer en Flutter Web)
   web: ^1.1.0
 
+  # Security
+  flutter_jailbreak_detection: ^1.10.0
+  safe_device: ^1.1.8
+
   # Logging y errores
   logger: ^2.5.0
   sentry_flutter: ^8.11.0
