@@ -64,7 +64,7 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
   String? _error;
 
   Future<void> _submit() async {
-    final authenticated = await BiometricService.authenticate(
+    final authenticated = await BiometricService.authenticateStrict(
       reason: 'Confirma tu identidad para depositar en custodia',
     );
     if (!authenticated) return;
@@ -217,7 +217,7 @@ class _ReplenishDepositSheetState extends State<_ReplenishDepositSheet> {
       return;
     }
 
-    final authenticated = await BiometricService.authenticate(
+    final authenticated = await BiometricService.authenticateStrict(
       reason: 'Confirma tu identidad para reponer el depósito',
     );
     if (!authenticated) return;
@@ -725,7 +725,7 @@ class _SignAddendumSheetState extends State<_SignAddendumSheet> {
   String? _error;
 
   Future<void> _submit() async {
-    final authenticated = await BiometricService.authenticate(
+    final authenticated = await BiometricService.authenticateStrict(
       reason: 'Confirma tu identidad para firmar el anexo',
     );
     if (!authenticated) return;
@@ -1012,7 +1012,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
   String? _error;
 
   Future<void> _submit() async {
-    final authenticated = await BiometricService.authenticate(
+    final authenticated = await BiometricService.authenticateStrict(
       reason: 'Confirma tu identidad para configurar el Adelanto',
     );
     if (!authenticated) return;
@@ -1227,7 +1227,7 @@ class _PredepositMilestoneSheetState
       return;
     }
 
-    final authenticated = await BiometricService.authenticate(
+    final authenticated = await BiometricService.authenticateStrict(
       reason: 'Confirma tu identidad para pre-depositar',
     );
     if (!authenticated) return;
@@ -1388,7 +1388,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
   String? _error;
 
   Future<void> _submit() async {
-    final authenticated = await BiometricService.authenticate(
+    final authenticated = await BiometricService.authenticateStrict(
       reason: 'Confirma tu identidad para avanzar bajo responsabilidad',
     );
     if (!authenticated) return;
