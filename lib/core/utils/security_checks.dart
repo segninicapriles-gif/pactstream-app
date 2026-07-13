@@ -29,7 +29,12 @@ abstract final class SecurityChecks {
         return;
       }
     } catch (_) {
-      // Detection libraries may fail on some devices — allow gracefully
+      // SEGURIDAD: fail-closed. Un fallo en la detección NO puede interpretarse
+      // como "dispositivo limpio" en release. Solo se llega aquí fuera de
+      // web/debug (esos ya retornaron arriba), así que tratamos la excepción
+      // como sospechosa en lugar de asumir integridad.
+      _compromised = true;
+      _reason = 'No se pudo verificar la integridad del dispositivo';
     }
   }
 }

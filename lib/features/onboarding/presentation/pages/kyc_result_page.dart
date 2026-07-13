@@ -28,7 +28,10 @@ class KycResultPage extends ConsumerWidget {
             'verified' => _VerifiedResult(),
             'pending_review' => _PendingResult(),
             'rejected' => _RejectedResult(),
-            _ => _VerifiedResult(),
+            // SEGURIDAD: fallback al estado MÁS restrictivo. Un status
+            // desconocido/manipulado nunca debe mostrar "verificado" ni
+            // habilitar operaciones; se trata como revisión pendiente.
+            _ => _PendingResult(),
           },
         ),
       ),
