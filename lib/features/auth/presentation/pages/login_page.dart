@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -106,8 +107,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         err = null;
                       });
                       try {
+                        // redirectTo debe estar en la allowlist de Supabase
+                        // (Auth → URL Configuration → Redirect URLs).
                         await SupabaseConfig.client.auth
-                            .resetPasswordForEmail(email);
+                            .resetPasswordForEmail(
+                          email,
+                          redirectTo: kIsWeb
+                              ? '${Uri.base.origin}'
+                                  '${AppRoutes.resetPassword}'
+                              : AppConstants.resetPasswordDeepLink,
+                        );
                         setS(() {
                           sending = false;
                           sent = 'Revisa tu correo — te hemos enviado '

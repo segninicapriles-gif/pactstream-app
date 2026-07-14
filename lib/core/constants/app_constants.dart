@@ -16,6 +16,10 @@ abstract final class AppConstants {
   static const String privacyUrl = 'https://pactstream.io/legal/privacidad';
   static const String escrowTermsUrl = 'https://pactstream.io/legal/escrow';
 
+  // Deep links de auth (deben estar dados de alta en Supabase →
+  // Auth → URL Configuration → Redirect URLs).
+  static const String resetPasswordDeepLink = 'pactstream://reset-password';
+
   // Plazos legales (alineados con plantillas legales y máquina de estados)
   /// [DECISIÓN LEGAL D-01] — pendiente de cerrar con asesoría jurídica.
   static const int objectionWindowHours = 48;

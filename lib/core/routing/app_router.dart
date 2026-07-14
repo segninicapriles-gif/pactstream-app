@@ -2,10 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show AuthChangeEvent;
 
 import '../../data/datasources/supabase/supabase_client.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/verify_email_page.dart';
 import '../../features/dashboard/presentation/pages/home_page.dart';
@@ -39,6 +42,7 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const verifyEmail = '/verify-email';
+  static const resetPassword = '/reset-password';
 
   // Onboarding
   static const welcomeOnboarding = '/onboarding/welcome';
@@ -89,7 +93,7 @@ abstract final class AppRoutes {
 
 /// GoRouter de la app con redirección por estado de auth + KYC.
 final goRouterProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: kDebugMode,
     redirect: (context, state) {
@@ -101,6 +105,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register ||
           state.matchedLocation == AppRoutes.verifyEmail ||
+          state.matchedLocation == AppRoutes.resetPassword ||
           state.matchedLocation == AppRoutes.acceptOrgInvite ||
           state.matchedLocation == AppRoutes.welcomeOnboarding;
 
@@ -145,6 +150,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             child: VerifyEmailPage(inviteToken: token),
           );
         },
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        pageBuilder: (context, state) =>
+            AppMotion.fadePage(child: const ResetPasswordPage()),
       ),
 
       // === ONBOARDING ===
@@ -336,4 +346,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
     ),
   );
+
+  // Recuperación de contraseña: cuando el usuario abre el enlace del email,
+  // supabase_flutter procesa el deep link (pactstream://reset-password en
+  // mobile, /reset-password en web) y emite passwordRecovery. Navegamos a la
+  // pantalla de nueva contraseña gane quien gane la carrera con splash/home.
+  final authSub = SupabaseConfig.authStream.listen((data) {
+    if (data.event == AuthChangeEvent.passwordRecovery) {
+      router.go(AppRoutes.resetPassword);
+    }
+  });
+  ref.onDispose(() {
+    authSub.cancel();
+    router.dispose();
+  });
+
+  return router;
 });
