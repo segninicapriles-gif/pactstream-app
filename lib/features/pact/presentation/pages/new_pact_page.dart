@@ -46,6 +46,14 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
   String? _createdPactDisplayId;
   bool _createdAsDraft = false;
 
+  // ── Estado de reanudación (P1-3) ─────────────────────────────────
+  // Si la creación falla a mitad (invitaciones o finalize), guardamos lo
+  // ya conseguido para que el reintento NO cree un pacto duplicado ni
+  // repita invitaciones ya enviadas.
+  String? _pendingPactId;
+  String? _pendingDisplayId;
+  final Set<String> _invitedEmails = <String>{};
+
   static const int _totalSteps = 4;
 
   @override
@@ -132,6 +140,11 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
   }
 
   /// Crea el pacto v2 en BD ejecutando 3 RPCs en cascada.
+  ///
+  /// Reanudable (P1-3): si un intento anterior dejó el pacto creado pero
+  /// falló en las invitaciones o en el finalize, el reintento salta la
+  /// creación, solo invita a los emails que faltan y finaliza. Así el
+  /// botón "Crear" nunca duplica pactos ni invitaciones.
   Future<void> _createPact() async {
     setState(() {
       _submitting = true;
@@ -143,69 +156,93 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
     try {
       final client = SupabaseConfig.client;
 
-      // 1. Crear pact v2.1 (Adelanto con doble garantía).
-      // RPC devuelve TABLE(out_pact_id, out_display_id) → List<Map>.
-      final pactRows = await client.rpc(
-        'sf_create_pact_v21',
-        params: {
-          'p_title': _data.title.trim(),
-          'p_obra_address_line': _data.addressLine.trim(),
-          'p_total_amount_cents': _data.totalAmountCents,
-          'p_description':
-              _data.description.trim().isEmpty ? null : _data.description.trim(),
-          'p_pact_type': _data.pactType,
-          'p_obra_postal_code': _data.postalCode.trim(),
-          'p_obra_province': _data.province.trim(),
-          'p_obra_type': _data.pactType == 'obra_menor'
-              ? 'obra_menor_${_data.minorWorkCategory ?? 'otra'}'
-              : 'reforma_integral',
-          'p_iva_rate_pct': _data.ivaRatePct,
-          'p_iva_included': _data.ivaIncluded,
-          'p_estimated_start_date':
-              _data.estimatedStartDate?.toIso8601String().substring(0, 10),
-          'p_estimated_end_date':
-              _data.estimatedEndDate?.toIso8601String().substring(0, 10),
-          'p_advance_pct': _data.advancePct,
-          'p_advance_reserve_pct': PactCreationData.advanceReservePct,
-          'p_certification_frequency':
-              _data.certificationFrequency.trim().isEmpty
-                  ? null
-                  : _data.certificationFrequency.trim(),
-          'p_obra_menor_declaration_accepted': _data.minorWorkDeclaration,
-        },
-      );
-
-      final firstRow = (pactRows is List && pactRows.isNotEmpty)
-          ? pactRows.first as Map<String, dynamic>
-          : (pactRows as Map<String, dynamic>?);
-
-      if (firstRow == null) {
-        throw Exception(
-          'sf_create_pact_v2 no devolvió ninguna fila. '
-          'Respuesta cruda: $pactRows',
+      // 1. Crear pact v2.1 (Adelanto con doble garantía) — SOLO si un
+      // intento anterior no lo dejó ya creado.
+      if (_pendingPactId == null) {
+        // RPC devuelve TABLE(out_pact_id, out_display_id) → List<Map>.
+        final pactRows = await client.rpc(
+          'sf_create_pact_v21',
+          params: {
+            'p_title': _data.title.trim(),
+            'p_obra_address_line': _data.addressLine.trim(),
+            'p_total_amount_cents': _data.totalAmountCents,
+            'p_description': _data.description.trim().isEmpty
+                ? null
+                : _data.description.trim(),
+            'p_pact_type': _data.pactType,
+            'p_obra_postal_code': _data.postalCode.trim(),
+            'p_obra_province': _data.province.trim(),
+            'p_obra_type': _data.pactType == 'obra_menor'
+                ? 'obra_menor_${_data.minorWorkCategory ?? 'otra'}'
+                : 'reforma_integral',
+            'p_iva_rate_pct': _data.ivaRatePct,
+            'p_iva_included': _data.ivaIncluded,
+            'p_estimated_start_date':
+                _data.estimatedStartDate?.toIso8601String().substring(0, 10),
+            'p_estimated_end_date':
+                _data.estimatedEndDate?.toIso8601String().substring(0, 10),
+            'p_advance_pct': _data.advancePct,
+            'p_advance_reserve_pct': PactCreationData.advanceReservePct,
+            'p_certification_frequency':
+                _data.certificationFrequency.trim().isEmpty
+                    ? null
+                    : _data.certificationFrequency.trim(),
+            'p_obra_menor_declaration_accepted': _data.minorWorkDeclaration,
+          },
         );
+
+        final firstRow = (pactRows is List && pactRows.isNotEmpty)
+            ? pactRows.first as Map<String, dynamic>
+            : (pactRows as Map<String, dynamic>?);
+
+        if (firstRow == null) {
+          throw Exception(
+            'sf_create_pact_v2 no devolvió ninguna fila. '
+            'Respuesta cruda: $pactRows',
+          );
+        }
+
+        final newPactId =
+            (firstRow['out_pact_id'] ?? firstRow['id']) as String?;
+        final newDisplayId =
+            (firstRow['out_display_id'] ?? firstRow['display_id']) as String?;
+
+        if (newPactId == null || newDisplayId == null) {
+          throw Exception(
+            'Respuesta inválida de sf_create_pact_v21. Recibido: $firstRow. '
+            'Asegúrate de aplicar las migraciones del Sprint 5 y '
+            'ejecutar NOTIFY pgrst, \'reload schema\'.',
+          );
+        }
+
+        // Guardar ANTES de las invitaciones: si algo falla a partir de
+        // aquí, el reintento reutiliza este pacto.
+        _pendingPactId = newPactId;
+        _pendingDisplayId = newDisplayId;
       }
 
-      final pactId = (firstRow['out_pact_id'] ?? firstRow['id']) as String?;
-      final displayId =
-          (firstRow['out_display_id'] ?? firstRow['display_id']) as String?;
+      final pactId = _pendingPactId!;
+      final displayId = _pendingDisplayId!;
 
-      if (pactId == null || displayId == null) {
-        throw Exception(
-          'Respuesta inválida de sf_create_pact_v21. Recibido: $firstRow. '
-          'Asegúrate de aplicar las migraciones del Sprint 5 y '
-          'ejecutar NOTIFY pgrst, \'reload schema\'.',
-        );
-      }
-
-      // 2. Invitar partes — solo si no es borrador.
+      // 2. Invitar partes — solo si no es borrador, y solo los emails que
+      // aún no fueron invitados con éxito en intentos anteriores.
       if (!_data.isDraft) {
-        for (final invite in _data.invites.where((i) => i.email.isNotEmpty)) {
-          await client.rpc('sf_invite_party', params: invite.toRpcArgs(pactId));
+        final pendingInvites = _data.invites.where(
+          (i) => i.email.isNotEmpty && !_invitedEmails.contains(i.email),
+        );
+        for (final invite in pendingInvites) {
+          await client.rpc(
+            'sf_invite_party',
+            params: invite.toRpcArgs(pactId),
+          );
+          _invitedEmails.add(invite.email);
         }
 
         // 3. Finalizar borrador v2.1 → estado 'inviting' (envía emails).
-        await client.rpc('sf_finalize_pact_v21', params: {'p_pact_id': pactId});
+        await client.rpc(
+          'sf_finalize_pact_v21',
+          params: {'p_pact_id': pactId},
+        );
 
         // Drenar la cola de emails (notificaciones de invitación a las partes)
         ref.read(pactsRepositoryProvider).kickEmailSender();
@@ -229,9 +266,33 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _errorMessage = humanizeError(e);
+        _errorMessage = _resumeAwareError(e);
       });
     }
+  }
+
+  /// Mensaje de error que además informa del progreso ya conseguido para
+  /// que el usuario entienda que reintentar es seguro (no duplica nada).
+  String _resumeAwareError(Object e) {
+    final base = humanizeError(e);
+    if (_pendingPactId == null) return base;
+
+    final totalInvites =
+        _data.invites.where((i) => i.email.isNotEmpty).length;
+    final buffer = StringBuffer(
+      'La obra ${_pendingDisplayId ?? ''} ya quedó creada',
+    );
+    if (!_data.isDraft && totalInvites > 0) {
+      buffer.write(
+        ' y se enviaron ${_invitedEmails.length} de $totalInvites invitaciones',
+      );
+    }
+    buffer
+      ..write('. ')
+      ..write(base)
+      ..write(' Pulsa "Crear" de nuevo para continuar donde se quedó — '
+          'no se duplicará nada.');
+    return buffer.toString();
   }
 
   @override

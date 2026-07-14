@@ -44,6 +44,10 @@ class MilestoneFull {
     this.approvedByPromotorAt,
     this.rejectedAt,
     this.paidAt,
+    this.lastValidationDecision,
+    this.lastValidationRationale,
+    this.lastValidationAt,
+    this.lastValidationByName,
   });
 
   final String id;
@@ -66,6 +70,24 @@ class MilestoneFull {
   final DateTime? rejectedAt;
   final DateTime? paidAt;
   final String myRole;
+
+  // ── Última validación del técnico/promotor (P1-4) ─────────────────
+  // Vienen de `milestone_validations` vía sf_get_milestone_detail. Son
+  // opcionales: hasta que la migración
+  // 20260715000001_milestone_detail_validation_rationale.sql esté
+  // aplicada en el backend, llegan como null y la UI no los muestra.
+  /// 'approved' | 'rejected' | 'info_requested'
+  final String? lastValidationDecision;
+
+  /// Motivo escrito por quien validó (obligatorio en rechazo/petición).
+  final String? lastValidationRationale;
+  final DateTime? lastValidationAt;
+  final String? lastValidationByName;
+
+  /// True si hay un motivo de la última validación que merece mostrarse.
+  bool get hasValidationRationale =>
+      lastValidationRationale != null &&
+      lastValidationRationale!.trim().isNotEmpty;
 
   bool get canUploadEvidence =>
       myRole == 'constructor' &&
@@ -123,6 +145,10 @@ class MilestoneFull {
       rejectedAt: _parseDt(j['rejected_at']),
       paidAt: _parseDt(j['paid_at']),
       myRole: j['my_role'] as String,
+      lastValidationDecision: j['last_validation_decision'] as String?,
+      lastValidationRationale: j['last_validation_rationale'] as String?,
+      lastValidationAt: _parseDt(j['last_validation_at']),
+      lastValidationByName: j['last_validation_by_name'] as String?,
     );
   }
 

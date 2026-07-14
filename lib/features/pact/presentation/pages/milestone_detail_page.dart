@@ -1296,6 +1296,49 @@ class _ReworkBanner extends StatelessWidget {
                       : 'Aporta la información o evidencias adicionales que ha solicitado el técnico.',
                   style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
                 ),
+                // P1-4 · Motivo escrito por quien validó. Solo se muestra
+                // si el backend lo devuelve (requiere la migración
+                // 20260715000001_milestone_detail_validation_rationale).
+                if (milestone.hasValidationRationale) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: context.colors.card,
+                      borderRadius: AppRadius.xsAll,
+                      border: Border.all(
+                        color:
+                            (rejected ? AppColors.error : AppColors.warning)
+                                .withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          milestone.lastValidationByName != null
+                              ? 'Observaciones de ${milestone.lastValidationByName}'
+                              : 'Observaciones del técnico',
+                          style: AppTypography.caption.copyWith(
+                            color: context.colors.textTertiary,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '“${milestone.lastValidationRationale!.trim()}”',
+                          style: AppTypography.bodyS.copyWith(
+                            color: context.colors.textPrimary,
+                            fontStyle: FontStyle.italic,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
