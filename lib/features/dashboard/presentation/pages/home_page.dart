@@ -383,42 +383,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 }
 
-class _PlaceholderTab extends StatelessWidget {
-  const _PlaceholderTab({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 64, color: context.colors.textHint),
-            const SizedBox(height: AppSpacing.md),
-            Text(title,
-                style: AppTypography.h2.copyWith(color: context.colors.textPrimary), textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 /// Icono con badge numérico superpuesto. Usado en AppBar y en bottom nav
 /// para indicar notificaciones sin leer.
 class _BadgedIcon extends StatelessWidget {

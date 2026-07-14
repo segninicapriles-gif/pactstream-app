@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -1388,13 +1389,25 @@ class _NextStepCtaState extends ConsumerState<_NextStepCta> {
     // Caso 3 — todos firmaron, pacto signed → activar la ejecución
     if (state == 'signed') {
       if (me?.role == 'promotor') {
-        return _PrimaryActionCard(
-          title: 'Activa la ejecución de la obra',
+        // El depósito real (pasarela de pago) aún no está integrado.
+        // El mock solo se expone en builds de desarrollo; en release
+        // mostramos una tarjeta informativa sin acción.
+        if (kDebugMode) {
+          return _PrimaryActionCard(
+            title: 'Activa la ejecución de la obra',
+            description:
+                'Mock del depósito Mangopay (chunk 5 lo sustituye por la pasarela real). Al confirmar, el primer hito arranca y el constructor podrá subir evidencias.',
+            cta: 'Activar obra (modo dev)',
+            icon: Icons.play_arrow_rounded,
+            onPressed: () => _mockFund(),
+          );
+        }
+        return const _InfoCard(
+          title: 'El depósito estará disponible próximamente',
           description:
-              'Mock del depósito Mangopay (chunk 5 lo sustituye por la pasarela real). Al confirmar, el primer hito arranca y el constructor podrá subir evidencias.',
-          cta: 'Activar obra (modo dev)',
-          icon: Icons.play_arrow_rounded,
-          onPressed: () => _mockFund(),
+              'El contrato ya está firmado por todas las partes. Muy pronto '
+              'podrás realizar el depósito en custodia desde la app para '
+              'activar la ejecución de la obra.',
         );
       }
       return _InfoCard(

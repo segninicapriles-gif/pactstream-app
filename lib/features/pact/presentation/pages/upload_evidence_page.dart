@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/error_humanizer.dart';
 import '../../data/pact_providers.dart';
 
 /// Pantalla de subida de evidencia para un hito en curso.
@@ -166,7 +167,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
       if (!mounted) return;
       setState(() {
         _uploading = false;
-        _error = e.toString();
+        _error = humanizeError(e);
       });
     }
   }

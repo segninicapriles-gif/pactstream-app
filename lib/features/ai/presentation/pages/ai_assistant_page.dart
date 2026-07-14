@@ -145,19 +145,12 @@ class _AiAssistantPageState extends ConsumerState<AiAssistantPage> {
                         return const _TypingIndicator();
                       }
                       final msg = state.messages[index];
-                      return _MessageBubble(
-                        message: msg,
-                        onConfirmTool: () => ref
-                            .read(assistantNotifierProvider(widget.pactId)
-                                .notifier)
-                            .resolveToolCall(
-                                messageId: msg.id, confirmed: true),
-                        onCancelTool: () => ref
-                            .read(assistantNotifierProvider(widget.pactId)
-                                .notifier)
-                            .resolveToolCall(
-                                messageId: msg.id, confirmed: false),
-                      );
+                      // NOTA: la ejecución de tool calls aún no está
+                      // implementada en backend (ver TODO en
+                      // ai_providers.resolveToolCall). Mientras tanto la
+                      // propuesta se muestra deshabilitada con la etiqueta
+                      // "Próximamente" para no simular confirmaciones.
+                      return _MessageBubble(message: msg);
                     },
                   ),
           ),
@@ -234,15 +227,9 @@ class _EmptyConversation extends StatelessWidget {
 // =====================================================================
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({
-    required this.message,
-    required this.onConfirmTool,
-    required this.onCancelTool,
-  });
+  const _MessageBubble({required this.message});
 
   final AiAssistantMessage message;
-  final VoidCallback onConfirmTool;
-  final VoidCallback onCancelTool;
 
   @override
   Widget build(BuildContext context) {
@@ -323,11 +310,7 @@ class _MessageBubble extends StatelessWidget {
           // Tool call proposal (solo asistente)
           if (!isUser && message.hasToolCallProposal) ...[
             const SizedBox(height: AppSpacing.xs),
-            _ToolCallProposal(
-              name: message.toolCallName!,
-              onConfirm: onConfirmTool,
-              onCancel: onCancelTool,
-            ),
+            _ToolCallProposal(name: message.toolCallName!),
           ],
           // Tool call resultada (confirmada / cancelada)
           if (!isUser &&
@@ -419,16 +402,14 @@ class _MessageBubble extends StatelessWidget {
 // TOOL CALL PROPOSAL
 // =====================================================================
 
+/// Propuesta de acción del asistente. La ejecución de tool calls aún no
+/// está disponible en backend, así que los botones se muestran
+/// deshabilitados con la etiqueta "Próximamente" — nunca simulamos que
+/// la acción se ha ejecutado.
 class _ToolCallProposal extends StatelessWidget {
-  const _ToolCallProposal({
-    required this.name,
-    required this.onConfirm,
-    required this.onCancel,
-  });
+  const _ToolCallProposal({required this.name});
 
   final String name;
-  final VoidCallback onConfirm;
-  final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -464,14 +445,41 @@ class _ToolCallProposal extends StatelessWidget {
                   ),
                 ),
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs, vertical: 2),
+                decoration: BoxDecoration(
+                  color: context.colors.chipBg,
+                  borderRadius: AppRadius.xsAll,
+                  border: Border.all(color: context.colors.border),
+                ),
+                child: Text(
+                  'PRÓXIMAMENTE',
+                  style: AppTypography.caption.copyWith(
+                    color: context.colors.chipText,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 9,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Ejecutar acciones desde el asistente estará disponible '
+            'en una próxima versión.',
+            style: AppTypography.caption.copyWith(
+              color: context.colors.textTertiary,
+              letterSpacing: 0,
+            ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: onCancel,
+                  onPressed: null,
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 32),
                     foregroundColor: context.colors.textSecondary,
@@ -484,7 +492,7 @@ class _ToolCallProposal extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: FilledButton(
-                  onPressed: onConfirm,
+                  onPressed: null,
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(0, 32),
                     backgroundColor: AppColors.psBlue,

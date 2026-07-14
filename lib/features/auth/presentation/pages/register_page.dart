@@ -1,9 +1,12 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -209,9 +212,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         context.go(AppRoutes.verifyEmail);
       }
     } catch (e) {
-      // Mostrar el error real para facilitar debugging en desarrollo.
-      // En producción, sustituir por _humanizeError(e.toString()).
-      setState(() => _errorMessage = e.toString());
+      setState(() => _errorMessage = humanizeError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -472,21 +473,7 @@ class _Step1PersonalInfo extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
-          TextFormField(
-            initialValue: data.password,
-            decoration: const InputDecoration(
-              labelText: 'Contraseña',
-              hintText: 'Mínimo 8 caracteres',
-              prefixIcon: Icon(Icons.lock_outline),
-            ),
-            obscureText: true,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.newPassword],
-            onChanged: (v) {
-              data.password = v;
-              onChanged();
-            },
-          ),
+          _PasswordField(data: data, onChanged: onChanged),
           const SizedBox(height: AppSpacing.md),
           Text(
             'Al continuar verás los términos legales en el último paso. No creamos la cuenta hasta que los aceptes.',
@@ -494,6 +481,49 @@ class _Step1PersonalInfo extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Campo de contraseña con toggle de visibilidad (mismo patrón que login).
+class _PasswordField extends StatefulWidget {
+  const _PasswordField({required this.data, required this.onChanged});
+
+  final RegistrationData data;
+  final VoidCallback onChanged;
+
+  @override
+  State<_PasswordField> createState() => _PasswordFieldState();
+}
+
+class _PasswordFieldState extends State<_PasswordField> {
+  bool _obscure = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      initialValue: widget.data.password,
+      decoration: InputDecoration(
+        labelText: 'Contraseña',
+        hintText: 'Mínimo 8 caracteres',
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscure
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
+          ),
+          tooltip: _obscure ? 'Mostrar contraseña' : 'Ocultar contraseña',
+          onPressed: () => setState(() => _obscure = !_obscure),
+        ),
+      ),
+      obscureText: _obscure,
+      textInputAction: TextInputAction.done,
+      autofillHints: const [AutofillHints.newPassword],
+      onChanged: (v) {
+        widget.data.password = v;
+        widget.onChanged();
+      },
     );
   }
 }
@@ -872,7 +902,7 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
-class _ConsentRow extends StatelessWidget {
+class _ConsentRow extends StatefulWidget {
   const _ConsentRow({
     required this.checked,
     required this.onChanged,
@@ -888,17 +918,52 @@ class _ConsentRow extends StatelessWidget {
   final String linkUrl;
 
   @override
+  State<_ConsentRow> createState() => _ConsentRowState();
+}
+
+class _ConsentRowState extends State<_ConsentRow> {
+  late final TapGestureRecognizer _linkRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _linkRecognizer = TapGestureRecognizer()..onTap = _openLink;
+  }
+
+  @override
+  void dispose() {
+    _linkRecognizer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openLink() async {
+    final ok = await launchUrl(
+      Uri.parse(widget.linkUrl),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('No se pudo abrir el documento. '
+              'Visítalo en ${widget.linkUrl}'),
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => onChanged(!checked),
+      onTap: () => widget.onChanged(!widget.checked),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Checkbox(
-              value: checked,
-              onChanged: onChanged,
+              value: widget.checked,
+              onChanged: widget.onChanged,
               shape: RoundedRectangleBorder(
                 borderRadius: AppRadius.microAll,
               ),
@@ -909,11 +974,14 @@ class _ConsentRow extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 12),
                 child: Text.rich(
                   TextSpan(
-                    text: '$label ',
+                    text: '${widget.label} ',
                     style: AppTypography.body,
                     children: [
                       TextSpan(
-                        text: linkLabel,
+                        text: widget.linkLabel,
+                        recognizer: _linkRecognizer,
+                        semanticsLabel:
+                            '${widget.linkLabel} (abre en el navegador)',
                         style: AppTypography.body.copyWith(
                           color: context.colors.brandAccent,
                           decoration: TextDecoration.underline,

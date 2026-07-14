@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_haptics.dart';
+import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -37,7 +38,7 @@ class NotificationsPage extends ConsumerWidget {
         loading: () => const ListSkeleton(),
         error: (e, _) => ErrorStateView(
           title: 'No se pudieron cargar los avisos',
-          message: e.toString(),
+          message: humanizeError(e),
           onRetry: () => ref.invalidate(notificationsListProvider),
         ),
         data: (items) {
@@ -258,6 +259,33 @@ class _NotificationCard extends ConsumerWidget {
 
   final NotificationItem item;
 
+  /// Rutas exactas registradas en el GoRouter a las que puede apuntar
+  /// un `cta_url` de notificación.
+  static const _exactRoutes = <String>{
+    '/home',
+    '/pacts/new',
+    '/profile/team',
+    '/profile/professional-docs',
+    '/org-invite',
+  };
+
+  /// Patrones de rutas dinámicas registradas en el GoRouter.
+  static final List<RegExp> _routePatterns = [
+    RegExp(r'^/pacts/[^/]+$'),
+    RegExp(r'^/pacts/[^/]+/(sign|contract-pdf|obra-report|assistant|trust-score)$'),
+    RegExp(r'^/pacts/[^/]+/milestones/[^/]+$'),
+    RegExp(r'^/pacts/[^/]+/milestones/[^/]+/evidences/upload$'),
+  ];
+
+  /// True si la URL apunta a una ruta que existe en la app. Evita que un
+  /// cta_url hacia una ruta no registrada (p.ej. /disputes/:id) acabe en
+  /// la pantalla "Página no encontrada".
+  static bool _isRegisteredRoute(String url) {
+    final path = Uri.parse(url).path;
+    if (_exactRoutes.contains(path)) return true;
+    return _routePatterns.any((r) => r.hasMatch(path));
+  }
+
   Future<void> _open(BuildContext context, WidgetRef ref) async {
     // Marca como leída si lo estaba
     if (item.isUnread) {
@@ -267,10 +295,17 @@ class _NotificationCard extends ConsumerWidget {
         ref.invalidate(notificationsListProvider);
       });
     }
-    // Navega al CTA si existe
-    if (item.ctaUrl != null && item.ctaUrl!.isNotEmpty) {
-      if (item.ctaUrl!.startsWith('/')) {
-        context.push(item.ctaUrl!);
+    // Navega al CTA si existe y la ruta está registrada.
+    final cta = item.ctaUrl;
+    if (cta != null && cta.isNotEmpty && cta.startsWith('/')) {
+      if (_isRegisteredRoute(cta)) {
+        context.push(cta);
+        return;
+      }
+      // Fallback: si la notificación pertenece a un pacto, abrimos su
+      // detalle en lugar de una ruta inexistente. Si no, no navegamos.
+      if (item.pactId != null && item.pactId!.isNotEmpty) {
+        context.push('/pacts/${item.pactId}');
       }
     }
   }

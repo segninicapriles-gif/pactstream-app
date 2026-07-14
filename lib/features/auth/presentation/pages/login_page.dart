@@ -8,11 +8,17 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/widgets/pactstream_logo.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.redirectTo});
+
+  /// Ruta interna (`/...`) a la que navegar tras autenticar. La usa el
+  /// flujo de invitación de organización para no perder el destino
+  /// (`/login?redirect=/org-invite%3Ftoken%3D...`).
+  final String? redirectTo;
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -143,10 +149,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         password: _passwordController.text,
       );
       if (!mounted) return;
+      // Si venimos con ?redirect= (p.ej. invitación de organización),
+      // honramos el destino. Solo aceptamos rutas internas ('/...').
+      final redirect = widget.redirectTo;
+      if (redirect != null &&
+          redirect.startsWith('/') &&
+          !redirect.startsWith('//')) {
+        context.go(redirect);
+        return;
+      }
       // Route through splash so KYC/onboarding checks run properly
       context.go(AppRoutes.splash);
     } on Exception catch (e) {
-      setState(() => _errorMessage = e.toString());
+      setState(() => _errorMessage = humanizeError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

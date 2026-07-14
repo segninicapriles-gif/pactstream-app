@@ -107,7 +107,8 @@ class _ScoreBody extends StatelessWidget {
             score: health.score,
             label: health.label,
             labelColor: health.color,
-            previousScore: health.score - 4, // TODO: cargar snapshot anterior
+            // Sin previousScore: no hay snapshots históricos todavía y el
+            // gauge oculta el delta cuando es null. Nunca inventar datos.
           ),
 
           const SizedBox(height: AppSpacing.lg),

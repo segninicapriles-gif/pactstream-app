@@ -78,7 +78,7 @@ class _VerifiedResult extends StatelessWidget {
                   label: 'Verificada el',
                   value: AppFormatters.dateTimeDetail(DateTime.now())),
               const SizedBox(height: AppSpacing.xs),
-              _ResultRow(label: 'Validada por', value: 'Onfido (mock dev)'),
+              _ResultRow(label: 'Validada por', value: 'Veriff'),
               const SizedBox(height: AppSpacing.xs),
               _ResultRow(
                   label: 'Operaciones',

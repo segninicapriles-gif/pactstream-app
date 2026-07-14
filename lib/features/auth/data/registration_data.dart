@@ -25,9 +25,13 @@ class RegistrationData {
   static const String termsVersion = '1.0';
   static const String privacyVersion = '1.0';
 
+  /// Validación razonable de email: algo@algo.tld sin espacios.
+  static final RegExp _emailRegExp =
+      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$');
+
   bool get step1Valid =>
       fullName.trim().isNotEmpty &&
-      email.contains('@') &&
+      _emailRegExp.hasMatch(email.trim()) &&
       phoneE164.length >= 9 &&
       password.length >= 8;
 

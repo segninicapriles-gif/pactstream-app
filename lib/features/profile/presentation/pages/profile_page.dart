@@ -13,6 +13,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/animated_list_item.dart';
 import '../../../../core/widgets/shimmer_box.dart';
@@ -1152,32 +1153,62 @@ class _AccountActionsCard extends ConsumerStatefulWidget {
 class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
   Future<void> _changePassword() async {
     final controller = TextEditingController();
+    String? errorText;
+    bool obscure = true;
+
     final newPassword = await showDialog<String?>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cambiar contraseña'),
-        content: TextField(
-          controller: controller,
-          obscureText: true,
-          decoration: const InputDecoration(
-            labelText: 'Nueva contraseña',
-            hintText: 'Mínimo 8 caracteres',
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Cambiar contraseña'),
+          content: TextField(
+            controller: controller,
+            obscureText: obscure,
+            autofocus: true,
+            autofillHints: const [AutofillHints.newPassword],
+            decoration: InputDecoration(
+              labelText: 'Nueva contraseña',
+              hintText: 'Mínimo 8 caracteres',
+              errorText: errorText,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+                tooltip:
+                    obscure ? 'Mostrar contraseña' : 'Ocultar contraseña',
+                onPressed: () => setS(() => obscure = !obscure),
+              ),
+            ),
+            onChanged: (_) {
+              if (errorText != null) setS(() => errorText = null);
+            },
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(null),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.length < 8) {
+                  setS(
+                    () => errorText =
+                        'La contraseña debe tener al menos 8 caracteres',
+                  );
+                  return;
+                }
+                Navigator.of(ctx).pop(controller.text);
+              },
+              child: const Text('Cambiar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(null),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text),
-            child: const Text('Cambiar'),
-          ),
-        ],
       ),
     );
 
-    if (newPassword == null || newPassword.length < 8) return;
+    if (newPassword == null) return;
 
     try {
       await SupabaseConfig.client.auth.updateUser(
@@ -1190,7 +1221,7 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo cambiar: $e')),
+        SnackBar(content: Text(humanizeError(e))),
       );
     }
   }

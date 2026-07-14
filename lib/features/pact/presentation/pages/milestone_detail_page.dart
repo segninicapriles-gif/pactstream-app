@@ -7,6 +7,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../ai/presentation/widgets/ai_verification_card.dart';
 import '../../data/milestone_detail.dart';
@@ -560,22 +561,93 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
         ),
       );
     }
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(AppSpacing.md),
-      ),
-      child: AspectRatio(
-        aspectRatio: 4 / 3,
-        child: Image.network(
-          _signedUrl!,
-          fit: BoxFit.cover,
-          loadingBuilder: (ctx, child, progress) {
-            if (progress == null) return child;
-            return const Center(child: CircularProgressIndicator());
-          },
-          errorBuilder: (ctx, e, _) => Center(
-            child: Icon(Icons.broken_image, size: 48, color: context.colors.textHint),
+    final semanticLabel = widget.evidence.description?.trim().isNotEmpty ==
+            true
+        ? 'Evidencia: ${widget.evidence.description!.trim()}'
+        : 'Fotografía de evidencia del hito';
+    return Semantics(
+      button: true,
+      label: '$semanticLabel. Toca para ampliar.',
+      child: GestureDetector(
+        onTap: _openZoom,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.md),
           ),
+          child: AspectRatio(
+            aspectRatio: 4 / 3,
+            child: Image.network(
+              _signedUrl!,
+              fit: BoxFit.cover,
+              semanticLabel: semanticLabel,
+              loadingBuilder: (ctx, child, progress) {
+                if (progress == null) return child;
+                return const Center(child: CircularProgressIndicator());
+              },
+              errorBuilder: (ctx, e, _) => Center(
+                child: Icon(Icons.broken_image, size: 48, color: context.colors.textHint),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Visor a pantalla completa con zoom (pinch / doble dedo) para poder
+  /// inspeccionar la evidencia en detalle antes de validar.
+  void _openZoom() {
+    if (_signedUrl == null) return;
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (ctx) => Dialog.fullscreen(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 5,
+                child: Center(
+                  child: Image.network(
+                    _signedUrl!,
+                    fit: BoxFit.contain,
+                    semanticLabel: 'Evidencia ampliada',
+                    loadingBuilder: (c, child, progress) {
+                      if (progress == null) return child;
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.white,
+                        ),
+                      );
+                    },
+                    errorBuilder: (c, e, _) => const Center(
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 48,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: AppSpacing.md,
+              right: AppSpacing.md,
+              child: SafeArea(
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: AppColors.white),
+                  tooltip: 'Cerrar',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.black54,
+                  ),
+                  onPressed: () => Navigator.of(ctx).pop(),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -686,7 +758,7 @@ class _SubmitForReviewCtaState
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _error = e.toString();
+        _error = humanizeError(e);
       });
     }
   }
@@ -811,7 +883,7 @@ class _TechReviewCtaState extends ConsumerState<_TechReviewCta> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _error = e.toString();
+        _error = humanizeError(e);
       });
     }
   }
@@ -1025,7 +1097,7 @@ class _PromotorDecideCtaState extends ConsumerState<_PromotorDecideCta> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _error = e.toString();
+        _error = humanizeError(e);
       });
     }
   }

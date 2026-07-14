@@ -30,7 +30,8 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   }
 
   Future<void> _decideRoute() async {
-    await Future<void>.delayed(const Duration(milliseconds: 1000));
+    // Pausa mínima para que el logo no parpadee; antes era 1s artificial.
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
 
     final user = SupabaseConfig.currentUser;

@@ -119,8 +119,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.login,
-        pageBuilder: (context, state) =>
-            AppMotion.fadePage(child: const LoginPage()),
+        pageBuilder: (context, state) {
+          // `redirect` preserva el destino tras autenticar (p.ej. el flujo
+          // de invitación de organización). Solo rutas internas.
+          final redirect = state.uri.queryParameters['redirect'];
+          return AppMotion.fadePage(
+            child: LoginPage(redirectTo: redirect),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.register,

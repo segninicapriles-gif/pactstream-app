@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_haptics.dart';
+import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -41,7 +42,9 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
   bool _submitting = false;
   bool _showErrors = false;
   String? _errorMessage;
+  String? _createdPactId;
   String? _createdPactDisplayId;
+  bool _createdAsDraft = false;
 
   static const int _totalSteps = 4;
 
@@ -218,13 +221,15 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
       if (!mounted) return;
       setState(() {
         _submitting = false;
+        _createdPactId = pactId;
         _createdPactDisplayId = displayId;
+        _createdAsDraft = _data.isDraft;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _submitting = false;
-        _errorMessage = e.toString();
+        _errorMessage = humanizeError(e);
       });
     }
   }
@@ -232,7 +237,11 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
   @override
   Widget build(BuildContext context) {
     if (_createdPactDisplayId != null) {
-      return _SuccessScreen(displayId: _createdPactDisplayId!);
+      return _SuccessScreen(
+        pactId: _createdPactId,
+        displayId: _createdPactDisplayId!,
+        isDraft: _createdAsDraft,
+      );
     }
 
     return PopScope(
@@ -407,9 +416,24 @@ class _StepProgressBar extends StatelessWidget {
 }
 
 class _SuccessScreen extends StatelessWidget {
-  const _SuccessScreen({required this.displayId});
+  const _SuccessScreen({
+    required this.pactId,
+    required this.displayId,
+    required this.isDraft,
+  });
 
+  final String? pactId;
   final String displayId;
+  final bool isDraft;
+
+  void _goToDetail(BuildContext context) {
+    // Vamos primero a Home para que el detalle quede apilado encima y
+    // el botón "atrás" devuelva al usuario a sus obras.
+    context.go(AppRoutes.home);
+    if (pactId != null) {
+      context.push('/pacts/$pactId');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -440,8 +464,12 @@ class _SuccessScreen extends StatelessWidget {
                   textAlign: TextAlign.center, style: AppTypography.h1.copyWith(color: context.colors.textPrimary)),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Tu pacto $displayId está en estado borrador. '
-                'Las partes invitadas recibirán un email para unirse y firmar.',
+                isDraft
+                    ? 'Tu pacto $displayId se ha guardado como borrador. '
+                        'Podrás invitar a las partes cuando quieras desde el '
+                        'detalle de la obra.'
+                    : 'Tu pacto $displayId se ha creado y las partes '
+                        'invitadas recibirán un email para unirse y firmar.',
                 textAlign: TextAlign.center,
                 style: AppTypography.body.copyWith(color: context.colors.textSecondary),
               ),
@@ -471,17 +499,19 @@ class _SuccessScreen extends StatelessWidget {
               ),
               const Spacer(),
               ElevatedButton(
-                onPressed: () => context.go(AppRoutes.home),
-                child: const Text('Volver a mis obras'),
+                onPressed: pactId != null
+                    ? () => _goToDetail(context)
+                    : () => context.go(AppRoutes.home),
+                child: Text(
+                  pactId != null
+                      ? 'Ver detalle de la obra'
+                      : 'Volver a mis obras',
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               TextButton(
                 onPressed: () => context.go(AppRoutes.home),
-                child: Text(
-                  'Ver detalle de la obra (próximamente)',
-                  style:
-                      AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
-                ),
+                child: const Text('Volver a mis obras'),
               ),
             ],
           ),
