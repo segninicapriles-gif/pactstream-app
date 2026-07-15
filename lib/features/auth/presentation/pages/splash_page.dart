@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -89,6 +90,14 @@ class _SplashPageState extends ConsumerState<SplashPage> {
                 variant: Theme.of(context).brightness == Brightness.dark
                     ? PactStreamLogoVariant.light
                     : PactStreamLogoVariant.dark,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                AppConstants.appTagline,
+                style: AppTypography.bodyS.copyWith(
+                  color: context.colors.textTertiary,
+                  letterSpacing: 1.2,
+                ),
               ),
               const SizedBox(height: AppSpacing.xxxl),
               const SizedBox(

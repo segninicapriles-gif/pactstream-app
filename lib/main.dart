@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart' show SemanticsBinding;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -17,6 +18,11 @@ Future<void> main() async {
   if (kIsWeb) usePathUrlStrategy();
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Accesibilidad: generar SIEMPRE el árbol de semantics (screen readers,
+  // testing). En web, sin esto el árbol solo existe si el usuario activa
+  // el lector de pantalla.
+  SemanticsBinding.instance.ensureSemantics();
 
   // SECURITY: Disable runtime font fetching from Google CDN.
   // Fonts must be bundled locally to prevent tracking and MITM risks.
@@ -62,7 +68,9 @@ Future<void> main() async {
 
   // Inicializar Sentry para captura de errores (solo con DSN real)
   const sentryDsn = String.fromEnvironment('SENTRY_DSN');
-  const hasValidSentry = sentryDsn != '' && !sentryDsn.contains('xxxxx');
+  // No puede ser const: .contains() no es expresión constante y dart2js
+  // lo trata como error fatal (bloqueaba todo build web).
+  final hasValidSentry = sentryDsn != '' && !sentryDsn.contains('xxxxx');
   if (hasValidSentry) {
     await SentryFlutter.init(
       (options) {
