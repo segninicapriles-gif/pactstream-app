@@ -1,5 +1,5 @@
 -- =====================================================================
--- Migración · P1-4 auditoría UX 14-jul-2026
+-- Migración · P1-4 auditoría UX 14-jul-2026 (v2, 15-jul)
 -- sf_get_milestone_detail: exponer el motivo de la última validación.
 -- =====================================================================
 -- PROBLEMA: cuando el técnico rechaza un hito o pide más información,
@@ -9,24 +9,22 @@
 --
 -- CAMBIO (aditivo): se añade al objeto `milestone` del JSON la última
 -- validación registrada para el hito:
---   - last_validation_decision   ('approved'|'rejected'|'info_requested')
+--   - last_validation_decision   (texto del enum de decisión)
 --   - last_validation_rationale  (texto libre de quien validó, puede ser null)
 --   - last_validation_at         (timestamptz de la decisión)
 --   - last_validation_by_name    (full_name del validador, puede ser null)
 --
--- El resto del payload es idéntico a la definición previa
--- (20260430000013_milestone_evidence_rpcs.sql). La app Flutter ya lee
--- estos campos como opcionales, así que aplicar o no esta migración no
--- rompe versiones antiguas ni nuevas del cliente.
+-- v2: FUSIONADA con la definición REALMENTE DESPLEGADA (obtenida el
+-- 15-jul-2026 vía pg_get_functiondef), que incluye cambios post-repo:
+-- acceso vía organización (fn_user_can_act_on_pact), gating económico
+-- (fn_user_can_view_economics_on_pact / amount_cents condicional),
+-- is_member_via_org, can_view_economics y los campos de evidencia
+-- uploaded_by_email / uploader_via_org_name / uploader_via_org_role.
+-- Esta versión NO pierde nada de lo desplegado — solo añade el bloque lv.
 --
--- NOTA IMPORTANTE ANTES DE APLICAR: esta definición parte de la última
--- versión de la función presente en este repo (migración ...000013). Si
--- la función desplegada en la base de datos se modificó fuera de las
--- migraciones (p. ej. campos de evidencia añadidos en Sprint 6 como
--- uploaded_by_email / uploader_via_org_name, que el cliente Dart lee
--- como opcionales pero que NO aparecen en ninguna migración del repo),
--- hay que fusionar esos campos aquí antes de ejecutar, o se perderían.
--- Verificar con:  select pg_get_functiondef('public.sf_get_milestone_detail'::regproc);
+-- Columnas de milestone_validations verificadas contra producción:
+-- decision (enum), decision_at (timestamptz), rationale (text),
+-- validator_user_id (uuid).
 
 CREATE OR REPLACE FUNCTION public.sf_get_milestone_detail(p_milestone_id uuid)
 RETURNS jsonb
@@ -35,34 +33,43 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_auth_uid uuid;
-  v_user_id  uuid;
-  v_pact_id  uuid;
-  v_user_role pact_party_role;
+  v_user_id uuid; v_pact_id uuid;
+  v_my_role text; v_via_org boolean; v_can_view_econ boolean;
   v_result jsonb;
 BEGIN
-  v_auth_uid := auth.uid();
   SELECT u.id INTO v_user_id FROM public.users u
-  WHERE u.auth_provider_id = v_auth_uid::text AND u.deleted_at IS NULL;
-
-  IF v_user_id IS NULL THEN
-    RAISE EXCEPTION 'Perfil no encontrado';
-  END IF;
+  WHERE u.auth_provider_id = auth.uid()::text AND u.deleted_at IS NULL;
+  IF v_user_id IS NULL THEN RAISE EXCEPTION 'Perfil no encontrado'; END IF;
 
   SELECT m.pact_id INTO v_pact_id
   FROM public.milestones m WHERE m.id = p_milestone_id;
+  IF v_pact_id IS NULL THEN RAISE EXCEPTION 'Hito no encontrado'; END IF;
 
-  IF v_pact_id IS NULL THEN
-    RAISE EXCEPTION 'Hito no encontrado';
+  IF NOT public.fn_user_can_act_on_pact(v_pact_id, v_user_id) THEN
+    RAISE EXCEPTION 'No tienes acceso a este hito';
   END IF;
 
-  SELECT role INTO v_user_role
+  -- Mi rol directo si lo tengo
+  SELECT role::text INTO v_my_role
   FROM public.pact_parties
   WHERE pact_id = v_pact_id AND user_id = v_user_id;
 
-  IF v_user_role IS NULL THEN
-    RAISE EXCEPTION 'No tienes acceso a este hito';
+  v_via_org := (v_my_role IS NULL);
+
+  -- Si vengo via org, inferir rol según rol de la org
+  IF v_via_org THEN
+    SELECT pp.role::text INTO v_my_role
+    FROM public.pact_parties pp
+    JOIN public.organizations o ON o.owner_user_id = pp.user_id
+      AND o.deleted_at IS NULL
+    JOIN public.organization_members om ON om.organization_id = o.id
+    WHERE pp.pact_id = v_pact_id
+      AND om.user_id = v_user_id
+      AND om.state = 'active'
+    LIMIT 1;
   END IF;
+
+  v_can_view_econ := public.fn_user_can_view_economics_on_pact(v_pact_id, v_user_id);
 
   SELECT jsonb_build_object(
     'milestone', jsonb_build_object(
@@ -75,7 +82,8 @@ BEGIN
       'ordinal', m.ordinal,
       'name', m.name,
       'description', m.description,
-      'amount_cents', m.amount_cents,
+      -- Económicos sensibles
+      'amount_cents', CASE WHEN v_can_view_econ THEN m.amount_cents ELSE NULL END,
       'target_date', m.target_date,
       'state', m.state::text,
       'state_updated_at', m.state_updated_at,
@@ -85,9 +93,11 @@ BEGIN
       'approved_by_promotor_at', m.approved_by_promotor_at,
       'rejected_at', m.rejected_at,
       'paid_at', m.paid_at,
-      'my_role', v_user_role::text,
+      'my_role', v_my_role,
+      'is_member_via_org', v_via_org,
+      'can_view_economics', v_can_view_econ,
       -- P1-4 · última validación registrada (rationale del técnico o
-      -- del promotor en obra menor). NULL si aún no hay validaciones.
+      -- del promotor). NULL si aún no hay validaciones.
       'last_validation_decision', lv.decision,
       'last_validation_rationale', lv.rationale,
       'last_validation_at', lv.decision_at,
@@ -110,10 +120,26 @@ BEGIN
         'is_superseded', e.is_superseded,
         'uploaded_by_user_id', e.uploaded_by_user_id,
         'uploaded_by_name', uploader.full_name,
+        'uploaded_by_email', uploader.email,
+        -- Info de organización del uploader (si pertenece a una)
+        'uploader_via_org_name', uploader_org.legal_name,
+        'uploader_via_org_role',
+          CASE
+            WHEN uploader_om.role::text = 'owner' THEN 'owner'
+            WHEN uploader_om.role::text = 'member' THEN 'member'
+            ELSE NULL
+          END,
         'is_mine', (e.uploaded_by_user_id = v_user_id)
       ) ORDER BY e.server_timestamp DESC)
       FROM public.milestone_evidences e
       LEFT JOIN public.users uploader ON uploader.id = e.uploaded_by_user_id
+      -- Buscar si el uploader pertenece a una organización
+      LEFT JOIN public.organization_members uploader_om
+        ON uploader_om.user_id = uploader.id
+        AND uploader_om.state = 'active'
+      LEFT JOIN public.organizations uploader_org
+        ON uploader_org.id = uploader_om.organization_id
+        AND uploader_org.deleted_at IS NULL
       WHERE e.milestone_id = p_milestone_id
         AND NOT e.is_superseded
     ), '[]'::jsonb)
@@ -141,7 +167,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.sf_get_milestone_detail TO authenticated;
 
 COMMENT ON FUNCTION public.sf_get_milestone_detail IS
-  'Detalle de hito + evidencias + última validación (rationale) en JSON. Solo partes del pacto.';
+  'Detalle de hito + evidencias + última validación (rationale) en JSON. Acceso directo o vía organización; económicos gated.';
 
--- Recordatorio post-aplicación (PostgREST):
---   NOTIFY pgrst, 'reload schema';
+-- Post-aplicación (PostgREST):
+NOTIFY pgrst, 'reload schema';
