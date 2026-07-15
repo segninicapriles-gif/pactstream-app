@@ -9,7 +9,7 @@ import '../../../../core/widgets/animated_list_item.dart';
 import '../../data/dashboard_data.dart';
 import '../../data/dashboard_providers.dart';
 import 'dashboard_shared.dart';
-import 'mini_bar_chart.dart';
+import 'monthly_series_chart.dart';
 
 /// Dashboard del Técnico (cableado a datos reales).
 ///
@@ -193,35 +193,18 @@ class _Content extends StatelessWidget {
             ),
         const SizedBox(height: AppSpacing.lg),
 
-        // CHART · Validaciones mensuales
+        // CHART · Validaciones mensuales (datos reales de
+        // sf_get_monthly_series: validaciones/mes del técnico)
         AnimatedListItem(
           index: animIdx++,
-          child: MiniBarChart(
+          child: const MonthlySeriesChart(
+            kind: MonthlySeriesKind.validations,
             title: 'Validaciones mensuales',
             barColor: AppColors.tecnicoAccent,
-            data: _buildValidationData(),
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
-  }
-
-  /// Serie de los últimos 6 meses para el gráfico de validaciones.
-  ///
-  /// No existe todavía RPC de datos reales (sf_get_validation_summary no
-  /// está en el backend), así que devolvemos valores a 0 y MiniBarChart
-  /// muestra su empty state honesto ("Aún no hay datos"). NUNCA mostrar
-  /// cifras inventadas al usuario.
-  static List<BarChartItem> _buildValidationData() {
-    final now = DateTime.now();
-    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    return List.generate(6, (i) {
-      final month = DateTime(now.year, now.month - 5 + i);
-      return BarChartItem(
-        label: months[month.month - 1],
-        value: 0,
-      );
-    });
   }
 }

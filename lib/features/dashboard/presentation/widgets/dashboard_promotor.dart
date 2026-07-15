@@ -11,7 +11,7 @@ import '../../../../core/widgets/animated_list_item.dart';
 import '../../data/dashboard_data.dart';
 import '../../data/dashboard_providers.dart';
 import 'dashboard_shared.dart';
-import 'mini_bar_chart.dart';
+import 'monthly_series_chart.dart';
 
 /// Dashboard del Promotor (cableado a datos reales).
 ///
@@ -198,36 +198,19 @@ class _Content extends StatelessWidget {
             ),
         const SizedBox(height: AppSpacing.lg),
 
-        // CHART · Flujo de fondos
+        // CHART · Flujo de fondos (datos reales de sf_get_monthly_series:
+        // hitos pagados/mes como promotor; empty state si no hay datos)
         AnimatedListItem(
           index: animIdx++,
-          child: MiniBarChart(
+          child: const MonthlySeriesChart(
+            kind: MonthlySeriesKind.fundFlow,
             title: 'Flujo de fondos',
             barColor: AppColors.psBlue,
-            data: _buildFlowData(),
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
-  }
-
-  /// Serie de los últimos 6 meses para el gráfico de flujo de fondos.
-  ///
-  /// No existe todavía RPC de datos reales (sf_get_fund_flow_summary no
-  /// está en el backend), así que devolvemos valores a 0 y MiniBarChart
-  /// muestra su empty state honesto ("Aún no hay datos"). NUNCA mostrar
-  /// cifras inventadas al usuario.
-  static List<BarChartItem> _buildFlowData() {
-    final now = DateTime.now();
-    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    return List.generate(6, (i) {
-      final month = DateTime(now.year, now.month - 5 + i);
-      return BarChartItem(
-        label: months[month.month - 1],
-        value: 0,
-      );
-    });
   }
 
   static String? _nextReleaseSubtitle(DashboardNextRelease? r) {
