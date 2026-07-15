@@ -91,8 +91,13 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-      if (permission == LocationPermission.deniedForever ||
-          permission == LocationPermission.denied) {
+      // P2-11 · Denegado permanentemente: el diálogo del sistema ya no
+      // volverá a aparecer, así que guiamos al usuario a Ajustes.
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) await _showGpsSettingsDialog();
+        return;
+      }
+      if (permission == LocationPermission.denied) {
         throw Exception('Permiso de ubicación denegado.');
       }
       final pos = await Geolocator.getCurrentPosition(
@@ -109,6 +114,38 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
     } finally {
       if (mounted) setState(() => _gpsLoading = false);
     }
+  }
+
+  /// P2-11 · Explica por qué no podemos capturar GPS y ofrece abrir los
+  /// ajustes del sistema para conceder el permiso manualmente.
+  Future<void> _showGpsSettingsDialog() {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Permiso de ubicación desactivado'),
+        content: const Text(
+          'Has denegado el permiso de ubicación de forma permanente, así '
+          'que no podemos adjuntar el GPS a la evidencia.\n\n'
+          'La ubicación refuerza el valor probatorio de la foto (demuestra '
+          'que se tomó en la obra). Puedes activarla en los ajustes de la '
+          'app, o continuar y subir la evidencia sin GPS.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Continuar sin GPS'),
+          ),
+          FilledButton.icon(
+            icon: const Icon(Icons.settings_outlined, size: 18),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Geolocator.openAppSettings();
+            },
+            label: const Text('Abrir ajustes'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _confirmUpload() async {

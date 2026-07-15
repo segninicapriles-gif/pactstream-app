@@ -35,6 +35,9 @@ class NotificationsPage extends ConsumerWidget {
         await ref.read(notificationsListProvider.future);
       },
       child: notifsAsync.when(
+        // Mantiene la lista visible mientras carga la siguiente página
+        // ("Cargar más" cambia el límite) en vez de volver al skeleton.
+        skipLoadingOnReload: true,
         loading: () => const ListSkeleton(),
         error: (e, _) => ErrorStateView(
           title: 'No se pudieron cargar los avisos',
@@ -164,6 +167,30 @@ class NotificationsPage extends ConsumerWidget {
               ),
             ));
             globalIndex += group.length;
+          }
+
+          // --- Cargar más (P2-2) ---
+          // Si recibimos tantas filas como el límite pedido, es probable
+          // que haya más notificaciones en el servidor.
+          final limit = ref.watch(notificationsLimitProvider);
+          if (items.length >= limit) {
+            slivers.add(SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xl,
+                ),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.expand_more, size: 18),
+                  onPressed: () => ref
+                      .read(notificationsLimitProvider.notifier)
+                      .state += kNotificationsPageSize,
+                  label: const Text('Cargar más avisos'),
+                ),
+              ),
+            ));
           }
 
           return CustomScrollView(slivers: slivers);

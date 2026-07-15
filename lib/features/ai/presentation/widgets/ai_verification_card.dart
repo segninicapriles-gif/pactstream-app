@@ -180,12 +180,12 @@ class _AiCardHeader extends StatelessWidget {
           if (onVerify != null && !isLoading)
             TextButton(
               onPressed: onVerify,
+              // P2-6 · Sin shrinkWrap: área táctil mínima de 44px.
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.psCyan,
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                minimumSize: const Size(44, 44),
               ),
               child: Text(
                 'Analizar',

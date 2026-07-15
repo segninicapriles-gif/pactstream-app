@@ -71,6 +71,31 @@ class _PactScoreGaugeState extends State<PactScoreGauge>
 
   @override
   Widget build(BuildContext context) {
+    // P2-7 · Valor legible por lector de pantalla. El contenido visual
+    // (arco animado, cifra, chip) se excluye para no duplicar lecturas.
+    final delta = widget.previousScore != null
+        ? widget.score - widget.previousScore!
+        : null;
+    final semanticsLabel = StringBuffer(
+      'Rating PactStream: ${widget.score} de 100 puntos. '
+      'Nivel: ${widget.label}.',
+    );
+    if (delta != null) {
+      semanticsLabel.write(
+        delta >= 0
+            ? ' Ha subido $delta puntos respecto al mes anterior.'
+            : ' Ha bajado ${delta.abs()} puntos respecto al mes anterior.',
+      );
+    }
+
+    return Semantics(
+      label: semanticsLabel.toString(),
+      container: true,
+      child: ExcludeSemantics(child: _buildCard(context)),
+    );
+  }
+
+  Widget _buildCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: context.colors.card,

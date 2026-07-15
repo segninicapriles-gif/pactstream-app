@@ -36,8 +36,13 @@ class KycCapturePage extends ConsumerStatefulWidget {
 class _KycCapturePageState extends ConsumerState<KycCapturePage> {
   bool _processing = false;
   bool _waitingForCallback = false;
+  /// P2-3 · El polling agotó los 5 minutos sin resultado de Veriff.
+  bool _pollTimedOut = false;
   String? _errorMessage;
   String? _sessionUrl;
+
+  /// P2-3 · Límite total del polling.
+  static const Duration _pollTimeout = Duration(minutes: 5);
 
   Future<void> _startVeriffSession() async {
     setState(() {
@@ -80,6 +85,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
       setState(() {
         _processing = false;
         _waitingForCallback = true;
+        _pollTimedOut = false;
       });
 
       // Iniciar polling para detectar cuando se complete
@@ -94,8 +100,24 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
   }
 
   Future<void> _pollKycStatus() async {
+    // P2-3 · Polling con timeout (5 min) y backoff: cada 4s durante el
+    // primer minuto, cada 8s después. Al agotarse mostramos un estado
+    // "está tardando" con CTAs en vez de esperar para siempre.
+    final startedAt = DateTime.now();
+
     while (mounted && _waitingForCallback) {
-      await Future<void>.delayed(const Duration(seconds: 4));
+      final elapsed = DateTime.now().difference(startedAt);
+
+      if (elapsed >= _pollTimeout) {
+        if (!mounted) return;
+        setState(() => _pollTimedOut = true);
+        return;
+      }
+
+      final interval = elapsed > const Duration(minutes: 1)
+          ? const Duration(seconds: 8)
+          : const Duration(seconds: 4);
+      await Future<void>.delayed(interval);
       if (!mounted) break;
 
       try {
@@ -189,6 +211,50 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
   }
 
   Widget _buildWaiting() {
+    // P2-3 · Estado de timeout: el webhook de Veriff no llegó en 5 min.
+    if (_pollTimedOut) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: AppSpacing.xxxl),
+          Center(
+            child: Icon(Icons.hourglass_bottom,
+                size: 48, color: AppColors.warning),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Esto está tardando más de lo normal',
+            textAlign: TextAlign.center,
+            style: AppTypography.h3,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Veriff aún no nos ha confirmado el resultado. Puedes seguir '
+            'usando la app y volver más tarde — te avisaremos cuando la '
+            'verificación termine — o reintentar la comprobación ahora.',
+            textAlign: TextAlign.center,
+            style: AppTypography.bodyS
+                .copyWith(color: context.colors.textTertiary),
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() => _pollTimedOut = false);
+              _pollKycStatus();
+            },
+            label: const Text('Reintentar'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.home_outlined),
+            onPressed: () => context.go(AppRoutes.home),
+            label: const Text('Seguir más tarde'),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -226,7 +292,10 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
         const SizedBox(height: AppSpacing.sm),
         TextButton(
           onPressed: () {
-            setState(() => _waitingForCallback = false);
+            setState(() {
+              _waitingForCallback = false;
+              _pollTimedOut = false;
+            });
           },
           child: const Text('Cancelar y volver'),
         ),

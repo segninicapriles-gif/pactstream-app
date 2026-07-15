@@ -212,19 +212,20 @@ class _Content extends StatelessWidget {
     );
   }
 
-  /// Genera datos de los últimos 6 meses para el gráfico de flujo de fondos.
-  /// TODO(sprint-3): sustituir por datos reales de sf_get_fund_flow_summary.
+  /// Serie de los últimos 6 meses para el gráfico de flujo de fondos.
+  ///
+  /// No existe todavía RPC de datos reales (sf_get_fund_flow_summary no
+  /// está en el backend), así que devolvemos valores a 0 y MiniBarChart
+  /// muestra su empty state honesto ("Aún no hay datos"). NUNCA mostrar
+  /// cifras inventadas al usuario.
   static List<BarChartItem> _buildFlowData() {
     final now = DateTime.now();
     const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    // Datos demo — simula flujo de fondos de un promotor con varias obras.
-    // Sustituir por datos del backend cuando estén disponibles.
-    const demoValues = [35000.0, 28000.0, 42000.0, 31500.0, 55000.0, 47200.0];
     return List.generate(6, (i) {
       final month = DateTime(now.year, now.month - 5 + i);
       return BarChartItem(
         label: months[month.month - 1],
-        value: demoValues[i],
+        value: 0,
       );
     });
   }

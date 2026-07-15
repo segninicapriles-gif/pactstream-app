@@ -213,19 +213,20 @@ class _Content extends StatelessWidget {
     );
   }
 
-  /// Genera datos de los últimos 6 meses para el gráfico de facturación.
-  /// TODO(sprint-3): sustituir por datos reales de sf_get_billing_summary.
+  /// Serie de los últimos 6 meses para el gráfico de facturación.
+  ///
+  /// No existe todavía RPC de datos reales (sf_get_billing_summary no
+  /// está en el backend), así que devolvemos valores a 0 y MiniBarChart
+  /// muestra su empty state honesto ("Aún no hay datos"). NUNCA mostrar
+  /// cifras inventadas al usuario.
   static List<BarChartItem> _buildMonthlyData() {
     final now = DateTime.now();
     const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    // Datos demo — simula facturación creciente de una constructora activa.
-    // Sustituir por datos del backend cuando estén disponibles.
-    const demoValues = [8500.0, 12300.0, 15800.0, 9200.0, 22400.0, 18700.0];
     return List.generate(6, (i) {
       final month = DateTime(now.year, now.month - 5 + i);
       return BarChartItem(
         label: months[month.month - 1],
-        value: demoValues[i],
+        value: 0,
       );
     });
   }

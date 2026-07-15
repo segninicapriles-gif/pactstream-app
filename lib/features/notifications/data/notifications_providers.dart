@@ -49,10 +49,21 @@ class NotificationsRepository {
 final notificationsRepoProvider =
     Provider<NotificationsRepository>((ref) => NotificationsRepository());
 
-/// Lista de notificaciones del usuario.
+/// Tamaño de página de notificaciones (P2-2).
+const int kNotificationsPageSize = 50;
+
+/// Límite actual de notificaciones a cargar. "Cargar más" lo incrementa
+/// en bloques de [kNotificationsPageSize].
+final notificationsLimitProvider =
+    StateProvider<int>((ref) => kNotificationsPageSize);
+
+/// Lista de notificaciones del usuario (hasta el límite actual).
 final notificationsListProvider =
     FutureProvider<List<NotificationItem>>((ref) {
-  return ref.watch(notificationsRepoProvider).listMyNotifications();
+  final limit = ref.watch(notificationsLimitProvider);
+  return ref
+      .watch(notificationsRepoProvider)
+      .listMyNotifications(limit: limit);
 });
 
 /// Contador de no leídas. Usado para el badge.

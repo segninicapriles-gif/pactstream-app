@@ -41,11 +41,16 @@ class ContractSigningPage extends ConsumerStatefulWidget {
 }
 
 class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
-  // En lugar de detectar scroll-to-end (difícil con PdfPreview que tiene
-  // su propio scroll interno), exigimos un mínimo de 5 segundos en la
-  // pantalla antes de habilitar el checkbox. Da tiempo a hojear el PDF.
-  bool _readingTimeMet = false;
-  Timer? _readingTimer;
+  // Consentimiento real (P1-10): en móvil el checkbox se habilita cuando
+  // el usuario hace scroll hasta el final del contrato (escuchamos las
+  // ScrollNotification que burbujean desde el ListView interno de
+  // PdfPreview). Si el contenido cabe sin scroll, se habilita en cuanto
+  // hay métricas. En web el PDF vive en un iframe nativo del navegador
+  // (sin acceso a su scroll desde Flutter), así que ahí mantenemos un
+  // mínimo de tiempo de lectura como aproximación.
+  bool _hasReadContract = false;
+  Timer? _webReadingTimer;
+
   bool _accepted = false;
   bool _submitting = false;
   String? _error;
@@ -54,15 +59,30 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
   @override
   void initState() {
     super.initState();
-    _readingTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) setState(() => _readingTimeMet = true);
-    });
+    if (kIsWeb) {
+      _webReadingTimer = Timer(const Duration(seconds: 8), () {
+        if (mounted) setState(() => _hasReadContract = true);
+      });
+    }
   }
 
   @override
   void dispose() {
-    _readingTimer?.cancel();
+    _webReadingTimer?.cancel();
     super.dispose();
+  }
+
+  /// Marca el contrato como leído si el usuario llegó al final del
+  /// contenido (o si no hay scroll porque el contenido cabe entero).
+  void _checkScrollMetrics(ScrollMetrics metrics) {
+    if (_hasReadContract) return;
+    if (metrics.axis != Axis.vertical) return;
+    if (!metrics.hasContentDimensions) return;
+    final reachedEnd =
+        metrics.maxScrollExtent <= 0 || metrics.extentAfter <= 24;
+    if (reachedEnd) {
+      setState(() => _hasReadContract = true);
+    }
   }
 
   Future<void> _sign(String contractText, String contractHash) async {
@@ -163,7 +183,17 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
               Expanded(
                 child: kIsWeb
                     ? _WebSigningPdfView(builder: builder)
-                    : PdfPreview(
+                    : NotificationListener<ScrollMetricsNotification>(
+                        onNotification: (n) {
+                          _checkScrollMetrics(n.metrics);
+                          return false;
+                        },
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (n) {
+                            _checkScrollMetrics(n.metrics);
+                            return false;
+                          },
+                          child: PdfPreview(
                         build: (format) async {
                           try {
                             return await builder
@@ -194,10 +224,12 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                           backgroundColor: AppColors.psNavy,
                           iconColor: AppColors.white,
                         ),
-                        previewPageMargin:
-                            const EdgeInsets.all(AppSpacing.sm),
-                        loadingWidget:
-                            const Center(child: CircularProgressIndicator()),
+                            previewPageMargin:
+                                const EdgeInsets.all(AppSpacing.sm),
+                            loadingWidget: const Center(
+                                child: CircularProgressIndicator()),
+                          ),
+                        ),
                       ),
               ),
 
@@ -216,20 +248,28 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (!_readingTimeMet)
+                      if (!_hasReadContract)
                         Padding(
                           padding:
                               const EdgeInsets.only(bottom: AppSpacing.sm),
                           child: Row(
                             children: [
-                              Icon(Icons.timer_outlined,
-                                  color: context.colors.brandAccent, size: 16),
+                              Icon(
+                                  kIsWeb
+                                      ? Icons.timer_outlined
+                                      : Icons.swipe_down_alt_outlined,
+                                  color: context.colors.brandAccent,
+                                  size: 16),
                               const SizedBox(width: AppSpacing.xs),
-                              Text(
-                                'Tómate unos segundos para revisar el contrato',
-                                style: AppTypography.bodyS.copyWith(
-                                    color: context.colors.brandAccent,
-                                    fontWeight: FontWeight.w700),
+                              Expanded(
+                                child: Text(
+                                  kIsWeb
+                                      ? 'Tómate unos segundos para revisar el contrato'
+                                      : 'Desplázate hasta el final del contrato para poder aceptarlo',
+                                  style: AppTypography.bodyS.copyWith(
+                                      color: context.colors.brandAccent,
+                                      fontWeight: FontWeight.w700),
+                                ),
                               ),
                             ],
                           ),
@@ -238,7 +278,7 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                         contentPadding: EdgeInsets.zero,
                         controlAffinity: ListTileControlAffinity.leading,
                         value: _accepted,
-                        onChanged: !_readingTimeMet || _submitting
+                        onChanged: !_hasReadContract || _submitting
                             ? null
                             : (v) =>
                                 setState(() => _accepted = v ?? false),

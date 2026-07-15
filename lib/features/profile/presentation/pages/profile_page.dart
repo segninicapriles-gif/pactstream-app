@@ -1253,39 +1253,64 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
 
   Future<void> _deleteAccount() async {
     final reasonController = TextEditingController();
+    final confirmController = TextEditingController();
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Borrar cuenta'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Esta acción es irreversible. Los datos relacionados con tus pactos se conservan 10 años por obligación legal (LOE) pero tu cuenta queda eliminada y no podrás iniciar sesión.',
-            ),
-            const SizedBox(height: 12),
-            const Text('Si tienes pactos activos, primero debes cerrarlos.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Motivo (opcional)',
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) {
+          final canDelete = confirmController.text.trim() == 'BORRAR';
+          return AlertDialog(
+            title: const Text('Borrar cuenta'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Esta acción es irreversible. Los datos relacionados con tus pactos se conservan 10 años por obligación legal (LOE) pero tu cuenta queda eliminada y no podrás iniciar sesión.',
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                      'Si tienes pactos activos, primero debes cerrarlos.'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: reasonController,
+                    decoration: const InputDecoration(
+                      labelText: 'Motivo (opcional)',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // P2-12 · Fricción proporcional a lo irreversible:
+                  // hay que escribir BORRAR para habilitar el botón.
+                  TextField(
+                    controller: confirmController,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: const InputDecoration(
+                      labelText: 'Escribe BORRAR para confirmar',
+                      hintText: 'BORRAR',
+                    ),
+                    onChanged: (_) => setS(() {}),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Borrar cuenta'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error),
+                onPressed:
+                    canDelete ? () => Navigator.of(ctx).pop(true) : null,
+                child: const Text('Borrar cuenta'),
+              ),
+            ],
+          );
+        },
       ),
     );
 
@@ -1305,7 +1330,7 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(humanizeError(e))),
       );
     }
   }
