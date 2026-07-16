@@ -168,7 +168,7 @@ class _WelcomeOnboardingPageState
                         illustration: _PaymentsIllustration(isDark: isDark),
                         title: 'Pagos seguros',
                         subtitle:
-                            'Custodia en blockchain que protege a todas las partes. Los fondos se liberan al validar el trabajo.',
+                            'Custodia protegida por póliza de caución con aseguradora líder. Los fondos se liberan al validar el trabajo.',
                         isDark: isDark,
                       ),
                       _OnboardingStep(

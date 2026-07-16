@@ -176,7 +176,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.kycResult,
         pageBuilder: (context, state) {
-          final status = state.uri.queryParameters['status'] ?? 'verified';
+          // Default restrictivo: sin ?status= explícito, la pantalla
+          // muestra "pendiente" (nunca "verified" por defecto — regresión
+          // de B1 corregida en la auditoría 16-jul).
+          final status = state.uri.queryParameters['status'] ?? 'pending';
           return AppMotion.fadePage(child: KycResultPage(status: status));
         },
       ),
