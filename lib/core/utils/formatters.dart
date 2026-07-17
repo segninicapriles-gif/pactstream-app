@@ -1,39 +1,66 @@
 import 'package:intl/intl.dart';
 
+import 'currency.dart';
+
 /// Formatters siguiendo el glosario de Design Handoff §6.4.
 ///
-/// Importes: BIGINT en céntimos. Mostrar como `42.500 €` (sin céntimos en
-/// listas) o `42.500,00 €` (con céntimos en detalles financieros).
+/// Importes: BIGINT en la subunidad (céntimos). Mostrar como `42.500 €` (sin
+/// decimales en listas) o `42.500,00 €` (con decimales en detalles financieros).
+///
+/// Multi-moneda: la moneda ya NO está fija a €. Hay una **moneda activa de
+/// sesión** ([activeCurrency], EUR por defecto) que se configura una vez desde
+/// el `country_iso` del usuario ([configureFromCountry]). Los ~86 puntos de
+/// llamada usan esa moneda sin cambios; se puede forzar otra por llamada con el
+/// parámetro `currency` (p. ej. la moneda del país de una obra concreta).
 abstract final class AppFormatters {
   AppFormatters._();
 
-  static final NumberFormat _moneyShort = NumberFormat.currency(
-    locale: 'es_ES',
-    symbol: '€',
-    decimalDigits: 0,
-  );
+  /// Moneda activa de la sesión. Arranca en EUR/España y se reconfigura al
+  /// cargar el perfil del usuario. Un usuario de México verá MXN en toda la app.
+  static CurrencyInfo _active = CurrencyInfo.eur;
 
-  static final NumberFormat _moneyLong = NumberFormat.currency(
-    locale: 'es_ES',
-    symbol: '€',
-    decimalDigits: 2,
-  );
+  static CurrencyInfo get activeCurrency => _active;
 
-  /// Formato corto sin céntimos. Usar en listas, tablas, dashboards.
-  ///
-  /// Ejemplo: 42500_00 céntimos → "42.500 €"
-  static String moneyShort(int cents) {
-    final euros = cents / 100.0;
-    return _moneyShort.format(euros);
+  /// Fija la moneda activa directamente.
+  static void configureCurrency(CurrencyInfo currency) => _active = currency;
+
+  /// Fija la moneda activa a partir del país del usuario (ISO 3166-1 alpha-2).
+  /// `null`/desconocido → EUR/España (sin regresión respecto al comportamiento
+  /// anterior).
+  static void configureFromCountry(String? countryIso) =>
+      _active = CurrencyInfo.forCountry(countryIso);
+
+  // NumberFormat es caro de construir; se cachea uno por (moneda, decimales).
+  static final Map<String, NumberFormat> _shortCache = {};
+  static final Map<String, NumberFormat> _longCache = {};
+
+  static NumberFormat _formatter(CurrencyInfo c, int decimalDigits) {
+    final cache = decimalDigits == 0 ? _shortCache : _longCache;
+    return cache.putIfAbsent(
+      c.code,
+      () => NumberFormat.currency(
+        locale: c.locale,
+        symbol: c.symbol,
+        decimalDigits: decimalDigits,
+      ),
+    );
   }
 
-  /// Formato largo con céntimos. Usar en cards de detalle financiero,
+  /// Formato corto sin decimales. Usar en listas, tablas, dashboards.
+  ///
+  /// Ejemplo (ES): 42500_00 céntimos → "42.500 €"; (MX) → "$42,500".
+  static String moneyShort(int cents, {CurrencyInfo? currency}) {
+    final amount = cents / 100.0;
+    return _formatter(currency ?? _active, 0).format(amount);
+  }
+
+  /// Formato largo con decimales. Usar en cards de detalle financiero,
   /// modales de pago, certificados.
   ///
-  /// Ejemplo: 42500_00 céntimos → "42.500,00 €"
-  static String moneyLong(int cents) {
-    final euros = cents / 100.0;
-    return _moneyLong.format(euros);
+  /// Ejemplo (ES): 42500_00 céntimos → "42.500,00 €".
+  static String moneyLong(int cents, {CurrencyInfo? currency}) {
+    final amount = cents / 100.0;
+    return _formatter(currency ?? _active, 2).format(amount);
   }
 
   /// Formato relativo para timestamps recientes en listas.
