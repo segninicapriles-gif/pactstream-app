@@ -26,6 +26,7 @@ import '../../features/pact/presentation/pages/obra_report_preview_page.dart';
 import '../../features/pact/presentation/pages/contract_signing_page.dart';
 import '../../features/pact/presentation/pages/milestone_detail_page.dart';
 import '../../features/pact/presentation/pages/new_pact_page.dart';
+import '../../features/pact/presentation/pages/pact_chat_page.dart';
 import '../../features/pact/presentation/pages/pact_detail_page.dart';
 import '../../features/pact/presentation/pages/upload_evidence_page.dart';
 import '../theme/app_colors.dart';
@@ -89,6 +90,9 @@ abstract final class AppRoutes {
 
   // Professional docs
   static const professionalDocs = '/profile/professional-docs';
+
+  // Chat entre partes del pacto (F2.4b)
+  static const pactChat = '/pacts/:id/chat';
 }
 
 /// GoRouter de la app con redirección por estado de auth + KYC.
@@ -262,6 +266,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final title = state.uri.queryParameters['title'] ?? '';
           return AppMotion.slideUpPage(
             child: AiAssistantPage(pactId: id, pactTitle: title),
+          );
+        },
+      ),
+
+      // === CHAT DEL PACTO (F2.4b · auditoría 17-jul) ===
+      GoRoute(
+        path: AppRoutes.pactChat,
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final title = state.uri.queryParameters['title'] ?? 'la obra';
+          return AppMotion.slideUpPage(
+            child: PactChatPage(pactId: id, pactTitle: title),
           );
         },
       ),

@@ -13,6 +13,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../scoring/data/scoring_providers.dart';
 import '../../data/pact_archive_prefs.dart';
 import '../../data/pact_detail.dart';
+import '../../data/pact_chat.dart';
 import '../../data/pact_providers.dart';
 import '../sheets/pact_action_sheets.dart';
 import '../widgets/addendums_section.dart';
@@ -298,6 +299,15 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
                 const SizedBox(height: AppSpacing.md),
               ],
               AnimatedListItem(index: _ai++, child: _Header(detail: detail)),
+              const SizedBox(height: AppSpacing.md),
+              // Chat entre las partes del pacto (F2.4b, auditoría 17-jul)
+              AnimatedListItem(
+                index: _ai++,
+                child: _ChatCta(
+                  pactId: pactId,
+                  pactTitle: detail.pact.title,
+                ),
+              ),
               const SizedBox(height: AppSpacing.md),
               // Trust Score del pacto
               AnimatedListItem(
@@ -1724,6 +1734,103 @@ class _EconomicsHidden extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ==========================================================================
+// CHAT CTA (F2.4b · auditoría 17-jul)
+// ==========================================================================
+
+class _ChatCta extends ConsumerWidget {
+  const _ChatCta({required this.pactId, required this.pactTitle});
+
+  final String pactId;
+  final String pactTitle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(pactUnreadCountProvider(pactId)).valueOrNull ?? 0;
+    final co = context.colors;
+    return Material(
+      color: co.card,
+      borderRadius: AppRadius.mdAll,
+      child: InkWell(
+        borderRadius: AppRadius.mdAll,
+        onTap: () => context.push(
+          '/pacts/$pactId/chat?title=${Uri.encodeComponent(pactTitle)}',
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.mdAll,
+            border: Border.all(color: co.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: co.brandAccentBg,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.chat_bubble_outline,
+                    size: 18, color: co.brandAccent),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Chat de la obra',
+                          style: AppTypography.body.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: co.textPrimary,
+                          ),
+                        ),
+                        if (unread > 0) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: AppColors.error,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              unread > 99 ? '99+' : '$unread',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      unread > 0
+                          ? 'Tienes mensajes nuevos'
+                          : 'Coordina con las partes del pacto',
+                      style: AppTypography.caption
+                          .copyWith(color: co.textTertiary),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios,
+                  size: 14, color: co.textTertiary),
+            ],
+          ),
+        ),
       ),
     );
   }
