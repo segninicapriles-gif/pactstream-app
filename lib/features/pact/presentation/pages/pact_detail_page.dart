@@ -17,6 +17,7 @@ import '../../data/pact_providers.dart';
 import '../sheets/pact_action_sheets.dart';
 import '../widgets/addendums_section.dart';
 import '../widgets/deposit_widget.dart';
+import '../widgets/money_timeline.dart';
 import '../widgets/pact_state_badge.dart';
 import '../widgets/predeposit_pending_card.dart';
 import '../../../../core/widgets/animated_list_item.dart';
@@ -320,6 +321,17 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
                           )
                         : _MoneySummary(detail: detail),
               ),
+
+              // Timeline del dinero: depositado → custodia → liberado → cobrado.
+              // Generador de confianza nº1 en fintech (auditoría 16-jul F2.3).
+              // Solo con economics visibles y modelo v2/v2.1.
+              if (detail.pact.canViewEconomics && detail.pact.isV2OrLater) ...[
+                const SizedBox(height: AppSpacing.md),
+                AnimatedListItem(
+                  index: _ai++,
+                  child: MoneyTimeline(detail: detail),
+                ),
+              ],
 
               // v2.1 · Pre-depositos pendientes (cards especificas)
               if (detail.pact.isV21 &&
