@@ -199,9 +199,12 @@ class _UnfundedV21 extends StatelessWidget {
   Widget build(BuildContext context) {
     final pact = detail.pact;
     final totalAdvance = pact.totalAdvanceCents;
+    // Vendemos el diferencial en el punto de máxima conversión: el promotor
+    // está a punto de poner dinero. Este es el lugar donde "Hito 0 Asegurado"
+    // deja de ser jerga interna y se convierte en garantía visible.
     final subtitle = canSetupNow
-        ? 'pendiente de depositar como Adelanto'
-        : 'a depositar cuando todas las partes hayan firmado';
+        ? 'pendiente de depositar. Cubierto por póliza de caución hasta la liberación de cada hito.'
+        : 'a depositar cuando todas las partes hayan firmado. Cubierto por póliza de caución.';
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -218,7 +221,9 @@ class _UnfundedV21 extends StatelessWidget {
               Icon(Icons.shield_outlined,
                   size: 18, color: context.colors.brandAccent),
               const SizedBox(width: AppSpacing.xs),
-              Text('Configurar Adelanto',
+              // El nombre "Hito 0 Asegurado" es el diferencial de producto
+              // (único en España). Antes decía "Configurar Adelanto" — genérico.
+              Text('Hito 0 Asegurado',
                   style: AppTypography.bodyS
                       .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
               const Spacer(),
@@ -287,7 +292,7 @@ class _UnfundedV21 extends StatelessWidget {
               icon: const Icon(Icons.lock_outline, size: 18),
               onPressed: onSetupAdvance,
               label: Text(
-                'Configurar Adelanto · ${AppFormatters.moneyShort(totalAdvance)}',
+                'Configurar Hito 0 · ${AppFormatters.moneyShort(totalAdvance)}',
               ),
             ),
         ],

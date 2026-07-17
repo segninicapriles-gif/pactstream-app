@@ -9,7 +9,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
 
-/// Pantalla F-02 del Design Handoff — Bridge post-Onfido.
+/// Pantalla F-02 del Design Handoff — resultado post-KYC (Veriff).
 ///
 /// 3 variantes según resultado: verified, pending_review, rejected.
 /// El status llega como query param: `?status=verified`.

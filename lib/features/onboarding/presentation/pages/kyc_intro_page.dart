@@ -7,10 +7,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
-/// Pantalla F-01 del Design Handoff — Bridge pre-Onfido.
+/// Pantalla F-01 del Design Handoff — intro pre-KYC.
 ///
-/// Diseño según mockups F-01. Tras pulsar "Empezar verificación" se navega
-/// a /onboarding/identity/capture (mock que simula el SDK de Onfido).
+/// Tras pulsar "Empezar verificación" se navega a
+/// /onboarding/identity/capture, que abre la sesión de Veriff (proveedor
+/// real integrado). Nota: los mockups originales referenciaban Onfido —
+/// el equipo pivotó a Veriff, unificado en la UI el 2026-07-17.
 class KycIntroPage extends ConsumerWidget {
   const KycIntroPage({super.key});
 
@@ -83,7 +85,7 @@ class KycIntroPage extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Verificación gestionada por Onfido (próximamente · simulada en desarrollo).',
+                'Verificación gestionada por Veriff, proveedor europeo certificado.',
                 textAlign: TextAlign.center,
                 style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
               ),

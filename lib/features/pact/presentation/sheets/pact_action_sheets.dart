@@ -1041,7 +1041,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
     final total = p.totalAdvanceCents;
 
     return _SheetScaffold(
-      title: 'Configurar Adelanto',
+      title: 'Hito 0 Asegurado',
       icon: Icons.shield_outlined,
       iconColor: context.colors.brandAccent,
       children: [
@@ -1062,6 +1062,15 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
               const SizedBox(height: 4),
               Text(AppFormatters.moneyLong(total),
                   style: AppTypography.h1.copyWith(color: context.colors.textPrimary)),
+              const SizedBox(height: AppSpacing.xs),
+              // Explicar el diferencial en el momento crítico (el promotor
+              // está a punto de poner dinero). Único en España.
+              Text(
+                'Protegido por póliza de caución con aseguradora líder',
+                textAlign: TextAlign.center,
+                style: AppTypography.caption
+                    .copyWith(color: context.colors.textSecondary),
+              ),
             ],
           ),
         ),
@@ -1111,7 +1120,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
           value: _accepted,
           onChanged: _loading ? null : (v) => setState(() => _accepted = v ?? false),
           title: Text(
-            'Confirmo que he transferido ${AppFormatters.moneyShort(total)} a PactStream para configurar el Adelanto.',
+            'Confirmo que he transferido ${AppFormatters.moneyShort(total)} a PactStream para configurar el Hito 0 Asegurado.',
             style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
           ),
         ),
@@ -1121,7 +1130,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
           enabled: _accepted && !_loading,
           loading: _loading,
           label:
-              'Configurar Adelanto · ${AppFormatters.moneyShort(total)}',
+              'Configurar Hito 0 · ${AppFormatters.moneyShort(total)}',
           onPressed: _submit,
         ),
       ],
