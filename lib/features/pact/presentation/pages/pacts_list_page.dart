@@ -138,7 +138,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Gestiona tus proyectos de construcción',
+                        'Gestiona tus obras de construcción',
                         style: AppTypography.bodyS
                             .copyWith(color: context.colors.textTertiary),
                       ),
@@ -259,7 +259,7 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Gestiona tus proyectos de construcción',
+                        'Gestiona tus obras de construcción',
                         style: AppTypography.bodyS
                             .copyWith(color: context.colors.textTertiary),
                       ),

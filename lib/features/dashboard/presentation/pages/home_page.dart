@@ -144,6 +144,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     final isLoading = profileAsync.isLoading;
     final profile = profileAsync.valueOrNull;
     final userName = _userNameFrom(profile);
+    // Acción "crear obra" arriba a la derecha del AppBar en el tab Obras —
+    // ubicación análoga al botón "+ Nueva obra" de CostPact (consistencia de
+    // ecosistema). Gated por el mismo rol que habilita crear en la lista.
+    final userRole = _userRoleFrom(profile);
+    final canCreateObra = userRole == 'constructor' ||
+        userRole == 'promotor' ||
+        userRole == 'tecnico';
     // Títulos del AppBar por tab
     const tabTitles = ['Inicio', 'Mis obras', 'Avisos', 'Mi perfil'];
 
@@ -175,6 +182,15 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ),
             actions: [
+              if (_selectedIndex == 1 && canCreateObra)
+                IconButton(
+                  icon: const Icon(Icons.add_rounded),
+                  onPressed: () {
+                    AppHaptics.selection();
+                    context.push(AppRoutes.pactNew);
+                  },
+                  tooltip: 'Nueva obra',
+                ),
               if (_selectedIndex == 0 || _selectedIndex == 2)
                 IconButton(
                   icon: _BadgedIcon(
