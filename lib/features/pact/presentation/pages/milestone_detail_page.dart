@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -1402,47 +1404,290 @@ class _PaidBanner extends StatelessWidget {
 }
 
 // =====================================================================
-// BANNER: EN DISPUTA
+// BANNER: EN DISPUTA — centro de resolución guiada
 // =====================================================================
+//
+// Auditoría 16-jul (F2.1): antes este banner solo decía "se activa en el
+// siguiente sprint" — el escenario que justifica el escrow acababa en un
+// muro. Ahora es un panel de resolución con:
+//   - tranquilización sobre el dinero (queda en custodia),
+//   - timeline visual de los 4 pasos de resolución,
+//   - cita del motivo si el técnico/promotor dejó rationale,
+//   - plazo legal explícito (AppConstants.disputeResolutionDays),
+//   - acciones concretas: subir evidencia adicional, ver evidencias, y
+//     escalar al equipo por email (mailto).
+// El sistema E2E de disputas (RPCs, mediación in-app, votación) queda
+// como scope de otra sesión; esto rescata al usuario del callejón HOY.
 
-class _DisputeBanner extends StatelessWidget {
+class _DisputeBanner extends ConsumerWidget {
   const _DisputeBanner({required this.milestone});
 
   final MilestoneFull milestone;
 
+  Future<void> _emailSupport() async {
+    final subject = Uri.encodeComponent(
+      'Disputa hito ${milestone.displayId} · ${milestone.pactDisplayId}',
+    );
+    final body = Uri.encodeComponent(
+      'Hola equipo de PactStream,\n\n'
+      'Necesito ayuda para resolver una disputa abierta en el hito '
+      '${milestone.displayId} del pacto ${milestone.pactDisplayId} '
+      '("${milestone.pactTitle}").\n\n'
+      'Describo brevemente la situación:\n\n',
+    );
+    final uri = Uri.parse('mailto:${AppConstants.supportEmail}?subject=$subject&body=$body');
+    await launchUrl(uri);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rationale = milestone.hasValidationRationale
+        ? milestone.lastValidationRationale
+        : null;
+    final validator = milestone.lastValidationByName;
+
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: context.colors.errorBg,
+        color: context.colors.card,
         borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.error, width: 1),
+        border: Border.all(color: AppColors.warning, width: 1),
+        boxShadow: AppShadows.soft,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Icon(Icons.gavel, color: AppColors.error, size: 24),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
+          // ── Header ────────────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withOpacity(0.08),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(AppRadius.md),
+                topRight: Radius.circular(AppRadius.md),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.gavel, color: AppColors.warning, size: 22),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Este hito está en disputa',
+                        style: AppTypography.body.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'El dinero queda protegido en custodia. Nada se libera '
+                        'hasta que ambas partes acuerden o el equipo intervenga.',
+                        style: AppTypography.bodyS
+                            .copyWith(color: context.colors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Motivo (cita del rationale si existe) ────────────────
+          if (rationale != null && rationale.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md, AppSpacing.md, AppSpacing.md, 0,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: context.colors.scaffold,
+                  borderRadius: AppRadius.smAll,
+                  border: Border(
+                    left: BorderSide(color: AppColors.warning, width: 3),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      validator != null && validator.isNotEmpty
+                          ? 'Motivo de $validator'
+                          : 'Motivo',
+                      style: AppTypography.caption.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: context.colors.textTertiary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '"$rationale"',
+                      style: AppTypography.bodyS.copyWith(
+                        color: context.colors.textPrimary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // ── Timeline de resolución ───────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Hito en disputa',
-                    style: AppTypography.body.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.error,
-                    )),
-                const SizedBox(height: 2),
                 Text(
-                  'Las partes intentarán resolver la disputa en los próximos días. La gestión de disputas detallada se activa en el siguiente sprint.',
-                  style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
+                  'Cómo se resuelve',
+                  style: AppTypography.caption.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: context.colors.textTertiary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                const _DisputeTimeline(),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Icon(Icons.schedule,
+                        size: 14, color: context.colors.textTertiary),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        'Plazo estimado de resolución: hasta '
+                        '${AppConstants.disputeResolutionDays} días.',
+                        style: AppTypography.caption
+                            .copyWith(color: context.colors.textTertiary),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // ── Acciones ─────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, 0, AppSpacing.md, AppSpacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (milestone.myRole == 'constructor')
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.upload_file_outlined, size: 18),
+                    onPressed: () => context.push(
+                      '/pacts/${milestone.pactId}/milestones/${milestone.id}/evidences/upload',
+                    ),
+                    label: const Text('Aportar prueba adicional'),
+                  ),
+                if (milestone.myRole == 'constructor')
+                  const SizedBox(height: AppSpacing.xs),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.support_agent, size: 18),
+                  onPressed: _emailSupport,
+                  label: const Text('Contactar con el equipo de PactStream'),
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Timeline horizontal con los 4 pasos de resolución. El "actual" se
+/// destaca; los futuros quedan grises. Sin RPC nueva: es informativo
+/// (el sistema E2E de disputas viene en otra fase).
+class _DisputeTimeline extends StatelessWidget {
+  const _DisputeTimeline();
+
+  @override
+  Widget build(BuildContext context) {
+    // De momento todos los hitos in_dispute están en "Diálogo entre partes"
+    // (paso 1): el promotor abrió la objeción. Cuando exista la RPC de
+    // escalación pasará a 2, y con la resolución del equipo a 3.
+    const currentStep = 1;
+    final steps = [
+      ('Objeción presentada', Icons.gavel),
+      ('Diálogo entre partes', Icons.forum_outlined),
+      ('Mediación PactStream', Icons.support_agent),
+      ('Resolución', Icons.check_circle_outline),
+    ];
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(steps.length * 2 - 1, (i) {
+        if (i.isOdd) {
+          final prevStep = (i - 1) ~/ 2;
+          final isDone = prevStep < currentStep;
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: Container(
+                height: 2,
+                color: isDone
+                    ? AppColors.warning
+                    : context.colors.divider,
+              ),
+            ),
+          );
+        }
+        final idx = i ~/ 2;
+        final (label, icon) = steps[idx];
+        final isDone = idx < currentStep;
+        final isCurrent = idx == currentStep;
+        final color = isDone
+            ? AppColors.warning
+            : isCurrent
+                ? AppColors.warning
+                : context.colors.textTertiary;
+        return SizedBox(
+          width: 68,
+          child: Column(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: isDone || isCurrent
+                      ? AppColors.warning.withOpacity(0.15)
+                      : context.colors.card,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: color,
+                    width: isCurrent ? 2 : 1,
+                  ),
+                ),
+                child: Icon(icon, size: 14, color: color),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: AppTypography.caption.copyWith(
+                  fontSize: 10,
+                  height: 1.2,
+                  fontWeight:
+                      isCurrent ? FontWeight.w700 : FontWeight.w500,
+                  color: isDone || isCurrent
+                      ? context.colors.textPrimary
+                      : context.colors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
