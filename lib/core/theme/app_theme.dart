@@ -62,12 +62,17 @@ abstract final class AppTheme {
             disabledForegroundColor: AppColors.ink500,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+            shape: const StadiumBorder(),
             textStyle: AppTypography.body.copyWith(
               fontWeight: FontWeight.w700,
               color: AppColors.white,
             ),
             minimumSize: const Size.fromHeight(48),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            shape: const StadiumBorder(),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
@@ -115,7 +120,7 @@ abstract final class AppTheme {
           color: AppColors.white,
           elevation: 1,
           shadowColor: AppColors.psNavy.withValues(alpha: 0.08),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.lgAll),
           margin: const EdgeInsets.symmetric(vertical: 6),
         ),
         dividerTheme: const DividerThemeData(
@@ -208,12 +213,17 @@ abstract final class AppTheme {
             disabledForegroundColor: AppColors.ink500,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
+            shape: const StadiumBorder(),
             textStyle: AppTypography.body.copyWith(
               fontWeight: FontWeight.w700,
               color: AppColors.white,
             ),
             minimumSize: const Size.fromHeight(48),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            shape: const StadiumBorder(),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
@@ -261,7 +271,7 @@ abstract final class AppTheme {
           color: AppColors.darkSurface,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.mdAll,
+            borderRadius: AppRadius.lgAll,
             side: const BorderSide(color: AppColors.darkBorder, width: 0.5),
           ),
           margin: const EdgeInsets.symmetric(vertical: 6),

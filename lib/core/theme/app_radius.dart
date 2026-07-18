@@ -1,24 +1,22 @@
 import 'package:flutter/widgets.dart';
 
-/// Radios de PactStream (Design System v1.1).
+/// Radios de PactStream — Sistema ARCO (DESIGN-ECOSISTEMA.md 2026-07-18).
 ///
-/// Escala calibrada para fintech mobile: md (12) para cards, buttons e inputs;
-/// lg (16) para containers destacados; pill (999) para badges y pills.
-/// Referencia: Revolut, N26, Wise usan 12-16px en sus cards principales.
+/// Escala ARCO: xs 6 · sm 10 · md 14 (inputs) · lg 20 (card app) ·
+/// xl 28 (card marketing/hero) · pill 999 (CTA primario, pills de estado).
 abstract final class AppRadius {
   AppRadius._();
 
-  // Escala calibrada para fintech mobile (Revolut/N26/Wise reference).
-  // xxs=2 para drag-handles y líneas decorativas; micro=4 para progress
-  // bars y mini-badges; xs=6 evita la frialdad de 4px; md=12 da calidez
-  // a cards y buttons sin perder seriedad; lg=16 para containers destacados.
+  // xxs=2 y micro=4 se conservan para drag-handles/progress bars (fuera de
+  // la escala ARCO, no especificados por el design system). El resto sigue
+  // la escala ARCO: xs 6 · sm 10 · md 14 · lg 20 · xl 28 · pill 999.
   static const double xxs = 2.0;
   static const double micro = 4.0;
   static const double xs = 6.0;
-  static const double sm = 8.0;
-  static const double md = 12.0;
-  static const double lg = 16.0;
-  static const double xl = 20.0;
+  static const double sm = 10.0;
+  static const double md = 14.0;
+  static const double lg = 20.0;
+  static const double xl = 28.0;
   static const double pill = 999.0;
 
   // BorderRadius helpers
@@ -31,7 +29,7 @@ abstract final class AppRadius {
   static const BorderRadius xlAll = BorderRadius.all(Radius.circular(xl));
   static const BorderRadius pillAll = BorderRadius.all(Radius.circular(pill));
 
-  /// Top-only radius for bottom sheets (xl = 20px).
+  /// Top-only radius for bottom sheets (xl = 28px).
   static const BorderRadius sheetTop =
       BorderRadius.vertical(top: Radius.circular(xl));
 }
