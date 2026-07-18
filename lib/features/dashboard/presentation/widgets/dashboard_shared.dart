@@ -11,6 +11,7 @@ import '../../../../core/widgets/pressable_card.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../scoring/data/scoring_models.dart';
 import '../../../scoring/data/scoring_providers.dart';
+import '../../../pact/presentation/widgets/pact_state_badge.dart';
 import '../../../scoring/presentation/widgets/pact_score_shields.dart';
 import '../../data/dashboard_data.dart';
 
@@ -611,7 +612,10 @@ class WorkCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final config = _stateConfig(pact.state);
+    // Estado del pacto: se usa la MISMA fuente que la lista y el detalle
+    // (PactStateStyle). Antes había aquí un `_stateConfig` paralelo que pintaba
+    // "ACTIVA" en cian y "COMPLETADA" en verde, divergiendo del resto de la app.
+    final stateStyle = PactStateStyle.forPactState(pact.state, context);
     // Dot de salud: obtener score de pact_health para mostrar indicador
     final healthAsync = ref.watch(pactHealthProvider(pact.id));
     final healthColor = healthAsync.maybeWhen(
@@ -653,7 +657,7 @@ class WorkCard extends ConsumerWidget {
                   _HealthDot(color: healthColor, score: healthScore),
                   const SizedBox(width: AppSpacing.sm),
                 ],
-                StatusPill(label: config.label, color: config.color),
+                PactStateBadge(style: stateStyle, compact: true),
               ],
             ),
             const SizedBox(height: 4),
@@ -701,26 +705,6 @@ class WorkCard extends ConsumerWidget {
     );
   }
 
-  static ({String label, Color color}) _stateConfig(String state) {
-    switch (state) {
-      case 'in_execution':
-        return (label: 'ACTIVA', color: AppColors.psCyan);
-      case 'signing':
-      case 'signed':
-      case 'funded':
-        return (label: 'EN FIRMA', color: AppColors.psBlue);
-      case 'inviting':
-        return (label: 'PENDIENTE', color: AppColors.warning);
-      case 'paused_pending_tech':
-        return (label: 'PAUSADA', color: AppColors.warning);
-      case 'disputed':
-        return (label: 'EN DISPUTA', color: AppColors.error);
-      case 'completed':
-        return (label: 'COMPLETADA', color: AppColors.success);
-      default:
-        return (label: state.toUpperCase(), color: AppColors.ink500);
-    }
-  }
 }
 
 /// Pequeño dot de color con el score numérico del pacto.

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
 /// Helper centralizado para presentar el estado de un pacto o hito.
@@ -35,6 +34,12 @@ class PactStateStyle {
           bg: context.colors.warningBg,
           fg: AppColors.warning,
         );
+      case 'signing':
+        return PactStateStyle(
+          label: 'En firma',
+          bg: context.colors.infoBg,
+          fg: context.colors.brandAccent,
+        );
       case 'signed':
         return PactStateStyle(
           label: 'Firmado',
@@ -47,6 +52,12 @@ class PactStateStyle {
           bg: context.colors.warningBg,
           fg: AppColors.warning,
         );
+      case 'funded':
+        return PactStateStyle(
+          label: 'Fondeada',
+          bg: context.colors.infoBg,
+          fg: context.colors.brandAccent,
+        );
       case 'active':
       case 'in_execution':
         return PactStateStyle(
@@ -54,16 +65,31 @@ class PactStateStyle {
           bg: context.colors.successBg,
           fg: AppColors.success,
         );
+      case 'paused_pending_tech':
+        return PactStateStyle(
+          label: 'Pausada',
+          bg: context.colors.warningBg,
+          fg: AppColors.warning,
+        );
       case 'in_dispute':
+      case 'disputed':
         return PactStateStyle(
           label: 'En disputa',
           bg: context.colors.errorBg,
           fg: AppColors.error,
         );
+      // "Completado" = resultado bueno alcanzado (obra terminada y pagada) →
+      // VERDE, igual que `completado` en CostPact. Distinto de "cerrado",
+      // que es archivado/sin desenlace → gris.
       case 'completed':
-      case 'closed':
         return PactStateStyle(
           label: 'Completado',
+          bg: context.colors.successBg,
+          fg: AppColors.success,
+        );
+      case 'closed':
+        return PactStateStyle(
+          label: 'Cerrado',
           bg: context.colors.border,
           fg: context.colors.textPrimary,
         );
