@@ -95,11 +95,14 @@ flutter:
   uses-material-design: true
   generate: true
 
-  # Las fuentes Nunito vienen de google_fonts (descarga en runtime).
-  # Antes de producción, descargar los .ttf y declararlos localmente para
-  # builds offline.
+  # Fuentes bundleadas localmente (runtime fetching desactivado en main.dart).
+  # Sistema ARCO: Bricolage Grotesque (display) + Hanken Grotesk (UI) +
+  # JetBrains Mono (datos). Nunito solo para el wordmark del logo.
+  # google_fonts las resuelve desde assets/google_fonts/ por convención
+  # de nombre (Familia-Variante.ttf).
   assets:
     - assets/images/pactstream_logo.png
     - assets/images/pactstream_logo.svg
     - assets/images/pactstream_logo_white.svg
     - assets/images/pactstream_icon.svg
+    - assets/google_fonts/

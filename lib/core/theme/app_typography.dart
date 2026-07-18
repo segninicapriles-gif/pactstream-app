@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Sistema tipográfico de PactStream basado en Nunito.
+/// Sistema tipográfico de PactStream — Sistema ARCO.
 ///
-/// Escala según Design System v1.0:
+/// Display (XL/L/H1/H2): Bricolage Grotesque — voz diferencial del ecosistema.
+/// UI/Cuerpo (H3..label): Hanken Grotesk.
+/// Datos/dinero: JetBrains Mono (Cifra Viva).
+/// Nunito queda reservado al wordmark (pactstream_logo.dart).
+///
+/// Escala:
 ///   Display XL: 72 / 800 / -0.03em
 ///   Display L:  48 / 800 / -0.02em
 ///   H1:         32 / 700 / -0.01em
@@ -20,58 +25,58 @@ import 'package:google_fonts/google_fonts.dart';
 abstract final class AppTypography {
   AppTypography._();
 
-  static TextStyle get displayXL => GoogleFonts.nunito(
+  static TextStyle get displayXL => GoogleFonts.bricolageGrotesque(
         fontSize: 72,
         fontWeight: FontWeight.w800,
         height: 1.0,
         letterSpacing: -2.16, // -0.03em
       );
 
-  static TextStyle get displayL => GoogleFonts.nunito(
+  static TextStyle get displayL => GoogleFonts.bricolageGrotesque(
         fontSize: 48,
         fontWeight: FontWeight.w800,
         height: 1.05,
         letterSpacing: -0.96, // -0.02em
       );
 
-  static TextStyle get h1 => GoogleFonts.nunito(
+  static TextStyle get h1 => GoogleFonts.bricolageGrotesque(
         fontSize: 32,
         fontWeight: FontWeight.w700,
         height: 1.15,
         letterSpacing: -0.32, // -0.01em
       );
 
-  static TextStyle get h2 => GoogleFonts.nunito(
+  static TextStyle get h2 => GoogleFonts.bricolageGrotesque(
         fontSize: 24,
         fontWeight: FontWeight.w700,
         height: 1.2,
       );
 
-  static TextStyle get h3 => GoogleFonts.nunito(
+  static TextStyle get h3 => GoogleFonts.hankenGrotesk(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         height: 1.3,
       );
 
-  static TextStyle get bodyL => GoogleFonts.nunito(
+  static TextStyle get bodyL => GoogleFonts.hankenGrotesk(
         fontSize: 17,
         fontWeight: FontWeight.w400,
         height: 1.55,
       );
 
-  static TextStyle get body => GoogleFonts.nunito(
+  static TextStyle get body => GoogleFonts.hankenGrotesk(
         fontSize: 15,
         fontWeight: FontWeight.w400,
         height: 1.5,
       );
 
-  static TextStyle get bodyS => GoogleFonts.nunito(
+  static TextStyle get bodyS => GoogleFonts.hankenGrotesk(
         fontSize: 13,
         fontWeight: FontWeight.w400,
         height: 1.45,
       );
 
-  static TextStyle get caption => GoogleFonts.nunito(
+  static TextStyle get caption => GoogleFonts.hankenGrotesk(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         height: 1.4,
@@ -80,7 +85,7 @@ abstract final class AppTypography {
 
   /// Estilo para etiquetas de campos / secciones (más fuerte que body S).
   /// Usar para títulos de subsecciones dentro de cards.
-  static TextStyle get label => GoogleFonts.nunito(
+  static TextStyle get label => GoogleFonts.hankenGrotesk(
         fontSize: 12,
         fontWeight: FontWeight.w800,
         height: 1.3,

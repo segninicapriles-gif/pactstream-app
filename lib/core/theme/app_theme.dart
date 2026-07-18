@@ -48,7 +48,7 @@ abstract final class AppTheme {
           elevation: 0,
           centerTitle: true,
           systemOverlayStyle: SystemUiOverlayStyle.light,
-          titleTextStyle: GoogleFonts.nunito(
+          titleTextStyle: GoogleFonts.hankenGrotesk(
             color: AppColors.white,
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -136,12 +136,12 @@ abstract final class AppTheme {
           elevation: 0,
           showSelectedLabels: true,
           showUnselectedLabels: true,
-          selectedLabelStyle: GoogleFonts.nunito(
+          selectedLabelStyle: GoogleFonts.hankenGrotesk(
             fontSize: 11,
             fontWeight: FontWeight.w700,
             height: 1.5,
           ),
-          unselectedLabelStyle: GoogleFonts.nunito(
+          unselectedLabelStyle: GoogleFonts.hankenGrotesk(
             fontSize: 11,
             fontWeight: FontWeight.w500,
             height: 1.5,
@@ -199,7 +199,7 @@ abstract final class AppTheme {
           elevation: 0,
           centerTitle: true,
           systemOverlayStyle: SystemUiOverlayStyle.light,
-          titleTextStyle: GoogleFonts.nunito(
+          titleTextStyle: GoogleFonts.hankenGrotesk(
             color: AppColors.white,
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -289,12 +289,12 @@ abstract final class AppTheme {
           elevation: 0,
           showSelectedLabels: true,
           showUnselectedLabels: true,
-          selectedLabelStyle: GoogleFonts.nunito(
+          selectedLabelStyle: GoogleFonts.hankenGrotesk(
             fontSize: 11,
             fontWeight: FontWeight.w700,
             height: 1.5,
           ),
-          unselectedLabelStyle: GoogleFonts.nunito(
+          unselectedLabelStyle: GoogleFonts.hankenGrotesk(
             fontSize: 11,
             fontWeight: FontWeight.w500,
             height: 1.5,

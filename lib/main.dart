@@ -26,7 +26,9 @@ Future<void> main() async {
 
   // SECURITY: Disable runtime font fetching from Google CDN.
   // Fonts must be bundled locally to prevent tracking and MITM risks.
-  // Fonts used: Nunito, JetBrains Mono (UI), Merriweather (PDF generation).
+  // Bundled in assets/google_fonts/: Bricolage Grotesque (display),
+  // Hanken Grotesk (UI), JetBrains Mono (datos), Nunito (wordmark).
+  // Merriweather (PDF) usa PdfGoogleFonts de `printing`, vía red aparte.
   GoogleFonts.config.allowRuntimeFetching = false;
 
   // Variables de entorno via --dart-define-from-file (no bundled en APK).
