@@ -62,7 +62,7 @@ class PactStreamLogo extends StatelessWidget {
             Text(
               'PactStream',
               style: GoogleFonts.nunito(
-                fontSize: height * 0.58,
+                fontSize: height * 0.556, // canon lockup ecosistema: nombre = 0.556 × icono (36→20)
                 fontWeight: FontWeight.w700,
                 color: wordmarkColor,
                 height: 1.05,
@@ -72,7 +72,7 @@ class PactStreamLogo extends StatelessWidget {
             Text(
               'confidence to build',
               style: GoogleFonts.nunito(
-                fontSize: height * 0.24,
+                fontSize: height * 0.25, // canon: tagline = 0.25 × icono (36→9)
                 fontWeight: FontWeight.w400,
                 color: taglineColor,
                 height: 1.2,
