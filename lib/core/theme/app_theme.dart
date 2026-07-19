@@ -116,6 +116,10 @@ abstract final class AppTheme {
           hintStyle: AppTypography.body.copyWith(color: AppColors.ink400),
           errorStyle: AppTypography.bodyS.copyWith(color: AppColors.error),
         ),
+        // Gramática §8b: tarjetas SIN borde visible (shape sin `side` →
+        // BorderSide.none por defecto en RoundedRectangleBorder). Material's
+        // CardThemeData no soporta boxShadow multi-capa (AppShadows.s1), así
+        // que se aproxima con elevación muy baja + shadowColor navy tenue.
         cardTheme: CardThemeData(
           color: AppColors.white,
           elevation: 1,
@@ -136,9 +140,12 @@ abstract final class AppTheme {
           elevation: 0,
           showSelectedLabels: true,
           showUnselectedLabels: true,
+          // Gramática §8b: label activa w800 (antes w700), inactiva gris.
+          // Sin subrayado/indicador — BottomNavigationBarThemeData no
+          // dibuja chip ni caja alrededor del ítem seleccionado.
           selectedLabelStyle: GoogleFonts.hankenGrotesk(
             fontSize: 11,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             height: 1.5,
           ),
           unselectedLabelStyle: GoogleFonts.hankenGrotesk(
@@ -147,11 +154,13 @@ abstract final class AppTheme {
             height: 1.5,
           ),
         ),
+        // Gramática §8b: chips = mini-pill tintada ~12%, sin borde.
         chipTheme: ChipThemeData(
-          backgroundColor: AppColors.ink100,
-          labelStyle: AppTypography.caption.copyWith(color: AppColors.ink700),
+          backgroundColor: AppColors.psBlue.withValues(alpha: 0.12),
+          labelStyle: AppTypography.caption.copyWith(color: AppColors.psBlue),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           shape: const StadiumBorder(),
+          side: BorderSide.none,
         ),
         snackBarTheme: SnackBarThemeData(
           backgroundColor: AppColors.ink900,
@@ -267,13 +276,15 @@ abstract final class AppTheme {
           hintStyle: AppTypography.body.copyWith(color: AppColors.ink600),
           errorStyle: AppTypography.bodyS.copyWith(color: AppColors.error),
         ),
+        // Gramática §8b: tarjetas SIN borde visible (antes tenían
+        // BorderSide navy 0.5px — retirado). Se aproxima el efecto de
+        // AppShadows.s1 con elevación muy baja + shadowColor navy tenue,
+        // ya que CardThemeData no soporta boxShadow multi-capa.
         cardTheme: CardThemeData(
           color: AppColors.darkSurface,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.lgAll,
-            side: const BorderSide(color: AppColors.darkBorder, width: 0.5),
-          ),
+          elevation: 1,
+          shadowColor: AppColors.psNavy.withValues(alpha: 0.3),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.lgAll),
           margin: const EdgeInsets.symmetric(vertical: 6),
         ),
         dividerTheme: const DividerThemeData(
@@ -289,9 +300,12 @@ abstract final class AppTheme {
           elevation: 0,
           showSelectedLabels: true,
           showUnselectedLabels: true,
+          // Gramática §8b: label activa w800 (antes w700), inactiva gris.
+          // Sin subrayado/indicador — BottomNavigationBarThemeData no
+          // dibuja chip ni caja alrededor del ítem seleccionado.
           selectedLabelStyle: GoogleFonts.hankenGrotesk(
             fontSize: 11,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             height: 1.5,
           ),
           unselectedLabelStyle: GoogleFonts.hankenGrotesk(
@@ -300,11 +314,15 @@ abstract final class AppTheme {
             height: 1.5,
           ),
         ),
+        // Gramática §8b: chips = mini-pill tintada ~12-14%, sin borde.
+        // Tinte cyan (acento de luz de la bóveda) en vez de gris neutro,
+        // consistente con el resto de acentos interactivos en dark mode.
         chipTheme: ChipThemeData(
-          backgroundColor: AppColors.darkSurfaceElevated,
-          labelStyle: AppTypography.caption.copyWith(color: AppColors.ink400),
+          backgroundColor: AppColors.psCyan.withValues(alpha: 0.14),
+          labelStyle: AppTypography.caption.copyWith(color: AppColors.psCyan),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           shape: const StadiumBorder(),
+          side: BorderSide.none,
         ),
         snackBarTheme: SnackBarThemeData(
           backgroundColor: AppColors.darkSurfaceHigh,

@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Sistema tipográfico de PactStream — Sistema ARCO.
+/// Sistema tipográfico de PactStream — Sistema ARCO (gramática §8b, it.7).
 ///
-/// Display (XL/L/H1/H2): Bricolage Grotesque — voz diferencial del ecosistema.
+/// Display (XL/L/H1/H2): **Nunito** w700/800 — decisión Andrés it.7:
+/// Bricolage Grotesque queda FUERA (rechazado). Nunito vuelve a ser la
+/// voz display del ecosistema y del wordmark (pactstream_logo.dart).
 /// UI/Cuerpo (H3..label): Hanken Grotesk.
 /// Datos/dinero: JetBrains Mono (Cifra Viva).
-/// Nunito queda reservado al wordmark (pactstream_logo.dart).
+///
+/// ⚠️ NOTA DE ASSETS: `assets/google_fonts/` solo trae
+/// `Nunito-Bold.ttf` (700) y `Nunito-Regular.ttf` (400) — no hay
+/// `Nunito-ExtraBold.ttf` (800) bundleado. Con runtime fetching
+/// desactivado (`GoogleFonts.config.allowRuntimeFetching = false` en
+/// main.dart), `displayXL`/`displayL` piden w800 pero el motor solo
+/// tiene registrado el weight 700 para la familia "Nunito"; Flutter
+/// aplicará negrita sintética sobre esa instancia hasta que se añada
+/// `Nunito-ExtraBold.ttf` al bundle. Fuera de alcance de esta pasada
+/// (solo se tocan archivos de `lib/core/theme/`, no `assets/`/pubspec).
 ///
 /// Escala:
 ///   Display XL: 72 / 800 / -0.03em
@@ -25,28 +36,28 @@ import 'package:google_fonts/google_fonts.dart';
 abstract final class AppTypography {
   AppTypography._();
 
-  static TextStyle get displayXL => GoogleFonts.bricolageGrotesque(
+  static TextStyle get displayXL => GoogleFonts.nunito(
         fontSize: 72,
         fontWeight: FontWeight.w800,
         height: 1.0,
         letterSpacing: -2.16, // -0.03em
       );
 
-  static TextStyle get displayL => GoogleFonts.bricolageGrotesque(
+  static TextStyle get displayL => GoogleFonts.nunito(
         fontSize: 48,
         fontWeight: FontWeight.w800,
         height: 1.05,
         letterSpacing: -0.96, // -0.02em
       );
 
-  static TextStyle get h1 => GoogleFonts.bricolageGrotesque(
+  static TextStyle get h1 => GoogleFonts.nunito(
         fontSize: 32,
         fontWeight: FontWeight.w700,
         height: 1.15,
         letterSpacing: -0.32, // -0.01em
       );
 
-  static TextStyle get h2 => GoogleFonts.bricolageGrotesque(
+  static TextStyle get h2 => GoogleFonts.nunito(
         fontSize: 24,
         fontWeight: FontWeight.w700,
         height: 1.2,
