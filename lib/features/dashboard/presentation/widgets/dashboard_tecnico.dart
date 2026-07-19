@@ -86,6 +86,7 @@ class _Content extends StatelessWidget {
           child: HeroKpiScoreCard(
             eyebrow: 'OBRAS SUPERVISADAS',
             amount: data.activeWorks.toString(),
+            monetary: false,
             subtitle: data.newWorksThisMonth > 0
                 ? '+${data.newWorksThisMonth} este mes'
                 : 'Todas tus obras como técnico',

@@ -15,6 +15,7 @@ import '../../../ai/presentation/widgets/ai_verification_card.dart';
 import '../../data/milestone_detail.dart';
 import '../../data/pact_providers.dart';
 import '../widgets/pact_state_badge.dart';
+import '../../../../core/widgets/cifra_viva.dart';
 import '../../../../core/widgets/empty_state_view.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 
@@ -179,33 +180,37 @@ class _Header extends StatelessWidget {
                 .copyWith(fontSize: 11, color: co.textTertiary),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.psNavy,
-                  borderRadius: AppRadius.smAll,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.psNavy,
+              borderRadius: AppRadius.smAll,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CifraViva(
+                  amountCents: milestone.amountCents,
+                  showDecimals: true,
+                  size: CifraViva.xl,
+                  color: AppColors.white,
                 ),
-                child: Text(
-                  AppFormatters.moneyLong(milestone.amountCents),
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w800,
+                if (milestone.targetDate != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 14, color: AppColors.psCyan),
+                      const SizedBox(width: 4),
+                      Text(_date(milestone.targetDate!),
+                          style: AppTypography.bodyS
+                              .copyWith(color: AppColors.psCyan)),
+                    ],
                   ),
-                ),
-              ),
-              if (milestone.targetDate != null) ...[
-                const SizedBox(width: AppSpacing.sm),
-                Icon(Icons.calendar_today_outlined,
-                    size: 14, color: co.textTertiary),
-                const SizedBox(width: 4),
-                Text(_date(milestone.targetDate!),
-                    style: AppTypography.bodyS
-                        .copyWith(color: co.textTertiary)),
               ],
-            ],
+            ),
           ),
           if (milestone.description != null &&
               milestone.description!.trim().isNotEmpty) ...[

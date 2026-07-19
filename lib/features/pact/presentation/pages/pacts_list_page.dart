@@ -10,6 +10,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/animated_list_item.dart';
+import '../../../../core/widgets/cifra_viva.dart';
 import '../../../../core/widgets/empty_state_view.dart';
 import '../../../../core/widgets/pressable_card.dart';
 import '../../../../core/widgets/shimmer_box.dart';
@@ -593,9 +594,10 @@ class _PactCard extends StatelessWidget {
             // Importe + tipo
             Row(
               children: [
-                Text(
-                  AppFormatters.moneyShort(pact.totalAmountCents),
-                  style: AppTypography.h3.copyWith(fontSize: 18, color: co.textPrimary),
+                CifraViva(
+                  amountCents: pact.totalAmountCents,
+                  size: 18,
+                  color: co.textPrimary,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 _TypePill(pactType: pact.pactType),
@@ -671,14 +673,10 @@ class _PactCard extends StatelessWidget {
                       ),
                     ),
                     if (pact.nextMilestoneAmountCents != null)
-                      Text(
-                        AppFormatters.moneyShort(
-                            pact.nextMilestoneAmountCents!),
-                        style: AppTypography.bodyS
-                            .copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: co.textPrimary,
-                            ),
+                      CifraViva(
+                        amountCents: pact.nextMilestoneAmountCents!,
+                        size: 13,
+                        color: co.textPrimary,
                       ),
                   ],
                 ),

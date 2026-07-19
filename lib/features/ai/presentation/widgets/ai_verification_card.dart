@@ -21,6 +21,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/arco_gauge.dart';
 import '../../data/ai_models.dart';
 import '../../data/ai_providers.dart';
 import 'ai_verdict_badge.dart';
@@ -451,29 +452,20 @@ class _ScoreRow extends StatelessWidget {
     };
     return Row(
       children: [
-        // Score circle
-        SizedBox(
-          width: 52,
-          height: 52,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              CircularProgressIndicator(
-                value: verification.score / 100.0,
-                strokeWidth: 5,
-                backgroundColor: context.colors.border,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(scoreColor),
-              ),
-              Text(
-                '${verification.score}',
-                style: AppTypography.body.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: scoreColor,
-                  fontSize: 16,
-                ),
-              ),
-            ],
+        // Score gauge · Sistema ARCO (arco 270°, color semántico según
+        // el veredicto ya calculado arriba — sin inventar umbrales nuevos).
+        ArcoGauge(
+          size: 52,
+          progress: verification.score / 100.0,
+          color: scoreColor,
+          semanticLabel: 'Score IA: ${verification.score} de 100',
+          child: Text(
+            '${verification.score}',
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.w800,
+              color: scoreColor,
+              fontSize: 16,
+            ),
           ),
         ),
         const SizedBox(width: AppSpacing.md),

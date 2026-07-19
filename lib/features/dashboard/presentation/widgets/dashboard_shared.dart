@@ -6,7 +6,8 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/arco_gauge.dart';
+import '../../../../core/widgets/cifra_viva.dart';
 import '../../../../core/widgets/pressable_card.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../scoring/data/scoring_models.dart';
@@ -29,6 +30,7 @@ class HeroKpiCard extends StatelessWidget {
     required this.subtitle,
     required this.subtitleColor,
     this.icon = Icons.shield_outlined,
+    this.monetary = true,
   });
 
   final String eyebrow;
@@ -36,6 +38,12 @@ class HeroKpiCard extends StatelessWidget {
   final String subtitle;
   final Color subtitleColor;
   final IconData icon;
+
+  /// `true` (por defecto) cuando [amount] es un importe — se renderiza con
+  /// Cifra Viva (JetBrains Mono, entero fuerte + decimales/símbolo tenues).
+  /// Pasar `false` cuando [amount] es un conteo (p. ej. nº de obras), no un
+  /// importe.
+  final bool monetary;
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +66,16 @@ class HeroKpiCard extends StatelessWidget {
           Text(eyebrow,
               style: AppTypography.caption.copyWith(color: AppColors.psCyan)),
           const SizedBox(height: AppSpacing.xs),
-          Text(amount,
-              style: AppTypography.displayL
-                  .copyWith(color: AppColors.white, fontSize: 36)),
+          if (monetary)
+            CifraViva(
+              formatted: amount,
+              size: 36,
+              color: AppColors.white,
+            )
+          else
+            Text(amount,
+                style: AppTypography.displayL
+                    .copyWith(color: AppColors.white, fontSize: 36)),
           const SizedBox(height: AppSpacing.xs),
           Row(
             children: [
@@ -96,6 +111,8 @@ class HeroKpiScoreCard extends ConsumerWidget {
     this.secondaryValue,
     this.icon = Icons.shield_outlined,
     this.gradientColors,
+    this.monetary = true,
+    this.secondaryMonetary = true,
   });
 
   final String eyebrow;
@@ -106,6 +123,13 @@ class HeroKpiScoreCard extends ConsumerWidget {
   final String? secondaryLabel;
   final String? secondaryValue;
   final IconData icon;
+
+  /// `true` (por defecto) cuando [amount] es un importe — Cifra Viva. Pasar
+  /// `false` cuando [amount] es un conteo (p. ej. nº de obras del técnico).
+  final bool monetary;
+
+  /// Igual que [monetary] pero para [secondaryValue].
+  final bool secondaryMonetary;
 
   /// Optional custom gradient colors. Defaults to [AppColors.psNavy, AppColors.ink800].
   /// Pass a custom list to differentiate hero cards per role (e.g. técnico).
@@ -141,14 +165,21 @@ class HeroKpiScoreCard extends ConsumerWidget {
                       .copyWith(color: AppColors.psCyan, letterSpacing: 1.0),
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(
-                  amount,
-                  style: AppTypography.displayL.copyWith(
+                if (monetary)
+                  CifraViva(
+                    formatted: amount,
+                    size: 30,
                     color: AppColors.white,
-                    fontSize: 30,
-                    height: 1.1,
+                  )
+                else
+                  Text(
+                    amount,
+                    style: AppTypography.displayL.copyWith(
+                      color: AppColors.white,
+                      fontSize: 30,
+                      height: 1.1,
+                    ),
                   ),
-                ),
                 const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
@@ -172,13 +203,20 @@ class HeroKpiScoreCard extends ConsumerWidget {
                       letterSpacing: 0.8,
                     ),
                   ),
-                  Text(
-                    secondaryValue!,
-                    style: AppTypography.body.copyWith(
+                  if (secondaryMonetary)
+                    CifraViva(
+                      formatted: secondaryValue!,
+                      size: 16,
                       color: AppColors.white,
-                      fontWeight: FontWeight.w700,
+                    )
+                  else
+                    Text(
+                      secondaryValue!,
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
                 ],
               ],
             ),
@@ -311,68 +349,42 @@ class _AnimatedScorePanelState extends State<_AnimatedScorePanel>
                 ),
               ),
               const SizedBox(height: 6),
-              // Score ring con arco animado
-              SizedBox(
-                width: 50,
-                height: 50,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Arco de fondo
-                    SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: CircularProgressIndicator(
-                        value: 1.0,
-                        strokeWidth: 2.5,
-                        backgroundColor: Colors.transparent,
-                        valueColor: AlwaysStoppedAnimation(
-                          color.withValues(alpha: 0.2),
+              // Score gauge · Sistema ARCO (arco 270°, ya animado por el
+              // AnimationController del panel — no re-animar internamente).
+              ArcoGauge(
+                size: 50,
+                progress: ringProgress,
+                color: color,
+                trackColor: color.withValues(alpha: 0.2),
+                animate: false,
+                semanticLabel: 'Trust Score',
+                child: isElite
+                    ? ShaderMask(
+                        shaderCallback: (b) => LinearGradient(
+                          colors: [
+                            AppColors.tierElite1,
+                            AppColors.tierElite2,
+                          ],
+                        ).createShader(b),
+                        child: Text(
+                          '$displayScore',
+                          style: AppTypography.body.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            height: 1,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        '$displayScore',
+                        style: AppTypography.body.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          height: 1,
                         ),
                       ),
-                    ),
-                    // Arco animado de progreso
-                    SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: CircularProgressIndicator(
-                        value: ringProgress.clamp(0.0, 1.0),
-                        strokeWidth: 2.5,
-                        backgroundColor: Colors.transparent,
-                        valueColor: AlwaysStoppedAnimation(color),
-                        strokeCap: StrokeCap.round,
-                      ),
-                    ),
-                    // Número animado
-                    isElite
-                        ? ShaderMask(
-                            shaderCallback: (b) => LinearGradient(
-                              colors: [
-                                AppColors.tierElite1,
-                                AppColors.tierElite2,
-                              ],
-                            ).createShader(b),
-                            child: Text(
-                              '$displayScore',
-                              style: AppTypography.body.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                                height: 1,
-                              ),
-                            ),
-                          )
-                        : Text(
-                            '$displayScore',
-                            style: AppTypography.body.copyWith(
-                              color: color,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                              height: 1,
-                            ),
-                          ),
-                  ],
-                ),
               ),
               const SizedBox(height: 5),
               Text(
@@ -691,10 +703,10 @@ class WorkCard extends ConsumerWidget {
               children: [
                 Text('Progreso: ${pact.progressPct}%',
                     style: AppTypography.bodyS.copyWith(color: co.textSecondary)),
-                Text(
-                  AppFormatters.moneyShort(pact.totalAmountCents),
-                  style: AppTypography.body
-                      .copyWith(fontWeight: FontWeight.w700, color: co.textPrimary),
+                CifraViva(
+                  amountCents: pact.totalAmountCents,
+                  size: 15,
+                  color: co.textPrimary,
                 ),
               ],
             ),
