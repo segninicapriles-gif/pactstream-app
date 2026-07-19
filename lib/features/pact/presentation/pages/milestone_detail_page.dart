@@ -1505,11 +1505,8 @@ class _DisputeBanner extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: context.colors.scaffold,
-                  borderRadius: AppRadius.smAll,
-                  border: Border(
-                    left: BorderSide(color: AppColors.warning, width: 3),
-                  ),
+                  color: AppColors.warning.withValues(alpha: 0.10),
+                  borderRadius: AppRadius.mdAll,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

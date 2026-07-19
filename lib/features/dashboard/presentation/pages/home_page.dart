@@ -500,12 +500,12 @@ class _AdaptiveNavigationRail extends StatelessWidget {
       onDestinationSelected: onDestinationSelected,
       labelType: NavigationRailLabelType.all,
       backgroundColor: c.navBg,
-      indicatorColor: c.pillBg,
+      indicatorColor: Colors.transparent,
       selectedIconTheme: const IconThemeData(color: AppColors.psBlue),
       unselectedIconTheme: IconThemeData(color: c.textTertiary),
       selectedLabelTextStyle: AppTypography.caption.copyWith(
         color: AppColors.psBlue,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
         letterSpacing: 0,
       ),
       unselectedLabelTextStyle: AppTypography.caption.copyWith(

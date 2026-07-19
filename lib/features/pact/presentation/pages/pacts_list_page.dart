@@ -194,28 +194,27 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                       return Padding(
                         padding:
                             const EdgeInsets.only(right: AppSpacing.xs),
-                        child: ChoiceChip(
-                          label: Text(label),
-                          selected: selected,
-                          onSelected: (_) =>
+                        child: InkWell(
+                          onTap: () =>
                               setState(() => _selectedFilter = label),
-                          labelStyle: AppTypography.bodyS.copyWith(
-                            color: selected
-                                ? AppColors.white
-                                : context.colors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          selectedColor: AppColors.psBlue,
-                          backgroundColor: context.colors.chipBg,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.xlAll,
-                            side: BorderSide.none,
-                          ),
-                          side: BorderSide.none,
-                          showCheckmark: false,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: 2,
+                          borderRadius: AppRadius.smAll,
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                              vertical: 13,
+                            ),
+                            child: Text(
+                              label,
+                              style: AppTypography.bodyS.copyWith(
+                                color: selected
+                                    ? AppColors.psBlue
+                                    : context.colors.textSecondary,
+                                fontWeight: selected
+                                    ? FontWeight.w800
+                                    : FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
                       );
@@ -318,28 +317,27 @@ class _PactsListPageState extends ConsumerState<PactsListPage> {
                       return Padding(
                         padding:
                             const EdgeInsets.only(right: AppSpacing.xs),
-                        child: ChoiceChip(
-                          label: Text(label),
-                          selected: selected,
-                          onSelected: (_) =>
+                        child: InkWell(
+                          onTap: () =>
                               setState(() => _selectedFilter = label),
-                          labelStyle: AppTypography.bodyS.copyWith(
-                            color: selected
-                                ? AppColors.white
-                                : context.colors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          selectedColor: AppColors.psBlue,
-                          backgroundColor: context.colors.chipBg,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.xlAll,
-                            side: BorderSide.none,
-                          ),
-                          side: BorderSide.none,
-                          showCheckmark: false,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: 2,
+                          borderRadius: AppRadius.smAll,
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                              vertical: 13,
+                            ),
+                            child: Text(
+                              label,
+                              style: AppTypography.bodyS.copyWith(
+                                color: selected
+                                    ? AppColors.psBlue
+                                    : context.colors.textSecondary,
+                                fontWeight: selected
+                                    ? FontWeight.w800
+                                    : FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
                       );
