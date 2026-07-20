@@ -53,8 +53,7 @@ class MiniBarChart extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: c.card,
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(color: c.border),
+          borderRadius: AppRadius.lgAll,
           boxShadow: AppShadows.soft,
         ),
         child: Column(
@@ -102,8 +101,7 @@ class MiniBarChart extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: c.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Column(

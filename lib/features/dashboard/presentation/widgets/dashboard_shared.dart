@@ -53,7 +53,7 @@ class HeroKpiCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.psNavy,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -144,7 +144,7 @@ class HeroKpiScoreCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -422,14 +422,13 @@ class MiniKpiCard extends StatelessWidget {
     required this.value,
     this.subtitle,
     this.subtitleColor,
-    this.accentColor,
+    @Deprecated('ARCO §8b prohíbe borde-acento lateral') this.accentColor,
   });
 
   final String label;
   final String value;
   final String? subtitle;
   final Color? subtitleColor;
-  /// Optional left accent bar color for quick visual identification.
   final Color? accentColor;
 
   @override
@@ -438,45 +437,30 @@ class MiniKpiCard extends StatelessWidget {
     return Semantics(
       label: '$label: $value${subtitle != null ? '. $subtitle' : ''}',
       child: Container(
-      clipBehavior: Clip.antiAlias,
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: co.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: co.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (accentColor != null)
-              Container(width: 4, color: accentColor),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label,
-                        style: AppTypography.caption
-                            .copyWith(color: context.colors.textTertiary)),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(value,
-                        style: AppTypography.h2.copyWith(
-                            fontSize: 22,
-                            color: context.colors.textPrimary)),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(subtitle!,
-                          style: AppTypography.bodyS.copyWith(
-                              color: subtitleColor ?? context.colors.textTertiary)),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: AppTypography.caption
+                  .copyWith(color: context.colors.textTertiary)),
+          const SizedBox(height: AppSpacing.xs),
+          Text(value,
+              style: AppTypography.h2.copyWith(
+                  fontSize: 22,
+                  color: context.colors.textPrimary)),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(subtitle!,
+                style: AppTypography.bodyS.copyWith(
+                    color: subtitleColor ?? context.colors.textTertiary)),
           ],
-        ),
+        ],
       ),
       ),
     );
@@ -549,13 +533,12 @@ class UrgentTaskCard extends StatelessWidget {
       label: '${task.title}. ${task.subtitle}. ${task.badgeLabel}',
       child: PressableCard(
         onTap: onTap,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: co.card,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: co.border),
+            borderRadius: AppRadius.lgAll,
             boxShadow: AppShadows.soft,
           ),
           child: Row(
@@ -645,13 +628,12 @@ class WorkCard extends ConsumerWidget {
       label: '${pact.title}. ${pact.city}. Progreso ${pact.progressPct}%',
       child: PressableCard(
         onTap: onTap,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: co.card,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: co.border),
+            borderRadius: AppRadius.lgAll,
             boxShadow: AppShadows.soft,
           ),
           child: Column(
@@ -815,8 +797,8 @@ class EmptyWorksCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: co.scaffold,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: co.border),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Row(
         children: [
@@ -886,7 +868,7 @@ class DashboardErrorBlock extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: context.colors.errorBg,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
       ),
       child: Column(
         children: [
@@ -916,10 +898,7 @@ class DashboardErrorBlock extends StatelessWidget {
 // Técnico validation task card (prominent card with "Validar ahora" CTA)
 // =====================================================================
 
-/// A more prominent task card for técnico validation tasks.
-///
-/// Shows a green/accent left bar, task info, and a filled "Validar ahora"
-/// button on the right. Uses [AppColors.tecnicoAccent] color scheme.
+/// Task card for técnico validation tasks (ARCO §8b: tarjeta uniforme).
 class TecnicoValidationTaskCard extends StatelessWidget {
   const TecnicoValidationTaskCard({
     super.key,
@@ -941,7 +920,7 @@ class TecnicoValidationTaskCard extends StatelessWidget {
   /// Called when tapping the CTA button. Defaults to [onTap] if null.
   final VoidCallback? onCtaTap;
 
-  /// Override the accent color. Defaults to [AppColors.tecnicoAccent].
+  /// Accent used for icon bg and CTA. Defaults to [AppColors.tecnicoAccent].
   final Color? accentColor;
 
   @override
@@ -953,88 +932,69 @@ class TecnicoValidationTaskCard extends StatelessWidget {
       label: '${task.title}. ${task.subtitle}. $ctaLabel',
       child: PressableCard(
         onTap: onTap,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         child: Container(
-          clipBehavior: Clip.antiAlias,
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: context.colors.card,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: accent.withValues(alpha: 0.3)),
+            borderRadius: AppRadius.lgAll,
             boxShadow: AppShadows.soft,
           ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ─── Left accent bar ───
-                Container(width: 4, color: accent),
-                // ─── Content ───
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Row(
-                      children: [
-                        // Icon
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.12),
-                            borderRadius: AppRadius.smAll,
-                          ),
-                          child: Icon(
-                            _iconForValidationKind(task.kind),
-                            color: accent,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        // Title + subtitle
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                task.title,
-                                style: AppTypography.body
-                                    .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                task.subtitle,
-                                style: AppTypography.bodyS
-                                    .copyWith(color: context.colors.textTertiary),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        // CTA button
-                        FilledButton(
-                          onPressed: onCtaTap ?? onTap,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: accent,
-                            foregroundColor: AppColors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.md,
-                              vertical: AppSpacing.sm,
-                            ),
-                            textStyle: AppTypography.bodyS.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: AppRadius.smAll,
-                            ),
-                          ),
-                          child: Text(ctaLabel),
-                        ),
-                      ],
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.smAll,
+                ),
+                child: Icon(
+                  _iconForValidationKind(task.kind),
+                  color: accent,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      task.title,
+                      style: AppTypography.body
+                          .copyWith(fontWeight: FontWeight.w700, color: context.colors.textPrimary),
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      task.subtitle,
+                      style: AppTypography.bodyS
+                          .copyWith(color: context.colors.textTertiary),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              FilledButton(
+                onPressed: onCtaTap ?? onTap,
+                style: FilledButton.styleFrom(
+                  backgroundColor: accent,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  textStyle: AppTypography.bodyS.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppRadius.smAll,
                   ),
                 ),
-              ],
-            ),
+                child: Text(ctaLabel),
+              ),
+            ],
           ),
         ),
       ),
