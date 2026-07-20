@@ -638,8 +638,54 @@ serve(async (req: Request) => {
       run_type: body.runType,
       has_tool_call: !!response.tool_call,
       verdict: response.vision_dictum?.verdict ?? null,
+      // score_numeric alimenta sf_recalc_pact_health (métrica IA del trust
+      // score). Sin esto, v_avg_ia_score era siempre NULL → ia_evidence_score
+      // se quedaba en el neutral 75, nunca reflejaba la verificación real.
+      score_numeric: response.vision_dictum?.score ?? null,
+      // sf_check_quality_holdback busca por metadata->>'milestone_id' (no por
+      // la columna) para hallar el último score del hito. Sin esto, la ruta
+      // primaria del holdback no matcheaba y dependía solo del fallback.
+      milestone_id: body.milestoneId ?? null,
     },
   });
+
+  // 5b. Vision: persistir el dictamen en milestone_ai_verifications y refrescar
+  //     el snapshot de salud. Las dos RPCs (sf_record_ai_verification y
+  //     sf_recalc_pact_health) ya existían; el gateway simplemente no las
+  //     invocaba, así que el dictamen no se guardaba y el score IA quedaba
+  //     estático. Best-effort: un fallo de persistencia no rompe la respuesta.
+  if (success && body.runType === 'vision' && body.milestoneId && response.vision_dictum) {
+    const vd = response.vision_dictum;
+    const p = body.payload as { evidences_count?: number; documents_count?: number };
+    try {
+      await adminClient.rpc('sf_record_ai_verification', {
+        p_milestone_id: body.milestoneId,
+        p_provider: response.provider,
+        p_model: response.model,
+        p_prompt_version: response.prompt_version,
+        p_input_hash: await sha256(
+          `${body.pactId}:${body.milestoneId}:${response.provider}:${response.prompt_version}:${vd.score}`,
+        ),
+        p_evidences_count: Number(p?.evidences_count ?? 0),
+        p_documents_count: Number(p?.documents_count ?? 0),
+        p_score: vd.score,
+        p_verdict: vd.verdict,
+        p_summary: vd.summary,
+        p_findings: vd.findings ?? [],
+        p_checklist_match: vd.checklist_match ?? [],
+        p_recommendation: vd.recommendation ?? null,
+        p_input_tokens: response.input_tokens || null,
+        p_output_tokens: response.output_tokens || null,
+        p_cache_read_tokens: response.cache_read_tokens || null,
+        p_cost_cents: response.cost_cents,
+        p_duration_ms: response.duration_ms,
+      });
+      // El recalc lee ai_runs.metadata.score_numeric (ya insertado arriba).
+      await adminClient.rpc('sf_recalc_pact_health', { p_pact_id: body.pactId });
+    } catch (persistErr) {
+      console.error('[ai-gateway] persistencia/recalc de vision falló', persistErr);
+    }
+  }
 
   if (LOG_PAYLOADS) {
     console.log('[ai-gateway] response', JSON.stringify(response));
