@@ -3,21 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Sistema tipográfico de PactStream — Sistema ARCO (gramática §8b, it.7).
 ///
-/// Display (XL/L/H1/H2): **Nunito** w700/800 — decisión Andrés it.7:
-/// Bricolage Grotesque queda FUERA (rechazado). Nunito vuelve a ser la
-/// voz display del ecosistema y del wordmark (pactstream_logo.dart).
+/// Display (XL/L/H1/H2): **Nunito** w700/800.
 /// UI/Cuerpo (H3..label): Hanken Grotesk.
 /// Datos/dinero: JetBrains Mono (Cifra Viva).
 ///
-/// ⚠️ NOTA DE ASSETS: `assets/google_fonts/` solo trae
-/// `Nunito-Bold.ttf` (700) y `Nunito-Regular.ttf` (400) — no hay
-/// `Nunito-ExtraBold.ttf` (800) bundleado. Con runtime fetching
-/// desactivado (`GoogleFonts.config.allowRuntimeFetching = false` en
-/// main.dart), `displayXL`/`displayL` piden w800 pero el motor solo
-/// tiene registrado el weight 700 para la familia "Nunito"; Flutter
-/// aplicará negrita sintética sobre esa instancia hasta que se añada
-/// `Nunito-ExtraBold.ttf` al bundle. Fuera de alcance de esta pasada
-/// (solo se tocan archivos de `lib/core/theme/`, no `assets/`/pubspec).
+/// Assets: Nunito (Regular/Bold/ExtraBold), Hanken Grotesk (5 weights),
+/// JetBrains Mono (3 weights) en `assets/google_fonts/`.
 ///
 /// Escala:
 ///   Display XL: 72 / 800 / -0.03em

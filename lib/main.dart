@@ -26,8 +26,8 @@ Future<void> main() async {
 
   // SECURITY: Disable runtime font fetching from Google CDN.
   // Fonts must be bundled locally to prevent tracking and MITM risks.
-  // Bundled in assets/google_fonts/: Bricolage Grotesque (display),
-  // Hanken Grotesk (UI), JetBrains Mono (datos), Nunito (wordmark).
+  // Bundled in assets/google_fonts/: Nunito (display),
+  // Hanken Grotesk (UI), JetBrains Mono (datos).
   // Merriweather (PDF) usa PdfGoogleFonts de `printing`, vía red aparte.
   GoogleFonts.config.allowRuntimeFetching = false;
 

@@ -96,8 +96,8 @@ flutter:
   generate: true
 
   # Fuentes bundleadas localmente (runtime fetching desactivado en main.dart).
-  # Sistema ARCO: Bricolage Grotesque (display) + Hanken Grotesk (UI) +
-  # JetBrains Mono (datos). Nunito solo para el wordmark del logo.
+  # Sistema ARCO: Nunito (display) + Hanken Grotesk (UI) +
+  # JetBrains Mono (datos).
   # google_fonts las resuelve desde assets/google_fonts/ por convención
   # de nombre (Familia-Variante.ttf).
   assets:
