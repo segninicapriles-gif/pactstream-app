@@ -8,10 +8,15 @@ import '../utils/formatters.dart';
 /// Cifra Viva — Sistema ARCO §1/§8 (ver
 /// `design-ecosistema-2026-07/DESIGN-ECOSISTEMA.md`).
 ///
-/// Renderiza un importe en JetBrains Mono tabular con la firma del
+/// Renderiza un importe en Nunito (cifras tabulares) con la firma del
 /// ecosistema: la parte entera en w700 (el dato que se reconoce "a un
 /// metro de distancia"), los decimales y el símbolo de moneda en w400
 /// al 55% de opacidad (el detalle, en segundo plano).
+///
+/// NOTA (decisión Andrés, 20-jul): la Cifra Viva pasó de JetBrains Mono a
+/// Nunito para armonizar con los titulares — las formas monoespaciadas
+/// chocaban con la estética redondeada del sistema. Cambio en todo el
+/// ecosistema (web + apps). No revertir a mono creyendo que es un bug.
 ///
 /// Dos formas de uso:
 ///
@@ -112,7 +117,7 @@ class CifraViva extends StatelessWidget {
 
     final parts = _splitAmount(text, symbol);
 
-    final boldStyle = GoogleFonts.jetBrainsMono(
+    final boldStyle = GoogleFonts.nunito(
       fontSize: size,
       fontWeight: fontWeight,
       color: baseColor,
