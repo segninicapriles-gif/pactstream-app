@@ -380,7 +380,7 @@ class _PactDetailPageState extends ConsumerState<PactDetailPage> {
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   decoration: BoxDecoration(
                     color: context.colors.card,
-                    borderRadius: AppRadius.mdAll,
+                    borderRadius: AppRadius.lgAll,
                   ),
                   child: AddendumsSection(
                     detail: detail,
@@ -438,13 +438,12 @@ class _ContractPdfLink extends StatelessWidget {
     final co = context.colors;
     return InkWell(
       onTap: () => context.push('/pacts/$pactId/contract-pdf'),
-      borderRadius: AppRadius.mdAll,
+      borderRadius: AppRadius.lgAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: co.card,
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(color: co.border),
+          borderRadius: AppRadius.lgAll,
           boxShadow: AppShadows.soft,
         ),
         child: Row(
@@ -494,13 +493,12 @@ class _ObraReportLink extends StatelessWidget {
     final co = context.colors;
     return InkWell(
       onTap: () => context.push('/pacts/$pactId/obra-report'),
-      borderRadius: AppRadius.mdAll,
+      borderRadius: AppRadius.lgAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: co.card,
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(color: co.border),
+          borderRadius: AppRadius.lgAll,
           boxShadow: AppShadows.soft,
         ),
         child: Row(
@@ -561,7 +559,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: co.card,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -657,7 +655,7 @@ class _MoneySummary extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.psNavy,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -739,7 +737,7 @@ class _PartiesSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: co.card,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -993,7 +991,7 @@ class _MilestonesSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: co.card,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1504,7 +1502,7 @@ class _PrimaryActionCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: AppColors.psGradientDeep,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1576,8 +1574,8 @@ class _InfoCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: co.brandAccentBg,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: co.brandAccent, width: 1),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1640,11 +1638,8 @@ class _ViaOrgBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.borderSubtle,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(
-          color: context.colors.border,
-          width: 1,
-        ),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1698,8 +1693,8 @@ class _EconomicsHidden extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: co.scaffold,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: co.border, width: 1),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Row(
         children: [
@@ -1755,17 +1750,17 @@ class _ChatCta extends ConsumerWidget {
     final co = context.colors;
     return Material(
       color: co.card,
-      borderRadius: AppRadius.mdAll,
+      borderRadius: AppRadius.lgAll,
       child: InkWell(
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         onTap: () => context.push(
           '/pacts/$pactId/chat?title=${Uri.encodeComponent(pactTitle)}',
         ),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: co.border),
+            borderRadius: AppRadius.lgAll,
+            boxShadow: AppShadows.soft,
           ),
           child: Row(
             children: [
@@ -1865,21 +1860,11 @@ class _InlineTrustScoreCard extends ConsumerWidget {
         decoration: BoxDecoration(
           borderRadius: AppRadius.lgAll,
           color: co.card,
-          border: Border.all(color: co.brandAccent, width: 1.2),
           boxShadow: AppShadows.soft,
         ),
-        child: ClipRRect(
-          borderRadius: AppRadius.lgAll,
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Accent bar izquierdo azul
-                Container(width: 4, color: co.brandAccent),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Row(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
                       children: [
                         // Score circle
                         healthAsync.when(
@@ -1949,12 +1934,7 @@ class _InlineTrustScoreCard extends ConsumerWidget {
                           color: co.brandAccent,
                           size: 20,
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
         ),
       ),

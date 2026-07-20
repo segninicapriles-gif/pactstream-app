@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
@@ -539,8 +540,8 @@ class _SuccessScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: context.colors.infoBg,
-                  borderRadius: AppRadius.smAll,
-                  border: Border.all(color: AppColors.psBlue, width: 1),
+                  borderRadius: AppRadius.lgAll,
+                  boxShadow: AppShadows.soft,
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -164,7 +164,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: context.colors.infoBg,
-                  borderRadius: AppRadius.mdAll,
+                  borderRadius: AppRadius.lgAll,
                 ),
                 child: Column(
                   children: [

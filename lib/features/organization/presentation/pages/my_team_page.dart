@@ -166,8 +166,7 @@ class _OrgHeaderCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: context.colors.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: context.colors.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -392,8 +391,7 @@ class _MemberTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: context.colors.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Row(

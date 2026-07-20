@@ -348,15 +348,12 @@ class _NotificationCard extends ConsumerWidget {
       label: '${isUnread ? "Sin leer. " : ""}${item.title}. ${item.body}',
       child: PressableCard(
         onTap: () => _open(context, ref),
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: isUnread ? c.infoBg : c.card,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(
-              color: isUnread ? c.brandAccent : c.border,
-            ),
+            borderRadius: AppRadius.lgAll,
             boxShadow: AppShadows.soft,
           ),
           child: Row(

@@ -90,8 +90,7 @@ class MoneyTimeline extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: context.colors.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Column(

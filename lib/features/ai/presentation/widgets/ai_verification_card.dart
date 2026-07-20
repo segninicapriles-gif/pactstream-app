@@ -19,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/arco_gauge.dart';
@@ -48,10 +49,8 @@ class AiVerificationCard extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.colors.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(
-          color: AppColors.psBlue.withValues(alpha: 0.2),
-        ),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

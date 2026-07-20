@@ -139,7 +139,8 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: co.card,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +254,8 @@ class _EvidencesSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: co.card,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -383,8 +385,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
     return Container(
       decoration: BoxDecoration(
         color: co.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: co.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -776,7 +777,7 @@ class _SubmitForReviewCtaState
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: AppColors.psGradientDeep,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -947,7 +948,7 @@ class _TechReviewCtaState extends ConsumerState<_TechReviewCta> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.tecnicoAccent,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         gradient: const LinearGradient(
           colors: [AppColors.tecnicoAccent, AppColors.tecnicoAccentDark],
         ),
@@ -1162,7 +1163,7 @@ class _PromotorDecideCtaState extends ConsumerState<_PromotorDecideCta> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: AppColors.psGradientDeep,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1268,7 +1269,7 @@ class _ReworkBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: rejected ? context.colors.errorBg : context.colors.warningBg,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         border: Border.all(
           color: rejected ? AppColors.error : AppColors.warning,
           width: 1,
@@ -1370,7 +1371,7 @@ class _PaidBanner extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.successBg,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         border: Border.all(color: AppColors.success, width: 1),
       ),
       child: Row(
@@ -1454,7 +1455,7 @@ class _DisputeBanner extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: context.colors.card,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         border: Border.all(color: AppColors.warning, width: 1),
         boxShadow: AppShadows.soft,
       ),

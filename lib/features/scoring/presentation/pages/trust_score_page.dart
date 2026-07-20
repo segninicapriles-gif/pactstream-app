@@ -152,9 +152,6 @@ class _FinancingCtaCard extends StatelessWidget {
             : null,
         color: unlocked ? null : context.colors.card,
         borderRadius: AppRadius.lgAll,
-        border: unlocked
-            ? null
-            : Border.all(color: context.colors.border),
         boxShadow: unlocked ? const [] : AppShadows.soft,
       ),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -248,7 +245,6 @@ class _FactorsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.card,
         borderRadius: AppRadius.lgAll,
-        border: Border.all(color: context.colors.border),
         boxShadow: AppShadows.soft,
       ),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -289,7 +285,6 @@ class _StatusCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.card,
         borderRadius: AppRadius.lgAll,
-        border: Border.all(color: context.colors.border),
         boxShadow: AppShadows.soft,
       ),
       padding: const EdgeInsets.all(AppSpacing.lg),

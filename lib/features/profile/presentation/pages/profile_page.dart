@@ -725,8 +725,7 @@ class _KycSection extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: spec.fg.withValues(alpha: 0.3)),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Row(
@@ -855,8 +854,7 @@ class _RoleDataCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: c.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -964,8 +962,7 @@ class _NotificationsCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: c.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -1112,8 +1109,7 @@ class _StatBox extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: c.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -1341,8 +1337,7 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
     return Container(
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: c.border),
+        borderRadius: AppRadius.lgAll,
         boxShadow: AppShadows.soft,
       ),
       child: Column(

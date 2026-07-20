@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
@@ -95,8 +96,8 @@ class _CustodyWidgetV21 extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.successBg,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: AppColors.success, width: 1),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -210,8 +211,8 @@ class _UnfundedV21 extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.brandAccentBg,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: context.colors.brandAccent, width: 1),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -513,8 +514,8 @@ class _DepositWidgetV20 extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: accent, width: 1),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -350,7 +350,6 @@ class _CardShell extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.card,
         borderRadius: AppRadius.lgAll,
-        border: Border.all(color: c.border),
         boxShadow: AppShadows.soft,
       ),
       child: child,

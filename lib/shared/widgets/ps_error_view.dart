@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -29,7 +30,8 @@ class PsErrorView extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: co.errorBg,
-          borderRadius: AppRadius.mdAll,
+          borderRadius: AppRadius.lgAll,
+          boxShadow: AppShadows.soft,
         ),
         child: Row(
           children: [

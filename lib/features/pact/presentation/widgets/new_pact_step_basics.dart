@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/pact_creation_data.dart';
@@ -272,16 +273,13 @@ class _PactTypeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: AppRadius.mdAll,
+      borderRadius: AppRadius.lgAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: selected ? context.colors.infoBg : context.colors.card,
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(
-            color: selected ? AppColors.psBlue : context.colors.border,
-            width: selected ? 2 : 1,
-          ),
+          borderRadius: AppRadius.lgAll,
+          boxShadow: AppShadows.soft,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

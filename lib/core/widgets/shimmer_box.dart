@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
+import '../theme/app_shadows.dart';
 import '../theme/app_spacing.dart';
 
 /// Caja con efecto shimmer animado para estados de carga.
@@ -102,8 +103,8 @@ class _CardSkeleton extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: c.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: c.border),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,

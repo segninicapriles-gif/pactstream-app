@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/error_humanizer.dart';
@@ -355,7 +356,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ClipRRect(
-          borderRadius: AppRadius.mdAll,
+          borderRadius: AppRadius.lgAll,
           child: AspectRatio(
             aspectRatio: 4 / 3,
             child: Image.memory(
@@ -470,16 +471,13 @@ class _PickerOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: AppRadius.mdAll,
+      borderRadius: AppRadius.lgAll,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: primary ? context.colors.brandAccentBg : context.colors.card,
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(
-            color: primary ? context.colors.brandAccent : context.colors.border,
-            width: primary ? 2 : 1,
-          ),
+          borderRadius: AppRadius.lgAll,
+          boxShadow: AppShadows.soft,
         ),
         child: Row(
           children: [

@@ -443,7 +443,7 @@ class _SwipeablePactCard extends StatelessWidget {
         padding: const EdgeInsets.only(right: AppSpacing.xl),
         decoration: BoxDecoration(
           color: isArchived ? AppColors.psBlue : AppColors.ink500,
-          borderRadius: AppRadius.mdAll,
+          borderRadius: AppRadius.lgAll,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -494,15 +494,6 @@ class _PactCard extends StatelessWidget {
   final PactSummary pact;
   final VoidCallback onTap;
 
-  /// Color de acento lateral según el estado del pacto.
-  static Color _accentForState(String state) => switch (state) {
-    'in_execution' || 'funded' => AppColors.psBlue,
-    'inviting' || 'signing' || 'signed' || 'paused_pending_tech' => AppColors.warning,
-    'completed' => AppColors.success,
-    'disputed' => AppColors.error,
-    _ => AppColors.ink400,
-  };
-
   @override
   Widget build(BuildContext context) {
     final co = context.colors;
@@ -511,7 +502,6 @@ class _PactCard extends StatelessWidget {
         ? '${pact.milestonesPaid} de ${pact.milestonesTotal} hitos pagados'
         : '';
     final amount = AppFormatters.moneyShort(pact.totalAmountCents);
-    final accent = _accentForState(pact.state);
 
     return Semantics(
       button: true,
@@ -519,25 +509,17 @@ class _PactCard extends StatelessWidget {
           '${pact.locationShort}. $progress',
       child: PressableCard(
       onTap: onTap,
-      borderRadius: AppRadius.mdAll,
+      borderRadius: AppRadius.lgAll,
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: co.card,
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(color: co.border),
+          borderRadius: AppRadius.lgAll,
           boxShadow: AppShadows.soft,
         ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Colored left accent bar for quick state identification
-              Container(width: 4, color: accent),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -683,12 +665,8 @@ class _PactCard extends StatelessWidget {
               ),
             ],
           ],
-        ),
-      ),  // Padding
-    ),  // Expanded
-  ],
-),  // Row
-        ),  // IntrinsicHeight
+        ),  // Column
+        ),  // Padding
       ),  // Container
     ),  // PressableCard
     );  // Semantics

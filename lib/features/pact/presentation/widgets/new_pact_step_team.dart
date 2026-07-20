@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
@@ -153,7 +154,7 @@ class _MyselfCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.successBg,
-        borderRadius: AppRadius.mdAll,
+        borderRadius: AppRadius.lgAll,
         border: Border.all(color: AppColors.success, width: 1),
       ),
       child: Row(
@@ -234,8 +235,8 @@ class _InviteCardState extends State<_InviteCard> {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.card,
-        borderRadius: AppRadius.mdAll,
-        border: Border.all(color: context.colors.border),
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

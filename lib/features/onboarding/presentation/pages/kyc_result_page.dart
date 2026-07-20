@@ -6,6 +6,7 @@ import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
 
@@ -69,8 +70,8 @@ class _VerifiedResult extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: context.colors.successBg,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: AppColors.success),
+            borderRadius: AppRadius.lgAll,
+            boxShadow: AppShadows.soft,
           ),
           child: Column(
             children: [
@@ -128,8 +129,8 @@ class _PendingResult extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: context.colors.warningBg,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: AppColors.warning),
+            borderRadius: AppRadius.lgAll,
+            boxShadow: AppShadows.soft,
           ),
           child: Column(
             children: [
@@ -187,8 +188,8 @@ class _RejectedResult extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: context.colors.errorBg,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: AppColors.error),
+            borderRadius: AppRadius.lgAll,
+            boxShadow: AppShadows.soft,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

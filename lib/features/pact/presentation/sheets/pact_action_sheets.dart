@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/services/biometric_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_haptics.dart';
@@ -98,8 +99,8 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: context.colors.brandAccentBg,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: context.colors.brandAccent, width: 1),
+            borderRadius: AppRadius.lgAll,
+            boxShadow: AppShadows.soft,
           ),
           child: Column(
             children: [
@@ -1049,8 +1050,8 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: context.colors.brandAccentBg,
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(color: context.colors.brandAccent, width: 1),
+            borderRadius: AppRadius.lgAll,
+            boxShadow: AppShadows.soft,
           ),
           child: Column(
             children: [

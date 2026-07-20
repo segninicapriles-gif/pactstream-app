@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/pact_chat.dart';
@@ -257,8 +258,6 @@ class _MessageBubble extends StatelessWidget {
     final bubbleColor = isMine
         ? context.colors.brandAccentBg
         : context.colors.card;
-    final borderColor = isMine ? context.colors.brandAccent : context.colors.border;
-
     return Padding(
       padding: EdgeInsets.only(
         top: showHeader ? AppSpacing.md : 2,
@@ -312,8 +311,8 @@ class _MessageBubble extends StatelessWidget {
                     horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: bubbleColor,
-                  borderRadius: AppRadius.mdAll,
-                  border: Border.all(color: borderColor),
+                  borderRadius: AppRadius.lgAll,
+                  boxShadow: AppShadows.soft,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,

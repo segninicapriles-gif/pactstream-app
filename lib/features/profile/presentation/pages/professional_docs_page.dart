@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_haptics.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
@@ -362,7 +363,7 @@ class _ProfessionalDocsPageState extends ConsumerState<ProfessionalDocsPage> {
                   decoration: BoxDecoration(
                     color: c.card,
                     borderRadius: AppRadius.lgAll,
-                    border: Border.all(color: c.border),
+                    boxShadow: AppShadows.soft,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,16 +529,12 @@ class _DocUploadCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: c.card,
-          borderRadius: AppRadius.mdAll,
-          border: Border.all(
-            color: isUploaded
-                ? AppColors.success.withValues(alpha: 0.4)
-                : c.border,
-          ),
+          borderRadius: AppRadius.lgAll,
+          boxShadow: AppShadows.soft,
         ),
         child: InkWell(
           onTap: isUploading ? null : onUpload,
-          borderRadius: AppRadius.mdAll,
+          borderRadius: AppRadius.lgAll,
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
