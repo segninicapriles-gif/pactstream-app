@@ -14,6 +14,7 @@ import '../../../../core/utils/formatters.dart';
 import '../../../ai/presentation/widgets/ai_verification_card.dart';
 import '../../data/milestone_detail.dart';
 import '../../data/pact_providers.dart';
+import '../../data/dispute_actions.dart';
 import '../widgets/pact_state_badge.dart';
 import '../../../../core/widgets/cifra_viva.dart';
 import '../../../../core/widgets/empty_state_view.dart';
@@ -1430,6 +1431,70 @@ class _DisputeBanner extends ConsumerWidget {
 
   final MilestoneFull milestone;
 
+  static Future<void> _resolveDispute(
+    BuildContext context,
+    WidgetRef ref,
+    MilestoneFull milestone,
+    DisputeResolution resolution,
+  ) async {
+    final noteCtrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(resolution.label),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              resolution == DisputeResolution.favorConstructor
+                  ? 'Se procede al pago del hito.'
+                  : 'El hito vuelve a ejecución para los ajustes necesarios.',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: noteCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'Nota de resolución (opcional)',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await DisputeActions.resolve(
+        milestoneId: milestone.id,
+        resolution: resolution,
+        note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
+      );
+      ref.invalidate(milestoneDetailProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Disputa resuelta')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e')),
+        );
+      }
+    }
+  }
+
   Future<void> _emailSupport() async {
     final subject = Uri.encodeComponent(
       'Disputa hito ${milestone.displayId} · ${milestone.pactDisplayId}',
@@ -1599,6 +1664,38 @@ class _DisputeBanner extends ConsumerWidget {
                   onPressed: _emailSupport,
                   label: const Text('Contactar con el equipo de PactStream'),
                 ),
+                if (milestone.myRole == 'tecnico' ||
+                    milestone.myRole == 'promotor') ...[
+                  const SizedBox(height: AppSpacing.md),
+                  const Divider(),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Resolución',
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: context.colors.textTertiary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  FilledButton.icon(
+                    onPressed: () => _resolveDispute(
+                      context, ref, milestone,
+                      DisputeResolution.favorConstructor,
+                    ),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: const Text('Rechazar disputa · pagar hito'),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  OutlinedButton.icon(
+                    onPressed: () => _resolveDispute(
+                      context, ref, milestone,
+                      DisputeResolution.favorPromotor,
+                    ),
+                    icon: const Icon(Icons.build_outlined, size: 18),
+                    label: const Text('Aprobar disputa · volver a ejecución'),
+                  ),
+                ],
               ],
             ),
           ),

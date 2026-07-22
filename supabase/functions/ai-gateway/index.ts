@@ -92,6 +92,8 @@ interface GatewayResponse {
   tool_call?: { name: string; input: Record<string, unknown> };
   // Para Vision:
   vision_dictum?: VisionDictum;
+  _evidences_count?: number;
+  _documents_count?: number;
   // Métricas
   input_tokens: number;
   output_tokens: number;
@@ -391,6 +393,129 @@ async function serveFromFixture(
 }
 
 // ---------------------------------------------------------------------------
+// Vision: construir messages con evidencias desde Storage
+// ---------------------------------------------------------------------------
+
+function uint8ToBase64(bytes: Uint8Array): string {
+  const chunk = 0x8000;
+  const parts: string[] = [];
+  for (let i = 0; i < bytes.length; i += chunk) {
+    parts.push(String.fromCharCode(...bytes.subarray(i, i + chunk)));
+  }
+  return btoa(parts.join(''));
+}
+
+interface VisionBuild {
+  messages: unknown[];
+  evidencesCount: number;
+  documentsCount: number;
+}
+
+async function buildVisionMessages(
+  adminClient: ReturnType<typeof createClient>,
+  milestoneId: string,
+): Promise<VisionBuild> {
+  const { data: milestone } = await adminClient
+    .from('milestones')
+    .select('name, description, amount_cents, state, ordinal')
+    .eq('id', milestoneId)
+    .maybeSingle();
+
+  if (!milestone) {
+    throw new Error('Hito no encontrado');
+  }
+
+  const { data: allEvs } = await adminClient
+    .from('milestone_evidences')
+    .select('id, storage_path, mime_type, evidence_type, description, gps_latitude, gps_longitude, client_timestamp')
+    .eq('milestone_id', milestoneId)
+    .eq('is_superseded', false)
+    .order('server_timestamp', { ascending: true });
+
+  const images = (allEvs ?? []).filter(
+    (e) => e.evidence_type === 'photo' || (e.mime_type ?? '').startsWith('image/'),
+  );
+  const docs = (allEvs ?? []).filter((e) => e.evidence_type === 'document');
+
+  if (images.length === 0) {
+    throw new Error(
+      'No hay evidencias fotográficas para verificar. Sube fotos del avance antes de solicitar verificación IA.',
+    );
+  }
+
+  const selected = images.slice(0, 10);
+
+  const paths = selected.map((e) => e.storage_path);
+  const { data: signedUrls, error: storageErr } = await adminClient.storage
+    .from('milestone-evidences')
+    .createSignedUrls(paths, 3600);
+
+  if (storageErr || !signedUrls) {
+    throw new Error('Error al generar URLs de evidencias: ' + (storageErr?.message ?? 'desconocido'));
+  }
+
+  const content: unknown[] = [];
+
+  for (let i = 0; i < selected.length; i++) {
+    const ev = selected[i];
+    const signed = signedUrls[i];
+    if (!signed?.signedUrl) continue;
+
+    try {
+      const imgResp = await fetch(signed.signedUrl);
+      if (!imgResp.ok) continue;
+      const buf = new Uint8Array(await imgResp.arrayBuffer());
+      if (buf.length > 5 * 1024 * 1024) continue; // skip >5MB
+
+      content.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: ev.mime_type ?? 'image/jpeg',
+          data: uint8ToBase64(buf),
+        },
+      });
+    } catch {
+      console.warn(`[ai-gateway] skip evidence ${ev.id}: fetch failed`);
+      continue;
+    }
+
+    const meta: string[] = [`Evidencia ${i + 1}/${selected.length}`];
+    if (ev.description) meta.push(ev.description);
+    if (ev.gps_latitude != null && ev.gps_longitude != null) {
+      meta.push(`GPS: ${ev.gps_latitude}, ${ev.gps_longitude}`);
+    }
+    if (ev.client_timestamp) meta.push(`Captura: ${ev.client_timestamp}`);
+    content.push({ type: 'text', text: meta.join(' · ') });
+  }
+
+  if (content.length === 0) {
+    throw new Error('No se pudieron cargar las evidencias fotográficas.');
+  }
+
+  const ctx = [
+    `Hito: "${milestone.name}"`,
+    milestone.description ? `Descripción: ${milestone.description}` : null,
+    `Importe: ${(milestone.amount_cents / 100).toFixed(2)}€`,
+    `Estado: ${milestone.state}`,
+    `Evidencias: ${selected.length} fotos` +
+      (images.length > 10 ? ` (de ${images.length}, primeras 10)` : ''),
+    docs.length > 0 ? `Documentos adjuntos: ${docs.length} (no incluidos en análisis visual)` : null,
+  ].filter(Boolean).join('\n');
+
+  content.push({
+    type: 'text',
+    text: `Contexto del hito:\n${ctx}\n\nAnaliza las evidencias fotográficas y genera el dictamen JSON.`,
+  });
+
+  return {
+    messages: [{ role: 'user', content }],
+    evidencesCount: selected.length,
+    documentsCount: docs.length,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Live path: llamada real a Anthropic
 // ---------------------------------------------------------------------------
 
@@ -415,10 +540,16 @@ async function callAnthropic(
     throw new Error(`Prompt activo no encontrado para ${promptKey}`);
   }
 
-  // 2. Construir messages (vision o assistant)
-  // Para brevedad del MVP, esta parte es esqueleto; el detalle de cada runType
-  // lo monta ai-verify-milestone y ai-assistant-turn antes de invocar gateway.
-  const messages = (req.payload as { messages?: unknown[] }).messages ?? [];
+  // 2. Construir messages
+  let messages: unknown[];
+  let visionBuild: VisionBuild | null = null;
+
+  if (req.runType === 'vision' && req.milestoneId) {
+    visionBuild = await buildVisionMessages(adminClient, req.milestoneId);
+    messages = visionBuild.messages;
+  } else {
+    messages = (req.payload as { messages?: unknown[] }).messages ?? [];
+  }
 
   const t0 = performance.now();
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -430,12 +561,12 @@ async function callAnthropic(
     },
     body: JSON.stringify({
       model: ANTHROPIC_MODEL,
-      max_tokens: 2048,
+      max_tokens: req.runType === 'vision' ? 4096 : 2048,
       system: [
         {
           type: 'text',
           text: promptRow.system_prompt,
-          cache_control: { type: 'ephemeral' }, // cache del system prompt
+          cache_control: { type: 'ephemeral' },
         },
       ],
       messages,
@@ -489,6 +620,8 @@ async function callAnthropic(
         }
       : undefined,
     vision_dictum: visionDictum,
+    _evidences_count: visionBuild?.evidencesCount,
+    _documents_count: visionBuild?.documentsCount,
     input_tokens: inputTokens,
     output_tokens: outputTokens,
     cache_read_tokens: cacheReadTokens,
@@ -666,8 +799,8 @@ serve(async (req: Request) => {
         p_input_hash: await sha256(
           `${body.pactId}:${body.milestoneId}:${response.provider}:${response.prompt_version}:${vd.score}`,
         ),
-        p_evidences_count: Number(p?.evidences_count ?? 0),
-        p_documents_count: Number(p?.documents_count ?? 0),
+        p_evidences_count: Number(response._evidences_count ?? p?.evidences_count ?? 0),
+        p_documents_count: Number(response._documents_count ?? p?.documents_count ?? 0),
         p_score: vd.score,
         p_verdict: vd.verdict,
         p_summary: vd.summary,

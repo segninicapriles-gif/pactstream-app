@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +14,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
+import '../../data/costpact_importer.dart';
 import '../../data/pact_creation_data.dart';
 import '../../data/pact_providers.dart';
 import '../widgets/new_pact_step_basics.dart';
@@ -38,8 +42,10 @@ class NewPactPage extends ConsumerStatefulWidget {
 
 class _NewPactPageState extends ConsumerState<NewPactPage> {
   final PageController _pageController = PageController();
-  final PactCreationData _data = PactCreationData();
+  PactCreationData _data = PactCreationData();
   int _currentStep = 0;
+  int _importKey = 0;
+  String? _importSource;
   bool _submitting = false;
   bool _showErrors = false;
   String? _errorMessage;
@@ -113,6 +119,50 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeInOut,
     );
+  }
+
+  Future<void> _importFromCostPact() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final file = result.files.first;
+      final bytes = file.bytes ?? await file.xFile.readAsBytes();
+      final jsonString = utf8.decode(bytes);
+      final imported = CostPactImporter.parse(jsonString);
+
+      setState(() {
+        _data = imported.data;
+        _importSource = imported.proyectoNumero;
+        _importKey++;
+        _currentStep = 0;
+        _showErrors = false;
+        _errorMessage = null;
+      });
+
+      _pageController.jumpToPage(0);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Importado: ${imported.data.title} · '
+              '${imported.milestoneCount} hitos · '
+              '${(imported.data.totalAmountCents / 100).toStringAsFixed(0)} €',
+            ),
+          ),
+        );
+      }
+    } on FormatException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    }
   }
 
   Future<void> _confirmExit() async {
@@ -332,22 +382,54 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
           ),
           title: Text(_titleForStep(_currentStep),
               style: AppTypography.h3.copyWith(color: AppColors.white)),
+          actions: [
+            if (_currentStep == 0)
+              IconButton(
+                icon: const Icon(Icons.file_upload_outlined),
+                tooltip: 'Importar desde CostPact',
+                onPressed: _importFromCostPact,
+              ),
+          ],
         ),
         body: SafeArea(
           child: Column(
             children: [
               _StepProgressBar(current: _currentStep, total: _totalSteps),
+              if (_importSource != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  color: AppColors.success.withValues(alpha: 0.08),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: AppColors.success, size: 16),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          'Datos importados del presupuesto $_importSource. Revisa y completa los campos restantes.',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Expanded(
                 child: PageView(
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     NewPactStepBasics(
+                      key: ValueKey('basics_$_importKey'),
                       data: _data,
                       showErrors: _showErrors && _currentStep == 0,
                       onChange: () => setState(() {}),
                     ),
                     NewPactStepBudget(
+                      key: ValueKey('budget_$_importKey'),
                       data: _data,
                       showErrors: _showErrors && _currentStep == 1,
                       onChange: () => setState(() {}),
