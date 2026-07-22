@@ -202,19 +202,26 @@ async function resolveProvider(
   const { data: settings } = await adminClient
     .from('app_settings')
     .select('key, value')
-    .in('key', ['ai_provider', 'ai_live_for_user_uids', 'ai_max_cost_eur_day']);
+    .in('key', [
+      'ai_provider',
+      'ai_live_for_user_uids',
+      'ai_max_cost_eur_day',
+      'ai_max_cost_eur_month',
+    ]);
 
   const map = new Map((settings ?? []).map((s) => [s.key, s.value as unknown]));
   const globalProvider = (map.get('ai_provider') as string) ?? 'demo';
   const liveForUids = (map.get('ai_live_for_user_uids') as string[]) ?? [];
   const maxCostEur = (map.get('ai_max_cost_eur_day') as number) ?? 5;
+  // 0 o ausente = sin tope mensual; el diario sigue siendo el primer freno.
+  const maxCostMonthEur = (map.get('ai_max_cost_eur_month') as number) ?? 0;
 
   // 3. Override granular: live forzado para ciertos uids
   if (globalProvider === 'demo' && liveForUids.includes(authUid)) {
     return 'live';
   }
 
-  // 4. Kill switch de coste
+  // 4. Kill switch de coste (diario y mensual; cualquiera degrada a demo)
   if (globalProvider === 'live') {
     const { data: costRow } = await adminClient.rpc('sf_ai_today_cost_cents');
     const costCents = (costRow as unknown as number) ?? 0;
@@ -223,6 +230,16 @@ async function resolveProvider(
         `[ai-gateway] kill switch activado: coste hoy ${costCents}c > ${maxCostEur * 100}c`,
       );
       return 'demo';
+    }
+    if (maxCostMonthEur > 0) {
+      const { data: monthRow } = await adminClient.rpc('sf_ai_month_cost_cents');
+      const monthCents = (monthRow as unknown as number) ?? 0;
+      if (monthCents > maxCostMonthEur * 100) {
+        console.warn(
+          `[ai-gateway] kill switch MENSUAL activado: coste mes ${monthCents}c > ${maxCostMonthEur * 100}c`,
+        );
+        return 'demo';
+      }
     }
   }
 
