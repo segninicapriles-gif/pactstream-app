@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions, UserAt
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
+import '../../../../core/i18n/widgets/language_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -1342,6 +1343,13 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
       ),
       child: Column(
         children: [
+          // ── Idioma ──────────────────────────────────────────
+          // Va el primero de "Cuenta" a propósito: si alguien acabó con la app
+          // en el idioma equivocado, esta es la fila que necesita encontrar
+          // antes que ninguna otra, y la reconoce por el icono aunque no
+          // entienda la etiqueta.
+          const LanguageSettingsTile(),
+          const Divider(height: 1, indent: 56),
           // ── Tema (dark mode toggle) ─────────────────────────
           _ThemeModeSelector(),
           const Divider(height: 1, indent: 56),

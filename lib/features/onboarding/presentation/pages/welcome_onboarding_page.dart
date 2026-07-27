@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/l10n_extension.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_motion.dart';
@@ -73,8 +74,8 @@ class _WelcomeOnboardingPageState
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
       body: Stack(
@@ -130,7 +131,7 @@ class _WelcomeOnboardingPageState
                         onPressed:
                             _currentPage < _steps - 1 ? _finish : null,
                         child: Text(
-                          'Saltar',
+                          l10n.onboardingSkip,
                           style: AppTypography.bodyS.copyWith(
                             color: isDark
                                 ? AppColors.ink400
@@ -152,31 +153,33 @@ class _WelcomeOnboardingPageState
                     children: [
                       _OnboardingStep(
                         illustration: _WelcomeIllustration(isDark: isDark),
-                        title: 'Bienvenido a PactStream',
-                        subtitle:
-                            'La plataforma que genera confianza en cada proyecto de construcción.',
+                        title: l10n.onboardingWelcomeTitle,
+                        subtitle: l10n.onboardingWelcomeBody,
                         isDark: isDark,
                       ),
                       _OnboardingStep(
                         illustration: _WorksIllustration(isDark: isDark),
-                        title: 'Gestiona tus obras',
-                        subtitle:
-                            'Crea contratos, invita participantes y controla los hitos de cada proyecto.',
+                        title: l10n.onboardingWorksTitle,
+                        subtitle: l10n.onboardingWorksBody,
                         isDark: isDark,
                       ),
+                      // ⚠️ Este paso promete en presente una póliza de caución
+                      // con "aseguradora líder". NO hay contrato firmado con
+                      // ninguna aseguradora; la fórmula acordada es
+                      // "aseguradora líder del mercado (en negociación)".
+                      // Aquí se le dice a un usuario final que su dinero ya
+                      // está cubierto. Revisar antes de lanzar.
                       _OnboardingStep(
                         illustration: _PaymentsIllustration(isDark: isDark),
-                        title: 'Pagos seguros',
-                        subtitle:
-                            'Custodia protegida por póliza de caución con aseguradora líder. Los fondos se liberan al validar el trabajo.',
+                        title: l10n.onboardingPaymentsTitle,
+                        subtitle: l10n.onboardingPaymentsBody,
                         isDark: isDark,
                       ),
                       _OnboardingStep(
                         illustration:
                             _ReputationIllustration(isDark: isDark),
-                        title: 'Tu reputación importa',
-                        subtitle:
-                            'Construye tu Trust Score con cada proyecto exitoso. Tu historial es tu mejor credencial.',
+                        title: l10n.onboardingReputationTitle,
+                        subtitle: l10n.onboardingReputationBody,
                         isDark: isDark,
                       ),
                     ],
@@ -227,7 +230,7 @@ class _WelcomeOnboardingPageState
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  child: const Text('Comenzar'),
+                                  child: Text(l10n.onboardingStart),
                                 )
                               : ElevatedButton(
                                   key: const ValueKey('next'),
@@ -244,7 +247,7 @@ class _WelcomeOnboardingPageState
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  child: const Text('Siguiente'),
+                                  child: Text(l10n.onboardingNext),
                                 ),
                         ),
                       ),

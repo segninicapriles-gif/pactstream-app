@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/l10n_extension.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -57,11 +58,11 @@ class _VerifiedResult extends StatelessWidget {
               size: 56, color: AppColors.success),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Identidad verificada',
+        Text(context.l10n.kycVerifiedTitle,
             textAlign: TextAlign.center, style: AppTypography.h1),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Ya puedes firmar pactos y mover dinero en custodia.',
+          context.l10n.kycVerifiedBody,
           textAlign: TextAlign.center,
           style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
@@ -76,14 +77,19 @@ class _VerifiedResult extends StatelessWidget {
           child: Column(
             children: [
               _ResultRow(
-                  label: 'Verificada el',
+                  label: context.l10n.kycVerifiedAtLabel,
+                  // `dateTimeDetail` ya sigue el idioma activo: "15 oct 2024 a
+                  // las 11:45" en español, "Oct 15, 2024 at 11:45 AM" en
+                  // inglés. No hay que formatear nada a mano aquí.
                   value: AppFormatters.dateTimeDetail(DateTime.now())),
               const SizedBox(height: AppSpacing.xs),
-              _ResultRow(label: 'Validada por', value: 'Veriff'),
+              // "Veriff" es el nombre del proveedor: no se traduce.
+              _ResultRow(
+                  label: context.l10n.kycValidatedByLabel, value: 'Veriff'),
               const SizedBox(height: AppSpacing.xs),
               _ResultRow(
-                  label: 'Operaciones',
-                  value: 'Disponibles ✓',
+                  label: context.l10n.kycOperationsLabel,
+                  value: context.l10n.kycOperationsAvailable,
                   valueColor: AppColors.success),
             ],
           ),
@@ -92,7 +98,7 @@ class _VerifiedResult extends StatelessWidget {
         ElevatedButton.icon(
           icon: const Icon(Icons.arrow_forward),
           onPressed: () => context.go(AppRoutes.home),
-          label: const Text('Continuar al inicio'),
+          label: Text(context.l10n.kycContinueHome),
         ),
       ],
     );
@@ -116,11 +122,11 @@ class _PendingResult extends StatelessWidget {
               size: 56, color: AppColors.warning),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Revisión en curso',
+        Text(context.l10n.kycPendingTitle,
             textAlign: TextAlign.center, style: AppTypography.h1),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Hemos recibido tu documentación. Un agente revisará tu identidad en menos de 24 horas.',
+          context.l10n.kycPendingBody,
           textAlign: TextAlign.center,
           style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
@@ -135,24 +141,29 @@ class _PendingResult extends StatelessWidget {
           child: Column(
             children: [
               _ResultRow(
-                  label: 'Recibido', value: AppFormatters.dateTimeDetail(DateTime.now())),
+                  label: context.l10n.kycReceivedLabel,
+                  value: AppFormatters.dateTimeDetail(DateTime.now())),
               const SizedBox(height: AppSpacing.xs),
-              _ResultRow(label: 'Plazo máximo', value: '24 horas hábiles'),
+              _ResultRow(
+                  label: context.l10n.kycMaxDeadlineLabel,
+                  value: context.l10n.kycMaxDeadlineValue),
               const SizedBox(height: AppSpacing.xs),
-              _ResultRow(label: 'Operaciones', value: 'Limitadas hasta aprobación'),
+              _ResultRow(
+                  label: context.l10n.kycOperationsLabel,
+                  value: context.l10n.kycOperationsLimited),
             ],
           ),
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          'Te avisaremos por email y notificación cuando esté lista.',
+          context.l10n.kycPendingNotice,
           textAlign: TextAlign.center,
           style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
         const Spacer(),
         ElevatedButton(
           onPressed: () => context.go(AppRoutes.home),
-          child: const Text('Volver a inicio'),
+          child: Text(context.l10n.kycBackHome),
         ),
       ],
     );
@@ -175,11 +186,11 @@ class _RejectedResult extends StatelessWidget {
           child: const Icon(Icons.cancel, size: 56, color: AppColors.error),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Verificación rechazada',
+        Text(context.l10n.kycRejectedTitle,
             textAlign: TextAlign.center, style: AppTypography.h1),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'No hemos podido validar tu identidad con la documentación aportada.',
+          context.l10n.kycRejectedBody,
           textAlign: TextAlign.center,
           style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
@@ -194,11 +205,16 @@ class _RejectedResult extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Motivo',
+              Text(context.l10n.kycRejectedReasonLabel,
                   style: AppTypography.caption.copyWith(color: AppColors.error)),
               const SizedBox(height: AppSpacing.xs),
+              // Motivo GENÉRICO: hoy se muestra siempre el mismo, venga el
+              // rechazo de Veriff por lo que venga. Cuando el backend devuelva
+              // el motivo real habrá que mapearlo a claves propias; decirle al
+              // usuario "documento ilegible" cuando el problema fue otro es
+              // peor que no decirle nada concreto.
               Text(
-                'Documento ilegible o caducado. Por favor, vuelve a intentarlo con un documento en buen estado.',
+                context.l10n.kycRejectedReasonDefault,
                 style: AppTypography.body,
               ),
             ],
@@ -208,12 +224,12 @@ class _RejectedResult extends StatelessWidget {
         ElevatedButton.icon(
           icon: const Icon(Icons.refresh),
           onPressed: () => context.go(AppRoutes.kycCapture),
-          label: const Text('Volver a intentar'),
+          label: Text(context.l10n.kycRetryCta),
         ),
         const SizedBox(height: AppSpacing.sm),
         TextButton(
           onPressed: () => context.go(AppRoutes.home),
-          child: const Text('Hacerlo más tarde'),
+          child: Text(context.l10n.kycLaterCta),
         ),
       ],
     );

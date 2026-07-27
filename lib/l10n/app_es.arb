@@ -1,0 +1,251 @@
+{
+  "@@locale": "es",
+  "@@context": "Plantilla canónica. Toda clave nueva se añade PRIMERO aquí y luego en app_en.arb. El build escribe en build/l10n_missing.json lo que falte en inglés.",
+
+  "appTitle": "PactStream",
+  "@appTitle": {
+    "description": "Nombre de la app en el gestor de tareas del sistema. No se traduce: es marca."
+  },
+
+  "commonContinue": "Continuar",
+  "commonNext": "Siguiente →",
+  "commonBack": "Atrás",
+  "commonCancel": "Cancelar",
+  "commonSave": "Guardar",
+  "commonSaveChanges": "Guardar cambios",
+  "commonDelete": "Eliminar",
+  "commonClose": "Cerrar",
+  "commonRetry": "Reintentar",
+  "commonAccept": "Aceptar",
+  "commonConfirm": "Confirmar",
+  "commonSearch": "Buscar",
+  "commonLoading": "Cargando…",
+  "commonOr": "o",
+  "commonRequired": "Obligatorio",
+  "commonOptional": "Opcional",
+  "commonNotAvailable": "—",
+  "@commonNotAvailable": {
+    "description": "Marcador de dato ausente en tablas y resúmenes. Guion largo, no 'N/A'."
+  },
+
+  "languageLabel": "Idioma",
+  "languageSelectorTitle": "Elige tu idioma",
+  "languageSelectorSubtitle": "Puedes cambiarlo cuando quieras desde tu perfil.",
+  "languageChanged": "Idioma actualizado",
+  "@languageChanged": {
+    "description": "Confirmación tras cambiar idioma en ajustes."
+  },
+
+  "loginTitle": "Iniciar sesión",
+  "loginSubtitle": "Accede a tu cuenta para gestionar tus obras",
+  "loginEmailLabel": "Correo electrónico",
+  "loginEmailHint": "tu@email.com",
+  "loginEmailEmpty": "Introduce tu email",
+  "loginEmailInvalid": "Ese email no parece válido",
+  "loginPasswordLabel": "Contraseña",
+  "loginPasswordHint": "Mínimo 8 caracteres",
+  "loginPasswordEmpty": "Introduce tu contraseña",
+  "loginPasswordTooShort": "Mínimo 8 caracteres",
+  "loginForgotPassword": "¿Olvidaste tu contraseña?",
+  "loginCreateAccount": "Crear cuenta nueva",
+  "loginShowPassword": "Mostrar contraseña",
+  "loginHidePassword": "Ocultar contraseña",
+
+  "resetTitle": "Recuperar contraseña",
+  "resetBody": "Te enviaremos un enlace para restablecer tu contraseña.",
+  "resetSend": "Enviar enlace",
+  "resetSent": "Revisa tu correo — te hemos enviado el enlace de recuperación.",
+  "resetFailed": "No se pudo enviar el correo. Inténtalo de nuevo.",
+
+  "registerStepIndicator": "Paso {current} de {total}",
+  "@registerStepIndicator": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "registerCreateAccountCta": "Crear mi cuenta",
+  "registerStep1Title": "Crea tu cuenta",
+  "registerStep1Subtitle": "Datos personales",
+  "registerFullNameLabel": "Nombre completo",
+  "registerFullNameHint": "Ej: Juan Pérez",
+  "registerEmailLockedHelper": "Tu equipo te invitó con este email; no se puede cambiar.",
+  "registerPhoneLabel": "Teléfono",
+  "registerLegalPreview": "Al continuar verás los términos legales en el último paso. No creamos la cuenta hasta que los aceptes.",
+
+  "registerStep2Title": "Configura tu perfil",
+  "registerStep2Subtitle": "Selecciona tu rol en PactStream",
+  "registerProfessionalDataTitle": "Datos profesionales",
+  "roleOwnerTitle": "Promotor",
+  "roleOwnerSubtitle": "Quiero financiar una obra con seguridad",
+  "roleContractorTitle": "Constructor",
+  "roleContractorSubtitle": "Ejecuto obras y quiero cobrar garantizado",
+  "roleArchitectTitle": "Técnico",
+  "roleArchitectSubtitle": "Dirijo obras y valido hitos",
+  "registerCompanyNameLabel": "Nombre de empresa",
+  "registerCompanyNameHint": "Ej: Construcciones Gómez S.L.",
+
+  "registerStep3Title": "Verifica tus datos",
+  "registerStep3Subtitle": "Revisa la información antes de crear tu cuenta",
+  "registerSummaryTitle": "Resumen de perfil",
+  "registerSummaryName": "Nombre",
+  "registerSummaryEmail": "Email",
+  "registerSummaryPhone": "Teléfono",
+  "registerSummaryRole": "Rol",
+  "registerSummaryCompany": "Empresa",
+  "registerSummaryLanguage": "Idioma",
+  "registerAcceptThe": "Acepto los",
+  "registerTermsLink": "Términos y Condiciones",
+  "registerAcceptThePrivacy": "Acepto la",
+  "registerPrivacyLink": "Política de Privacidad",
+  "registerLinkOpensBrowser": "{linkLabel} (abre en el navegador)",
+  "@registerLinkOpensBrowser": {
+    "description": "Etiqueta de accesibilidad para enlaces legales.",
+    "placeholders": { "linkLabel": { "type": "String" } }
+  },
+  "registerKycNotice": "Tu identidad se verificará en el siguiente paso conforme a la normativa de prevención de blanqueo (KYC).",
+  "registerCouldNotCreate": "No se pudo crear la cuenta",
+  "registerLinkOpenFailed": "No se pudo abrir el documento. Visítalo en {url}",
+  "@registerLinkOpenFailed": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+
+  "inviteBannerTitle": "Te uniste como miembro de equipo",
+  "inviteBannerBody": "{inviter} te invitó al equipo de {org}. Sólo necesitas tus datos personales — la empresa y el rol ya están definidos por tu equipo.",
+  "@inviteBannerBody": {
+    "placeholders": {
+      "inviter": { "type": "String" },
+      "org": { "type": "String" }
+    }
+  },
+  "inviteFallbackOrg": "una organización",
+  "inviteFallbackInviter": "tu equipo",
+  "inviteInvalidTitle": "Invitación no disponible",
+  "inviteInvalidRevoked": "La invitación ya no es válida (puede que la hayan revocado o ya la hayas aceptado).",
+  "inviteInvalidLoadFailed": "No se pudo cargar la invitación. Vuelve a hacer clic en el link del email o pide una nueva invitación.",
+  "inviteGoToNormalRegister": "Crear cuenta normal",
+  "inviteGoToLogin": "Ya tengo cuenta · Iniciar sesión",
+
+  "onboardingSkip": "Saltar",
+  "onboardingNext": "Siguiente",
+  "onboardingStart": "Comenzar",
+  "onboardingWelcomeTitle": "Bienvenido a PactStream",
+  "onboardingWelcomeBody": "La plataforma que genera confianza en cada proyecto de construcción.",
+  "onboardingWorksTitle": "Gestiona tus obras",
+  "onboardingWorksBody": "Crea contratos, invita participantes y controla los hitos de cada proyecto.",
+  "onboardingPaymentsTitle": "Pagos seguros",
+  "onboardingPaymentsBody": "Custodia protegida por póliza de caución con aseguradora líder. Los fondos se liberan al validar el trabajo.",
+  "@onboardingPaymentsBody": {
+    "description": "⚠️ AFIRMACIÓN COMERCIAL SIN CONTRATO FIRMADO. No hay póliza contratada con ninguna aseguradora; la fórmula acordada en REFERENCIA_RAPIDA es 'aseguradora líder del mercado (en negociación)'. Esta cadena la promete en presente a un usuario final. Revisar antes de lanzar."
+  },
+  "onboardingReputationTitle": "Tu reputación importa",
+  "onboardingReputationBody": "Construye tu Trust Score con cada proyecto exitoso. Tu historial es tu mejor credencial.",
+
+  "kycIntroTitle": "Verifica tu identidad",
+  "kycIntroBody": "Para firmar pactos y mover dinero, necesitamos confirmar quién eres. Tarda 2 minutos.",
+  "kycBulletEscrowTitle": "Escrow regulado",
+  "kycBulletEscrowBody": "Tu dinero queda en custodia bajo licencia europea (Mangopay).",
+  "@kycBulletEscrowBody": {
+    "description": "⚠️ AFIRMACIÓN REGULATORIA. La licencia de Mangopay es europea; para los mercados de EE. UU. y LATAM esta frase necesita revisión legal, no solo traducción. Ver handoff."
+  },
+  "kycBulletSignatureTitle": "Firma legal eIDAS",
+  "kycBulletSignatureBody": "Tu pacto tiene validez ante un juez (Signaturit).",
+  "@kycBulletSignatureBody": {
+    "description": "⚠️ AFIRMACIÓN REGULATORIA. eIDAS es el reglamento europeo de firma electrónica; en EE. UU. el marco equivalente es ESIGN Act / UETA. Revisión legal pendiente."
+  },
+  "kycBulletTrustTitle": "Confianza para las 3 partes",
+  "kycBulletTrustBody": "Promotor, técnico y constructora.",
+  "kycStartCta": "Empezar verificación",
+  "kycLaterCta": "Hacerlo más tarde",
+  "kycProviderNote": "Verificación gestionada por Veriff, proveedor europeo certificado.",
+
+  "kycCaptureAppBarTitle": "Verificación de identidad",
+  "kycCaptureTitle": "Verifica tu identidad con Veriff",
+  "kycCaptureBody": "Necesitas un documento de identidad oficial o tu pasaporte, y la cámara del dispositivo. Tarda 2-3 minutos.",
+  "@kycCaptureBody": {
+    "description": "Antes decía 'tu DNI o pasaporte'. Se generalizó a propósito: el DNI es español y esta pantalla la ven usuarios de EE. UU., Venezuela y El Salvador. Veriff acepta documentos de decenas de países y decide él la validez, así que enumerarlos aquí solo sirve para excluir al que tiene otro."
+  },
+  "kycStep1Title": "Foto del documento",
+  "kycStep1Body": "Documento de identidad o pasaporte. Veriff valida la autenticidad.",
+  "kycStep2Title": "Selfie con prueba de vida",
+  "kycStep2Body": "Mira a la cámara y sigue las instrucciones.",
+  "kycStep3Title": "Resultado en 30-60 segundos",
+  "kycStep3Body": "Si todo va bien, accedes a la app inmediatamente.",
+  "kycStartSessionCta": "Iniciar verificación",
+  "kycCreatingSession": "Creando sesión…",
+
+  "kycWaitingTitle": "Esperando confirmación de Veriff…",
+  "kycWaitingBody": "Completa la verificación en la pestaña que se abrió. Cuando termines, vuelve aquí — detectaremos el resultado automáticamente.",
+  "kycReopenVeriff": "Reabrir verificación de Veriff",
+  "kycCheckStatusNow": "Comprobar estado ahora",
+  "kycCancelAndBack": "Cancelar y volver",
+  "kycStillProcessing": "Verificación aún en proceso. Espera unos segundos.",
+
+  "kycTimeoutTitle": "Esto está tardando más de lo normal",
+  "kycTimeoutBody": "Veriff aún no nos ha confirmado el resultado. Puedes seguir usando la app y volver más tarde — te avisaremos cuando la verificación termine — o reintentar la comprobación ahora.",
+  "kycContinueLater": "Seguir más tarde",
+
+  "kycErrorNoSessionUrl": "Veriff no devolvió una URL de sesión.",
+  "kycErrorCannotOpenUrl": "No se pudo abrir la ventana de verificación de Veriff.",
+
+  "kycVerifiedTitle": "Identidad verificada",
+  "kycVerifiedBody": "Ya puedes firmar pactos y mover dinero en custodia.",
+  "kycVerifiedAtLabel": "Verificada el",
+  "kycValidatedByLabel": "Validada por",
+  "kycOperationsLabel": "Operaciones",
+  "kycOperationsAvailable": "Disponibles ✓",
+  "kycContinueHome": "Continuar al inicio",
+
+  "kycPendingTitle": "Revisión en curso",
+  "kycPendingBody": "Hemos recibido tu documentación. Un agente revisará tu identidad en menos de 24 horas.",
+  "kycReceivedLabel": "Recibido",
+  "kycMaxDeadlineLabel": "Plazo máximo",
+  "kycMaxDeadlineValue": "24 horas hábiles",
+  "kycOperationsLimited": "Limitadas hasta aprobación",
+  "kycPendingNotice": "Te avisaremos por email y notificación cuando esté lista.",
+  "kycBackHome": "Volver a inicio",
+
+  "kycRejectedTitle": "Verificación rechazada",
+  "kycRejectedBody": "No hemos podido validar tu identidad con la documentación aportada.",
+  "kycRejectedReasonLabel": "Motivo",
+  "kycRejectedReasonDefault": "Documento ilegible o caducado. Por favor, vuelve a intentarlo con un documento en buen estado.",
+  "@kycRejectedReasonDefault": {
+    "description": "Motivo GENÉRICO. Hoy se muestra siempre este texto, venga el rechazo de Veriff por lo que venga. Cuando el RPC devuelva el motivo real habrá que mapearlo; mientras tanto no se le puede decir al usuario algo más concreto sin arriesgarse a mentirle."
+  },
+  "kycRetryCta": "Volver a intentar",
+
+  "regionTaxIdLabel": "Identificación fiscal ({document})",
+  "@regionTaxIdLabel": {
+    "description": "El nombre del documento (NIF, RIF, RFC, RUT…) es un nombre propio y NO se traduce: llega como dato desde RegionProfile. Solo se traduce el envoltorio.",
+    "placeholders": { "document": { "type": "String" } }
+  },
+  "regionCompanyTaxIdLabel": "Identificación fiscal de la empresa ({document})",
+  "@regionCompanyTaxIdLabel": {
+    "placeholders": { "document": { "type": "String" } }
+  },
+  "regionLicenseBoard": "Colegio o registro profesional",
+  "regionLicenseNumber": "Número de colegiación o licencia",
+
+  "adminAreaProvince": "Provincia",
+  "adminAreaState": "Estado",
+  "adminAreaDepartment": "Departamento",
+  "adminAreaRegion": "Región",
+  "adminAreaDistrict": "Distrito",
+  "@adminAreaDistrict": {
+    "description": "División administrativa de primer nivel. Es lo único del perfil de país que se traduce de verdad; los documentos fiscales no."
+  },
+
+  "regionCountryLabel": "País",
+  "regionCountryHelper": "Determina tu moneda, tu identificación fiscal y el formato de los importes.",
+  "countryES": "España",
+  "countryVE": "Venezuela",
+  "countrySV": "El Salvador",
+  "countryMX": "México",
+  "countryCO": "Colombia",
+  "countryPE": "Perú",
+  "countryCL": "Chile",
+  "countryAR": "Argentina",
+  "countryPA": "Panamá",
+  "countryUS": "Estados Unidos",
+  "countryPT": "Portugal"
+}

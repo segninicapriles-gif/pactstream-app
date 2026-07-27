@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/i18n/l10n_extension.dart';
+import '../../../../core/i18n/locale_provider.dart';
+import '../../../../core/i18n/widgets/language_picker.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -52,23 +55,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       barrierDismissible: !sending,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: const Text('Recuperar contraseña'),
+          title: Text(ctx.l10n.resetTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Te enviaremos un enlace para restablecer tu contraseña.',
+                ctx.l10n.resetBody,
                 style: AppTypography.bodyS
                     .copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: emailCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Correo electrónico',
-                  hintText: 'tu@email.com',
-                  prefixIcon: Icon(Icons.mail_outline),
+                decoration: InputDecoration(
+                  labelText: ctx.l10n.loginEmailLabel,
+                  hintText: ctx.l10n.loginEmailHint,
+                  prefixIcon: const Icon(Icons.mail_outline),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
@@ -91,7 +94,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           actions: [
             TextButton(
               onPressed: sending ? null : () => Navigator.of(ctx).pop(),
-              child: const Text('Cancelar'),
+              child: Text(ctx.l10n.commonCancel),
             ),
             ElevatedButton(
               onPressed: sending || sent != null
@@ -99,7 +102,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   : () async {
                       final email = emailCtrl.text.trim();
                       if (!email.contains('@')) {
-                        setS(() => err = 'Introduce un email válido');
+                        setS(() => err = ctx.l10n.loginEmailInvalid);
                         return;
                       }
                       setS(() {
@@ -119,14 +122,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         );
                         setS(() {
                           sending = false;
-                          sent = 'Revisa tu correo — te hemos enviado '
-                              'el enlace de recuperación.';
+                          sent = ctx.l10n.resetSent;
                         });
                       } catch (e) {
                         setS(() {
                           sending = false;
-                          err = 'No se pudo enviar el correo. '
-                              'Inténtalo de nuevo.';
+                          err = ctx.l10n.resetFailed;
                         });
                       }
                     },
@@ -136,7 +137,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       height: 18,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: AppColors.white))
-                  : const Text('Enviar enlace'),
+                  : Text(ctx.l10n.resetSend),
             ),
           ],
         ),
@@ -223,27 +224,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                 const SizedBox(height: AppSpacing.lg),
-                Text('Iniciar sesión', style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
+                Text(context.l10n.loginTitle, style: AppTypography.h2.copyWith(color: context.colors.textPrimary)),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Accede a tu cuenta para gestionar tus obras',
+                  context.l10n.loginSubtitle,
                   style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
                 ),
                 const SizedBox(height: AppSpacing.xl),
 
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Correo electrónico',
-                    hintText: 'tu@email.com',
-                    prefixIcon: Icon(Icons.mail_outline),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.loginEmailLabel,
+                    hintText: context.l10n.loginEmailHint,
+                    prefixIcon: const Icon(Icons.mail_outline),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.email],
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Introduce tu email';
-                    if (!value.contains('@')) return 'Email inválido';
+                    if (value == null || value.isEmpty) {
+                      return context.l10n.loginEmailEmpty;
+                    }
+                    if (!value.contains('@')) {
+                      return context.l10n.loginEmailInvalid;
+                    }
                     return null;
                   },
                 ),
@@ -252,8 +257,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    hintText: 'Mínimo 8 caracteres',
+                    labelText: context.l10n.loginPasswordLabel,
+                    hintText: context.l10n.loginPasswordHint,
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -261,6 +266,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
                       ),
+                      tooltip: _obscurePassword
+                          ? context.l10n.loginShowPassword
+                          : context.l10n.loginHidePassword,
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
                     ),
@@ -270,8 +278,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   autofillHints: const [AutofillHints.password],
                   onFieldSubmitted: (_) => _signIn(),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Introduce tu contraseña';
-                    if (value.length < 8) return 'Mínimo 8 caracteres';
+                    if (value == null || value.isEmpty) {
+                      return context.l10n.loginPasswordEmpty;
+                    }
+                    if (value.length < 8) {
+                      return context.l10n.loginPasswordTooShort;
+                    }
                     return null;
                   },
                 ),
@@ -281,7 +293,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: _showResetPasswordDialog,
-                    child: const Text('¿Olvidaste tu contraseña?'),
+                    child: Text(context.l10n.loginForgotPassword),
                   ),
                 ),
 
@@ -313,7 +325,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             color: AppColors.white,
                           ),
                         )
-                      : const Text('Iniciar sesión'),
+                      : Text(context.l10n.loginTitle),
                 ),
                 const SizedBox(height: AppSpacing.lg),
 
@@ -324,7 +336,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.md),
                       child: Text(
-                        'o',
+                        context.l10n.commonOr,
                         style: AppTypography.bodyS
                             .copyWith(color: context.colors.textTertiary),
                       ),
@@ -336,7 +348,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                 OutlinedButton(
                   onPressed: () => context.go(AppRoutes.register),
-                  child: const Text('Crear cuenta nueva'),
+                  child: Text(context.l10n.loginCreateAccount),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Cambio de idioma ANTES de autenticarse. Sin esto, un usuario
+                // angloparlante que ya tiene cuenta no tiene forma de leer la
+                // pantalla de login: el selector del wizard de alta solo lo ve
+                // quien está creando una cuenta nueva.
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () => showLanguageSheet(context),
+                    icon: const Icon(Icons.language_outlined, size: 18),
+                    label: Text(
+                      ref.watch(appLanguageProvider).nativeName,
+                      style: AppTypography.bodyS,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                   ],

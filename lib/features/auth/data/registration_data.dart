@@ -1,9 +1,17 @@
+import '../../../core/i18n/app_language.dart';
+import '../../../core/i18n/region_profile.dart';
+
 /// Estado del wizard de registro. Se mantiene en memoria mientras
 /// el usuario navega entre los 3 pasos.
 class RegistrationData {
   String fullName = '';
   String email = '';
-  String phoneE164 = '';
+
+  /// Número NACIONAL, sin prefijo. El E.164 se compone con [region] al vuelo:
+  /// guardarlo ya prefijado obligaba a reescribirlo entero cada vez que el
+  /// usuario cambia de país a mitad del formulario.
+  String phoneNational = '';
+
   String password = '';
 
   /// 'promotor' | 'constructor' | 'tecnico'
@@ -17,6 +25,14 @@ class RegistrationData {
   String colegio = '';
   String numColegiacion = '';
 
+  /// Idioma de interfaz elegido en el paso 1. Viaja en la metadata del
+  /// `signUp()` porque la fila de `users` todavía no existe cuando se elige.
+  AppLanguage language = AppLanguage.fallback;
+
+  /// País, que decide moneda, identificación fiscal y prefijo telefónico.
+  /// Se siembra desde el idioma y el usuario puede cambiarlo.
+  RegionProfile region = RegionProfile.fallback;
+
   // Consentimientos
   bool acceptedTerms = false;
   bool acceptedPrivacy = false;
@@ -25,6 +41,9 @@ class RegistrationData {
   static const String termsVersion = '1.0';
   static const String privacyVersion = '1.0';
 
+  /// Teléfono en E.164, tal y como lo espera Supabase.
+  String get phoneE164 => region.toE164(phoneNational);
+
   /// Validación razonable de email: algo@algo.tld sin espacios.
   static final RegExp _emailRegExp =
       RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$');
@@ -32,7 +51,10 @@ class RegistrationData {
   bool get step1Valid =>
       fullName.trim().isNotEmpty &&
       _emailRegExp.hasMatch(email.trim()) &&
-      phoneE164.length >= 9 &&
+      // Longitud REAL del país (9 en España, 10 en EE. UU.). Antes se exigía
+      // `phoneE164.length >= 9`, que un "+34600" ya satisfacía porque contaba
+      // también los caracteres del prefijo.
+      region.isPhoneComplete(phoneNational) &&
       password.length >= 8;
 
   bool get step2Valid {
@@ -44,7 +66,7 @@ class RegistrationData {
       return organizationName.trim().isNotEmpty &&
           cifOrNif.trim().isNotEmpty;
     }
-    // promotor: solo NIF + provincia
+    // promotor: solo identificación fiscal
     return cifOrNif.trim().isNotEmpty;
   }
 
@@ -65,5 +87,7 @@ class RegistrationData {
             numColegiacion.trim().isEmpty ? null : numColegiacion.trim(),
         'p_terms_version': termsVersion,
         'p_privacy_version': privacyVersion,
+        'p_locale': language.code,
+        'p_country_iso': region.countryIso,
       };
 }
