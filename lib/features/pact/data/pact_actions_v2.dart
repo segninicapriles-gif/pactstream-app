@@ -84,6 +84,63 @@ class PactActionsV2 {
     }
   }
 
+  /// Inicia el depósito inicial vía Mangopay (Bankwire PayIn, sandbox).
+  /// Devuelve los datos bancarios para que el promotor transfiera. El fondeo
+  /// se confirma DESPUÉS por webhook (no aquí): esto solo genera el IBAN.
+  static Future<MangopayPayinDetails> startMangopayPayin(String pactId) async {
+    try {
+      final res = await SupabaseConfig.client.functions.invoke(
+        'mangopay-payin',
+        body: {'pact_id': pactId},
+      );
+      final data = res.data;
+      if (data is Map) {
+        return MangopayPayinDetails(
+          payinId: (data['payin_id'] ?? '').toString(),
+          iban: (data['iban'] ?? '').toString(),
+          bic: (data['bic'] ?? '').toString(),
+          ownerName: (data['owner_name'] ?? '').toString(),
+          wireReference: (data['wire_reference'] ?? '').toString(),
+          amountCents: ((data['amount_cents'] as num?) ?? 0).toInt(),
+        );
+      }
+      throw const PactActionException('Respuesta inesperada del servidor', null);
+    } catch (e) {
+      if (e is PactActionException) rethrow;
+      throw PactActionException('No se pudo iniciar el depósito con Mangopay', e);
+    }
+  }
+
+  /// Libera un hito vía Mangopay (Transfer escrow→constructor, sandbox).
+  /// Solo se usa en modo ESCROW_PROVIDER=mangopay; el mock usa
+  /// `promotorDecideMilestone`. El decremento de custodia + 'paid' los hace la
+  /// Edge Function tras un Transfer real.
+  static Future<void> releaseMilestone(String milestoneId) async {
+    try {
+      await SupabaseConfig.client.functions.invoke(
+        'mangopay-release',
+        body: {'milestone_id': milestoneId},
+      );
+    } catch (e) {
+      throw PactActionException('No se pudo liberar el hito con Mangopay', e);
+    }
+  }
+
+  /// Puente cert→factura: pide a CostPact que emita la factura Verifactu de un
+  /// hito aprobado. NO bloqueante — traga cualquier error para no afectar a la
+  /// aprobación (el servidor loguea; la emisión es idempotente y reintentar es
+  /// seguro).
+  static Future<void> emitInvoiceForMilestone(String milestoneId) async {
+    try {
+      await SupabaseConfig.client.functions.invoke(
+        'bridge-emit-invoice',
+        body: {'milestone_id': milestoneId},
+      );
+    } catch (_) {
+      // Silencioso a propósito: la factura no debe romper la aprobación.
+    }
+  }
+
   /// Promotor repone el depósito (importe libre, > 0).
   static Future<int> replenishDeposit({
     required String pactId,
@@ -102,6 +159,52 @@ class PactActionsV2 {
       return 0;
     } catch (e) {
       throw PactActionException('No se pudo reponer el depósito', e);
+    }
+  }
+
+  /// Fase 2.3 · El constructor registra su cuenta bancaria (destino del payout).
+  static Future<void> registerBankAccount({
+    required String ownerName,
+    required String iban,
+    String line1 = '—',
+    String city = '—',
+    String postalCode = '00000',
+    String country = 'ES',
+  }) async {
+    try {
+      await SupabaseConfig.client.functions.invoke(
+        'mangopay-bank-account',
+        body: {
+          'owner_name': ownerName,
+          'iban': iban,
+          'address': {
+            'line1': line1,
+            'city': city,
+            'postal_code': postalCode,
+            'country': country,
+          },
+        },
+      );
+    } catch (e) {
+      throw PactActionException('No se pudo registrar la cuenta bancaria', e);
+    }
+  }
+
+  /// Fase 2.3 · El constructor retira su saldo Mangopay a su banco.
+  /// Sin `amountCents`, retira todo el saldo disponible. Devuelve el importe.
+  static Future<int> requestPayout({int? amountCents}) async {
+    try {
+      final res = await SupabaseConfig.client.functions.invoke(
+        'mangopay-payout',
+        body: amountCents == null ? {} : {'amount_cents': amountCents},
+      );
+      final data = res.data;
+      if (data is Map && data['amount_cents'] is num) {
+        return (data['amount_cents'] as num).toInt();
+      }
+      return 0;
+    } catch (e) {
+      throw PactActionException('No se pudo solicitar la retirada', e);
     }
   }
 
@@ -237,6 +340,25 @@ class PactActionsV2 {
       throw PactActionException('No se pudo firmar el anexo', e);
     }
   }
+}
+
+/// Datos bancarios de un Bankwire PayIn de Mangopay, para mostrar al promotor.
+class MangopayPayinDetails {
+  const MangopayPayinDetails({
+    required this.payinId,
+    required this.iban,
+    required this.bic,
+    required this.ownerName,
+    required this.wireReference,
+    required this.amountCents,
+  });
+
+  final String payinId;
+  final String iban;
+  final String bic;
+  final String ownerName;
+  final String wireReference;
+  final int amountCents;
 }
 
 /// Excepción uniforme para errores de acciones del pacto.

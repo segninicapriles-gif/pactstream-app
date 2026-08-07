@@ -1,0 +1,22 @@
+# Configuración de generación de localizaciones (flutter gen-l10n).
+#
+# Se dispara automáticamente en `flutter pub get` / `flutter run` / `flutter build`
+# porque `pubspec.yaml` declara `flutter: generate: true`.
+#
+# El español es la plantilla (`template-arb-file`) porque es el idioma en el que
+# se escribió la app y el que define las claves canónicas. El inglés
+# norteamericano se valida contra él: cualquier clave que falte en `app_en.arb`
+# aparece en `build/l10n_missing.json` tras cada build.
+arb-dir: lib/l10n
+template-arb-file: app_es.arb
+output-dir: lib/l10n/gen
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+
+# Getters no-nulables: `context.l10n.loginTitle` devuelve String, no String?.
+nullable-getter: false
+
+# Falla el build si el inglés se queda atrás en vez de caer silenciosamente al
+# español. Sin esto, una clave sin traducir se ve en producción como texto
+# español dentro de la UI inglesa y nadie se entera.
+untranslated-messages-file: build/l10n_missing.json

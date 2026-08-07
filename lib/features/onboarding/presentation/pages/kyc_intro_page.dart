@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/l10n_extension.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -18,6 +19,8 @@ class KycIntroPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -26,7 +29,7 @@ class KycIntroPage extends ConsumerWidget {
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
         ),
-        title: Text('Verifica tu identidad',
+        title: Text(l10n.kycIntroTitle,
             style: AppTypography.h3.copyWith(color: AppColors.white)),
       ),
       body: SafeArea(
@@ -50,42 +53,47 @@ class KycIntroPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              Text('Verifica tu identidad',
+              Text(l10n.kycIntroTitle,
                   textAlign: TextAlign.center, style: AppTypography.h1),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Para firmar pactos y mover dinero, necesitamos confirmar quién eres. Tarda 2 minutos.',
+                l10n.kycIntroBody,
                 textAlign: TextAlign.center,
                 style: AppTypography.body.copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.xl),
-              const _BulletPoint(
-                title: 'Escrow regulado',
-                subtitle:
-                    'Tu dinero queda en custodia bajo licencia europea (Mangopay).',
+              // ⚠️ Los dos primeros bullets hacen AFIRMACIONES REGULATORIAS
+              // (licencia europea de Mangopay, validez eIDAS) que solo son
+              // ciertas en la UE. Traducirlas a inglés no las hace válidas en
+              // EE. UU., donde el marco de firma es ESIGN Act / UETA y el
+              // escrow se licencia por estado. Pendiente de revisión legal
+              // antes de lanzar fuera de Europa — ver handoff.
+              _BulletPoint(
+                title: l10n.kycBulletEscrowTitle,
+                subtitle: l10n.kycBulletEscrowBody,
               ),
-              const _BulletPoint(
-                title: 'Firma legal eIDAS',
-                subtitle: 'Tu pacto tiene validez ante un juez (Signaturit).',
+              _BulletPoint(
+                title: l10n.kycBulletSignatureTitle,
+                subtitle: l10n.kycBulletSignatureBody,
               ),
-              const _BulletPoint(
-                title: 'Confianza para las 3 partes',
-                subtitle: 'Promotor, técnico y constructora.',
+              _BulletPoint(
+                title: l10n.kycBulletTrustTitle,
+                subtitle: l10n.kycBulletTrustBody,
               ),
               const Spacer(),
               ElevatedButton.icon(
                 icon: const Icon(Icons.arrow_forward),
                 onPressed: () => context.go(AppRoutes.kycCapture),
-                label: const Text('Empezar verificación'),
+                label: Text(l10n.kycStartCta),
               ),
               const SizedBox(height: AppSpacing.sm),
               TextButton(
                 onPressed: () => context.go(AppRoutes.home),
-                child: const Text('Hacerlo más tarde'),
+                child: Text(l10n.kycLaterCta),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Verificación gestionada por Veriff, proveedor europeo certificado.',
+                l10n.kycProviderNote,
                 textAlign: TextAlign.center,
                 style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
               ),

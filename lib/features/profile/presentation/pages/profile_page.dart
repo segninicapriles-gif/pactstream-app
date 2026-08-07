@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions, UserAttributes;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
+import '../../../../core/i18n/widgets/language_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_shadows.dart';
@@ -885,6 +887,46 @@ class _RoleDataCard extends StatelessWidget {
               ),
             ),
           ],
+          if (role == 'constructor') ...[
+            const Divider(height: 1, indent: 56),
+            ListTile(
+              leading: Icon(Icons.account_balance_wallet_outlined,
+                  color: context.colors.brandAccent),
+              title: Text('Ganancias y retiradas',
+                  style: AppTypography.body
+                      .copyWith(color: context.colors.brandAccent)),
+              trailing: Icon(Icons.chevron_right,
+                  color: context.colors.brandAccent),
+              onTap: () => context.push(AppRoutes.earnings),
+            ),
+          ],
+          // ── Ecosistema: saltar a las otras apps (identidad Google/email
+          // compartida; abren en el navegador con tu sesión o un toque de Google).
+          const Divider(height: 1, indent: 56),
+          ListTile(
+            leading: Icon(Icons.grid_view_outlined,
+                color: context.colors.brandAccent),
+            title: Text('Abrir CostPact',
+                style: AppTypography.body
+                    .copyWith(color: context.colors.brandAccent)),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () {
+              launchUrl(Uri.parse(AppConstants.costpactUrl),
+                  mode: LaunchMode.externalApplication);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.grid_view_outlined,
+                color: context.colors.brandAccent),
+            title: Text('Abrir FiscalCore',
+                style: AppTypography.body
+                    .copyWith(color: context.colors.brandAccent)),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () {
+              launchUrl(Uri.parse(AppConstants.fiscalcoreUrl),
+                  mode: LaunchMode.externalApplication);
+            },
+          ),
         ],
       ),
     );
@@ -1342,6 +1384,13 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
       ),
       child: Column(
         children: [
+          // ── Idioma ──────────────────────────────────────────
+          // Va el primero de "Cuenta" a propósito: si alguien acabó con la app
+          // en el idioma equivocado, esta es la fila que necesita encontrar
+          // antes que ninguna otra, y la reconoce por el icono aunque no
+          // entienda la etiqueta.
+          const LanguageSettingsTile(),
+          const Divider(height: 1, indent: 56),
           // ── Tema (dark mode toggle) ─────────────────────────
           _ThemeModeSelector(),
           const Divider(height: 1, indent: 56),

@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/l10n_extension.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 
 /// Captura KYC vía Veriff (sandbox).
 ///
@@ -44,6 +46,23 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
   /// P2-3 · Límite total del polling.
   static const Duration _pollTimeout = Duration(minutes: 5);
 
+  /// Cadenas localizadas cacheadas como CAMPO, no leídas de `context` al vuelo.
+  ///
+  /// Este flujo es todo asíncrono (crear sesión, abrir navegador, polling de
+  /// 5 minutos) y varios mensajes se construyen DESPUÉS de un `await`. Leer
+  /// `context.l10n` ahí es exactamente lo que prohíbe
+  /// `use_build_context_synchronously`, y con razón: el widget puede haberse
+  /// desmontado. Cachearlo en `didChangeDependencies` lo hace seguro y además
+  /// sigue reaccionando a un cambio de idioma, porque Flutter vuelve a llamar
+  /// a ese método cuando cambia el `Localizations` de arriba.
+  late AppLocalizations _l10n;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _l10n = context.l10n;
+  }
+
   Future<void> _startVeriffSession() async {
     setState(() {
       _processing = true;
@@ -65,7 +84,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
       final url = data['url'] as String?;
 
       if (url == null || url.isEmpty) {
-        throw Exception('Veriff no devolvió URL de sesión');
+        throw Exception(_l10n.kycErrorNoSessionUrl);
       }
 
       _sessionUrl = url;
@@ -78,7 +97,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
       );
 
       if (!launched) {
-        throw Exception('No se pudo abrir la URL de Veriff');
+        throw Exception(_l10n.kycErrorCannotOpenUrl);
       }
 
       if (!mounted) return;
@@ -151,8 +170,8 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
 
         if (kyc == 'in_progress' || kyc == 'not_started') {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verificación aún en proceso. Espera unos segundos.'),
+            SnackBar(
+              content: Text(_l10n.kycStillProcessing),
             ),
           );
         } else {
@@ -198,7 +217,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.psGradientDeep),
         ),
-        title: Text('Verificación de identidad',
+        title: Text(_l10n.kycCaptureAppBarTitle,
             style: AppTypography.h3.copyWith(color: AppColors.white)),
       ),
       body: SafeArea(
@@ -223,15 +242,13 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'Esto está tardando más de lo normal',
+            _l10n.kycTimeoutTitle,
             textAlign: TextAlign.center,
             style: AppTypography.h3,
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Veriff aún no nos ha confirmado el resultado. Puedes seguir '
-            'usando la app y volver más tarde — te avisaremos cuando la '
-            'verificación termine — o reintentar la comprobación ahora.',
+            _l10n.kycTimeoutBody,
             textAlign: TextAlign.center,
             style: AppTypography.bodyS
                 .copyWith(color: context.colors.textTertiary),
@@ -243,13 +260,13 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
               setState(() => _pollTimedOut = false);
               _pollKycStatus();
             },
-            label: const Text('Reintentar'),
+            label: Text(_l10n.commonRetry),
           ),
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             icon: const Icon(Icons.home_outlined),
             onPressed: () => context.go(AppRoutes.home),
-            label: const Text('Seguir más tarde'),
+            label: Text(_l10n.kycContinueLater),
           ),
         ],
       );
@@ -262,13 +279,13 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
         const Center(child: CircularProgressIndicator()),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          'Esperando confirmación de Veriff...',
+          _l10n.kycWaitingTitle,
           textAlign: TextAlign.center,
           style: AppTypography.h3,
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Completa la verificación en la pestaña que se abrió. Cuando termines, vuelve aquí — detectaremos el resultado automáticamente.',
+          _l10n.kycWaitingBody,
           textAlign: TextAlign.center,
           style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
         ),
@@ -280,14 +297,14 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
               Uri.parse(_sessionUrl!),
               mode: LaunchMode.externalApplication,
             ),
-            label: const Text('Reabrir verificación de Veriff'),
+            label: Text(_l10n.kycReopenVeriff),
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
         OutlinedButton.icon(
           icon: const Icon(Icons.refresh),
           onPressed: _processing ? null : _checkStatusManually,
-          label: const Text('Comprobar estado ahora'),
+          label: Text(_l10n.kycCheckStatusNow),
         ),
         const SizedBox(height: AppSpacing.sm),
         TextButton(
@@ -297,7 +314,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
               _pollTimedOut = false;
             });
           },
-          child: const Text('Cancelar y volver'),
+          child: Text(_l10n.kycCancelAndBack),
         ),
       ],
     );
@@ -325,11 +342,14 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Verifica tu identidad con Veriff',
+        Text(_l10n.kycCaptureTitle,
             textAlign: TextAlign.center, style: AppTypography.h1),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Necesitas tu DNI o pasaporte y la cámara del dispositivo. Tarda 2-3 minutos.',
+          // Antes: "tu DNI o pasaporte". El DNI es español y esta pantalla la
+          // ven usuarios de EE. UU., Venezuela y El Salvador. Veriff acepta
+          // documentos de decenas de países y decide él la validez.
+          _l10n.kycCaptureBody,
           textAlign: TextAlign.center,
           style: AppTypography.body.copyWith(color: context.colors.textSecondary),
         ),
@@ -337,20 +357,20 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
         const SizedBox(height: AppSpacing.xl),
 
         // Lo que va a pasar
-        const _Step(
+        _Step(
           number: '1',
-          title: 'Foto del documento',
-          subtitle: 'DNI, NIE o pasaporte. Veriff valida la autenticidad.',
+          title: _l10n.kycStep1Title,
+          subtitle: _l10n.kycStep1Body,
         ),
-        const _Step(
+        _Step(
           number: '2',
-          title: 'Selfie con prueba de vida',
-          subtitle: 'Mira a la cámara y sigue las instrucciones.',
+          title: _l10n.kycStep2Title,
+          subtitle: _l10n.kycStep2Body,
         ),
-        const _Step(
+        _Step(
           number: '3',
-          title: 'Resultado en 30-60 segundos',
-          subtitle: 'Si todo bien, accedes a la app inmediatamente.',
+          title: _l10n.kycStep3Title,
+          subtitle: _l10n.kycStep3Body,
         ),
 
         const SizedBox(height: AppSpacing.xl),
@@ -380,13 +400,20 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
                 )
               : const Icon(Icons.shield),
           onPressed: _processing ? null : _startVeriffSession,
-          label: Text(_processing ? 'Creando sesión...' : 'Iniciar verificación'),
+          label: Text(_processing
+              ? _l10n.kycCreatingSession
+              : _l10n.kycStartSessionCta),
         ),
 
         const SizedBox(height: AppSpacing.md),
 
         // SECURITY: Mock KYC controls are hidden in release builds to
         // prevent users from bypassing identity verification.
+        //
+        // i18n: este bloque se queda SIN traducir a propósito. `kDebugMode` lo
+        // recorta del build de release, así que ningún usuario lo ve nunca —
+        // su único público somos nosotros. Meterlo en los ARB añadiría 6
+        // claves a los tres idiomas para texto que no llega a producción.
         if (kDebugMode)
           ExpansionTile(
             title: Text('Modo desarrollo · Simular resultado',

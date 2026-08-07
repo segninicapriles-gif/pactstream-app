@@ -9,6 +9,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'app.dart';
+import 'core/analytics/analytics.dart';
+import 'core/i18n/app_language.dart';
+import 'core/i18n/locale_provider.dart';
 import 'core/utils/security_checks.dart';
 import 'data/datasources/supabase/supabase_client.dart';
 
@@ -33,8 +36,20 @@ Future<void> main() async {
 
   // Variables de entorno via --dart-define-from-file (no bundled en APK).
 
-  // Inicializar locale español
-  await initializeDateFormatting('es_ES');
+  // Símbolos de fecha de cada idioma soportado. `intl` lanza si se pide un
+  // DateFormat de un locale que no se inicializó, así que se recorre el enum
+  // en vez de listarlos a mano: añadir un idioma no puede olvidarse aquí.
+  for (final language in AppLanguage.values) {
+    await initializeDateFormatting(language.intlLocale);
+  }
+
+  // Preferencia de idioma guardada, ANTES del primer frame para que la app no
+  // arranque en español y salte a inglés a mitad de renderizado.
+  final storedLanguageCode = await readStoredLanguageCode();
+  final bootLanguage = AppLanguageController.resolveInitialLanguage(
+    storedCode: storedLanguageCode,
+    systemLocales: WidgetsBinding.instance.platformDispatcher.locales,
+  );
 
   // Bloquear orientación a portrait en mobile (en V2 considerar tablets)
   await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
@@ -45,16 +60,30 @@ Future<void> main() async {
   // Security: detect rooted/jailbroken devices
   await SecurityChecks.run();
   if (SecurityChecks.isCompromised) {
+    // Esta pantalla se pinta ANTES de que exista el árbol de `AppLocalizations`
+    // (aborta el arranque), así que su texto no puede venir de los ARB. Es el
+    // único texto de la app traducido a mano, y va aquí a propósito: un
+    // dispositivo rooteado no debe llegar a cargar Supabase ni el router.
+    final blockedMessage = switch (bootLanguage) {
+      AppLanguage.es ||
+      AppLanguage.es419 =>
+        'PactStream no puede ejecutarse en este dispositivo.\n\n'
+          '${SecurityChecks.reason}.\n\n'
+          'Por seguridad, las aplicaciones financieras no funcionan '
+          'en dispositivos comprometidos.',
+      AppLanguage.en => 'PactStream can’t run on this device.\n\n'
+          '${SecurityChecks.reason}.\n\n'
+          'For your security, financial apps don’t run on '
+          'compromised devices.',
+    };
     runApp(MaterialApp(
+      locale: bootLanguage.locale,
       home: Scaffold(
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Text(
-              'PactStream no puede ejecutarse en este dispositivo.\n\n'
-              '${SecurityChecks.reason}.\n\n'
-              'Por seguridad, las aplicaciones financieras no funcionan '
-              'en dispositivos comprometidos.',
+              blockedMessage,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 16),
             ),
@@ -67,6 +96,9 @@ Future<void> main() async {
 
   // Inicializar Supabase
   await SupabaseConfig.initialize();
+
+  // Analytics de producto (PostHog EU) — inerte sin POSTHOG_KEY.
+  await Analytics.initialize();
 
   // Inicializar Sentry para captura de errores (solo con DSN real)
   const sentryDsn = String.fromEnvironment('SENTRY_DSN');
@@ -90,9 +122,23 @@ Future<void> main() async {
         // for pre-MVP error monitoring.
         options.tracesSampleRate = 0.2;
       },
-      appRunner: () => runApp(const ProviderScope(child: PactStreamApp())),
+      appRunner: () => runApp(_bootstrap(storedLanguageCode)),
     );
   } else {
-    runApp(const ProviderScope(child: PactStreamApp()));
+    runApp(_bootstrap(storedLanguageCode));
   }
+}
+
+/// Raíz de la app con la preferencia de idioma ya resuelta desde disco.
+///
+/// El override es lo que permite que `AppLanguageController.build()` sea
+/// síncrono: el trabajo asíncrono (leer SharedPreferences) ya ocurrió en
+/// `main()`, así que el provider arranca con el valor definitivo.
+Widget _bootstrap(String? storedLanguageCode) {
+  return ProviderScope(
+    overrides: [
+      storedLanguageCodeProvider.overrideWithValue(storedLanguageCode),
+    ],
+    child: const PactStreamApp(),
+  );
 }

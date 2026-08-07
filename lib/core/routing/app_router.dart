@@ -22,6 +22,7 @@ import '../../features/organization/presentation/pages/accept_org_invite_page.da
 import '../../features/organization/presentation/pages/my_team_page.dart';
 import '../../features/profile/presentation/pages/professional_docs_page.dart';
 import '../../features/pact/presentation/pages/contract_pdf_preview_page.dart';
+import '../../features/pact/presentation/pages/earnings_page.dart';
 import '../../features/pact/presentation/pages/obra_report_preview_page.dart';
 import '../../features/pact/presentation/pages/contract_signing_page.dart';
 import '../../features/pact/presentation/pages/milestone_detail_page.dart';
@@ -90,6 +91,7 @@ abstract final class AppRoutes {
 
   // Professional docs
   static const professionalDocs = '/profile/professional-docs';
+  static const earnings = '/profile/earnings';
 
   // Chat entre partes del pacto (F2.4b)
   static const pactChat = '/pacts/:id/chat';
@@ -310,6 +312,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             child: ProfessionalDocsPage(role: role),
           );
         },
+      ),
+      GoRoute(
+        path: AppRoutes.earnings,
+        pageBuilder: (context, state) =>
+            AppMotion.slideRightPage(child: const EarningsPage()),
       ),
       GoRoute(
         path: AppRoutes.acceptOrgInvite,

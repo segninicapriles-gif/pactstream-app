@@ -9,6 +9,9 @@ abstract final class AppConstants {
 
   // URLs externas
   static const String websiteUrl = 'https://pactstream.io';
+  // Otras apps del ecosistema (SSO por identidad Google/email).
+  static const String costpactUrl = 'https://costpact.io';
+  static const String fiscalcoreUrl = 'https://fiscalcore.io';
   static const String supportEmail = 'soporte@pactstream.io';
   static const String privacyEmail = 'privacidad@pactstream.io';
   static const String dpoEmail = 'dpo@pactstream.io';
@@ -19,6 +22,7 @@ abstract final class AppConstants {
   // Deep links de auth (deben estar dados de alta en Supabase →
   // Auth → URL Configuration → Redirect URLs).
   static const String resetPasswordDeepLink = 'pactstream://reset-password';
+  static const String loginCallbackDeepLink = 'pactstream://callback';
 
   // Plazos legales (alineados con plantillas legales y máquina de estados)
   /// [DECISIÓN LEGAL D-01] — pendiente de cerrar con asesoría jurídica.

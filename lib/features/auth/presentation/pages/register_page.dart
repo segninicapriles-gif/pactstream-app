@@ -6,6 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/i18n/app_language.dart';
+import '../../../../core/i18n/l10n_extension.dart';
+import '../../../../core/i18n/locale_provider.dart';
+import '../../../../core/i18n/region_profile.dart';
+import '../../../../core/i18n/widgets/language_picker.dart';
 import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/routing/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -14,14 +19,19 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../data/datasources/supabase/supabase_client.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../data/registration_data.dart';
 
 /// Wizard de registro en 3 pasos (o 2 en modo invitación).
 ///
-/// Step 1: datos personales (nombre, email, teléfono, contraseña).
-/// Step 2: rol + datos profesionales/empresa (campos adaptados).
+/// Step 1: idioma + país + datos personales (nombre, email, teléfono, pass).
+/// Step 2: rol + datos profesionales/empresa (campos adaptados al país).
 ///         OMITIDO si se entra con [inviteToken] (modo invitación).
 /// Step 3: consentimientos legales + crear cuenta.
+///
+/// El idioma se elige en el PASO 1, antes que nada: si alguien abre la app en
+/// español sin entenderlo, lo primero que necesita es poder cambiarlo, no
+/// llegar al final del wizard para descubrir que existe la opción.
 ///
 /// Tras éxito → /verify-email donde se detecta verificación automáticamente.
 /// En modo invitación, /verify-email recibe ?invite_token=xxx y al verificar
@@ -48,7 +58,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   // Sprint 6 polish · Modo invitación.
   bool _previewLoading = false;
   Map<String, dynamic>? _invitePreview;
-  String? _previewError;
+
+  /// Clave del error de invitación, no el texto. Guardar la cadena ya
+  /// traducida la congelaría en el idioma que estuviera activo al cargar la
+  /// preview, y el usuario puede cambiar de idioma justo después.
+  _InviteError? _previewError;
 
   /// True si la página se abrió con `?invite_token=xxx` válido.
   bool get _inviteMode => _invitePreview != null;
@@ -59,6 +73,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   void initState() {
     super.initState();
+    // Semilla: el idioma con el que arrancó la app decide el país por defecto.
+    _data.language = ref.read(appLanguageProvider);
+    _data.region = RegionProfile.seedFor(_data.language);
+
     if (widget.inviteToken != null && widget.inviteToken!.isNotEmpty) {
       _loadInvitePreview();
     }
@@ -83,8 +101,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       if (!valid) {
         setState(() {
           _previewLoading = false;
-          _previewError = 'La invitación ya no es válida (puede que la '
-              'hayan revocado o ya la hayas aceptado).';
+          _previewError = _InviteError.revoked;
         });
         return;
       }
@@ -106,8 +123,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       if (!mounted) return;
       setState(() {
         _previewLoading = false;
-        _previewError = 'No se pudo cargar la invitación. Vuelve a hacer '
-            'clic en el link del email o pide una nueva invitación.';
+        _previewError = _InviteError.loadFailed;
       });
     }
   }
@@ -162,11 +178,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       // En modo invitación los datos profesionales no aplican; sólo
       // mandamos lo esencial. La propia metadata incluye el token para
       // que verify-email pueda redirigir a /org-invite tras verificar.
+      //
+      // `locale` y `country_iso` van SIEMPRE, en los dos modos: la fila de
+      // `public.users` la crea el trigger `handle_new_auth_user` a partir de
+      // esta metadata, y es la única oportunidad de fijar el idioma antes de
+      // que existan sesión y perfil.
       final metadata = <String, dynamic>{
         'full_name': _data.fullName.trim(),
         'phone_e164': _data.phoneE164,
         'terms_version': RegistrationData.termsVersion,
         'privacy_version': RegistrationData.privacyVersion,
+        'locale': _data.language.code,
+        'country_iso': _data.region.countryIso,
       };
 
       if (_inviteMode) {
@@ -199,7 +222,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       );
 
       if (response.user == null) {
-        throw Exception('No se pudo crear la cuenta');
+        throw Exception(context.l10n.registerCouldNotCreate);
       }
 
       if (!mounted) return;
@@ -239,6 +262,20 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    // Cambiar el idioma re-siembra el país mientras el usuario no lo haya
+    // tocado a mano. Quien pasa la app a inglés espera ver "+1" y "State", no
+    // seguir con "+34" y "Provincia".
+    ref.listen<AppLanguage>(appLanguageProvider, (previous, next) {
+      setState(() {
+        _data.language = next;
+        if (!_countryTouched) {
+          _data.region = RegionProfile.seedFor(next);
+        }
+      });
+    });
+
     // Si todavía cargamos la preview de la invitación, mostramos loader.
     if (_previewLoading) {
       return Scaffold(
@@ -250,7 +287,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     // con CTA a registro normal.
     if (widget.inviteToken != null && _previewError != null) {
       return _InvalidInviteScreen(
-        message: _previewError!,
+        message: _previewError!.message(l10n),
         onGoToNormalRegister: () => context.go(AppRoutes.register),
         onGoToLogin: () => context.go(AppRoutes.login),
       );
@@ -260,9 +297,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: l10n.commonBack,
           onPressed: _previousStep,
         ),
-        title: Text('Paso ${_currentStep + 1} de $_totalSteps',
+        title: Text(
+            l10n.registerStepIndicator(_currentStep + 1, _totalSteps),
             style: AppTypography.h3.copyWith(color: AppColors.white)),
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.white,
@@ -306,6 +345,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         _Step1PersonalInfo(
                           data: _data,
                           onChanged: () => setState(() {}),
+                          onCountryChanged: _onCountryChanged,
                           emailLocked: true,
                         ),
                         _Step3LegalConsents(
@@ -314,7 +354,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     : [
                         _Step1PersonalInfo(
                             data: _data,
-                            onChanged: () => setState(() {})),
+                            onChanged: () => setState(() {}),
+                            onCountryChanged: _onCountryChanged),
                         _Step2RoleAndProfessional(
                             data: _data,
                             onChanged: () => setState(() {})),
@@ -349,7 +390,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           color: AppColors.white,
                         ),
                       )
-                    : Text(_currentStep == _totalSteps - 1 ? 'Crear mi cuenta' : 'Siguiente →'),
+                    : Text(_currentStep == _totalSteps - 1
+                        ? l10n.registerCreateAccountCta
+                        : l10n.commonNext),
               ),
             ),
           ],
@@ -357,21 +400,45 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       ),
     );
   }
+
+  /// Una vez el usuario elige país a mano, cambiar de idioma ya no lo pisa.
+  bool _countryTouched = false;
+
+  void _onCountryChanged(RegionProfile region) {
+    setState(() {
+      _countryTouched = true;
+      _data.region = region;
+    });
+  }
+}
+
+/// Motivos por los que una invitación no se puede usar. Se guarda el motivo y
+/// no el texto para que el mensaje se renderice en el idioma ACTUAL.
+enum _InviteError {
+  revoked,
+  loadFailed;
+
+  String message(AppLocalizations l10n) => switch (this) {
+        _InviteError.revoked => l10n.inviteInvalidRevoked,
+        _InviteError.loadFailed => l10n.inviteInvalidLoadFailed,
+      };
 }
 
 // =====================================================================
-// Step 1 · Datos personales
+// Step 1 · Idioma, país y datos personales
 // =====================================================================
 
 class _Step1PersonalInfo extends StatelessWidget {
   const _Step1PersonalInfo({
     required this.data,
     required this.onChanged,
+    required this.onCountryChanged,
     this.emailLocked = false,
   });
 
   final RegistrationData data;
   final VoidCallback onChanged;
+  final ValueChanged<RegionProfile> onCountryChanged;
 
   /// En modo invitación el email viene fijado por la fila de
   /// organization_members y no debe editarse para que no rompa la
@@ -380,24 +447,32 @@ class _Step1PersonalInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Crea tu cuenta', style: AppTypography.h1),
+          Text(l10n.registerStep1Title, style: AppTypography.h1),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Datos personales',
+            l10n.registerStep1Subtitle,
             style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
           const SizedBox(height: AppSpacing.xl),
+
+          // Idioma primero: es lo único que el usuario puede necesitar cambiar
+          // ANTES de poder leer el resto del formulario.
+          const LanguagePicker(),
+          const SizedBox(height: AppSpacing.xl),
+
           TextFormField(
             initialValue: data.fullName,
-            decoration: const InputDecoration(
-              labelText: 'Nombre completo',
-              hintText: 'Ej: Juan Pérez',
-              prefixIcon: Icon(Icons.person_outline),
+            decoration: InputDecoration(
+              labelText: l10n.registerFullNameLabel,
+              hintText: l10n.registerFullNameHint,
+              prefixIcon: const Icon(Icons.person_outline),
             ),
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.name],
@@ -413,15 +488,14 @@ class _Step1PersonalInfo extends StatelessWidget {
             readOnly: emailLocked,
             enabled: !emailLocked,
             decoration: InputDecoration(
-              labelText: 'Email',
-              hintText: 'tu@email.com',
+              labelText: l10n.loginEmailLabel,
+              hintText: l10n.loginEmailHint,
               prefixIcon: const Icon(Icons.mail_outline),
               suffixIcon: emailLocked
                   ? const Icon(Icons.lock_outline, size: 18)
                   : null,
-              helperText: emailLocked
-                  ? 'Tu equipo te invitó con este email; no se puede cambiar.'
-                  : null,
+              helperText:
+                  emailLocked ? l10n.registerEmailLockedHelper : null,
             ),
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
@@ -434,6 +508,14 @@ class _Step1PersonalInfo extends StatelessWidget {
                   },
           ),
           const SizedBox(height: AppSpacing.lg),
+
+          // País: gobierna moneda, identificación fiscal y prefijo telefónico.
+          _CountryField(
+            selected: data.region,
+            onChanged: onCountryChanged,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -445,7 +527,9 @@ class _Step1PersonalInfo extends StatelessWidget {
                   borderRadius: AppRadius.mdAll,
                 ),
                 child: Text(
-                  'ES +34',
+                  // Prefijo derivado del país seleccionado, no "+34" fijo.
+                  // +58 Venezuela, +503 El Salvador, +507 Panamá…
+                  '${data.region.flagEmoji} ${data.region.dialCode}',
                   style: AppTypography.body.copyWith(
                       fontWeight: FontWeight.w700, color: context.colors.textSecondary),
                 ),
@@ -453,20 +537,23 @@ class _Step1PersonalInfo extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: TextFormField(
-                  initialValue: data.phoneE164.replaceFirst('+34', ''),
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono',
-                    hintText: '600 000 000',
-                    prefixIcon: Icon(Icons.phone_outlined),
+                  key: ValueKey('phone-${data.region.countryIso}'),
+                  initialValue: data.phoneNational,
+                  decoration: InputDecoration(
+                    labelText: l10n.registerPhoneLabel,
+                    hintText: data.region.phoneHint,
+                    prefixIcon: const Icon(Icons.phone_outlined),
                   ),
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+                    // Se admiten los separadores que la gente teclea de forma
+                    // natural en cada país — "600 000 000" y "(555) 010-0199" —
+                    // y se limpian al componer el E.164.
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9 ()\-]')),
                   ],
                   onChanged: (v) {
-                    final cleaned = v.replaceAll(' ', '');
-                    data.phoneE164 = '+34$cleaned';
+                    data.phoneNational = v;
                     onChanged();
                   },
                 ),
@@ -477,11 +564,47 @@ class _Step1PersonalInfo extends StatelessWidget {
           _PasswordField(data: data, onChanged: onChanged),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'Al continuar verás los términos legales en el último paso. No creamos la cuenta hasta que los aceptes.',
+            l10n.registerLegalPreview,
             style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Selector de país. Determina moneda, identificación fiscal y prefijo.
+class _CountryField extends StatelessWidget {
+  const _CountryField({required this.selected, required this.onChanged});
+
+  final RegionProfile selected;
+  final ValueChanged<RegionProfile> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return DropdownButtonFormField<RegionProfile>(
+      initialValue: selected,
+      decoration: InputDecoration(
+        labelText: l10n.regionCountryLabel,
+        helperText: l10n.regionCountryHelper,
+        helperMaxLines: 2,
+        prefixIcon: const Icon(Icons.public_outlined),
+      ),
+      // `pickerOrder`, no `values`: primero los mercados que CostPact tiene
+      // realmente sembrados en `pais_config` (ES, VE, SV). Un país que solo
+      // funciona en una de las dos apps no debe encabezar la lista.
+      items: RegionProfile.pickerOrder
+          .map((region) => DropdownMenuItem(
+                value: region,
+                child: Text(
+                    '${region.flagEmoji}  ${region.countryName(l10n)}'),
+              ))
+          .toList(),
+      onChanged: (region) {
+        if (region != null) onChanged(region);
+      },
     );
   }
 }
@@ -502,11 +625,13 @@ class _PasswordFieldState extends State<_PasswordField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return TextFormField(
       initialValue: widget.data.password,
       decoration: InputDecoration(
-        labelText: 'Contraseña',
-        hintText: 'Mínimo 8 caracteres',
+        labelText: l10n.loginPasswordLabel,
+        hintText: l10n.loginPasswordHint,
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
           icon: Icon(
@@ -514,7 +639,8 @@ class _PasswordFieldState extends State<_PasswordField> {
                 ? Icons.visibility_outlined
                 : Icons.visibility_off_outlined,
           ),
-          tooltip: _obscure ? 'Mostrar contraseña' : 'Ocultar contraseña',
+          tooltip:
+              _obscure ? l10n.loginShowPassword : l10n.loginHidePassword,
           onPressed: () => setState(() => _obscure = !_obscure),
         ),
       ),
@@ -539,42 +665,48 @@ class _Step2RoleAndProfessional extends StatelessWidget {
   final RegistrationData data;
   final VoidCallback onChanged;
 
-  static const _roles = <_RoleOption>[
-    _RoleOption(
-      value: 'promotor',
-      icon: Icons.home_outlined,
-      title: 'Promotor',
-      subtitle: 'Quiero financiar una obra con seguridad',
-    ),
-    _RoleOption(
-      value: 'constructor',
-      icon: Icons.construction_outlined,
-      title: 'Constructor',
-      subtitle: 'Ejecuto obras y quiero cobrar garantizado',
-    ),
-    _RoleOption(
-      value: 'tecnico',
-      icon: Icons.architecture_outlined,
-      title: 'Técnico',
-      subtitle: 'Dirijo obras y valido hitos',
-    ),
-  ];
+  /// Los VALORES (`promotor`, `constructor`, `tecnico`) son claves de dominio
+  /// que viajan a la base de datos y NO se traducen nunca. Solo cambia su
+  /// etiqueta: en inglés norteamericano un `promotor` es el "Owner" y un
+  /// `tecnico` es el "Architect / Engineer" que certifica la obra.
+  static List<_RoleOption> _roles(AppLocalizations l10n) => [
+        _RoleOption(
+          value: 'promotor',
+          icon: Icons.home_outlined,
+          title: l10n.roleOwnerTitle,
+          subtitle: l10n.roleOwnerSubtitle,
+        ),
+        _RoleOption(
+          value: 'constructor',
+          icon: Icons.construction_outlined,
+          title: l10n.roleContractorTitle,
+          subtitle: l10n.roleContractorSubtitle,
+        ),
+        _RoleOption(
+          value: 'tecnico',
+          icon: Icons.architecture_outlined,
+          title: l10n.roleArchitectTitle,
+          subtitle: l10n.roleArchitectSubtitle,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Configura tu perfil', style: AppTypography.h1),
+          Text(l10n.registerStep2Title, style: AppTypography.h1),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Selecciona tu rol en PactStream',
+            l10n.registerStep2Subtitle,
             style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
           const SizedBox(height: AppSpacing.xl),
-          ..._roles.map((role) => _RoleCard(
+          ..._roles(l10n).map((role) => _RoleCard(
                 option: role,
                 selected: data.role == role.value,
                 onTap: () {
@@ -583,26 +715,29 @@ class _Step2RoleAndProfessional extends StatelessWidget {
                 },
               )),
           const SizedBox(height: AppSpacing.xl),
-          if (data.role != null) _buildRoleSpecificFields(context),
+          if (data.role != null) _buildRoleSpecificFields(context, l10n),
         ],
       ),
     );
   }
 
-  Widget _buildRoleSpecificFields(BuildContext context) {
+  Widget _buildRoleSpecificFields(
+      BuildContext context, AppLocalizations l10n) {
+    final region = data.region;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Datos profesionales',
+        Text(l10n.registerProfessionalDataTitle,
             style: AppTypography.h3.copyWith(fontSize: 16)),
         const SizedBox(height: AppSpacing.md),
         if (data.role == 'constructor') ...[
           TextFormField(
             initialValue: data.organizationName,
-            decoration: const InputDecoration(
-              labelText: 'Nombre de empresa',
-              hintText: 'Ej: Construcciones Gómez S.L.',
-              prefixIcon: Icon(Icons.business_outlined),
+            decoration: InputDecoration(
+              labelText: l10n.registerCompanyNameLabel,
+              hintText: l10n.registerCompanyNameHint,
+              prefixIcon: const Icon(Icons.business_outlined),
             ),
             onChanged: (v) {
               data.organizationName = v;
@@ -611,11 +746,14 @@ class _Step2RoleAndProfessional extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           TextFormField(
+            key: ValueKey('company-tax-${region.countryIso}'),
             initialValue: data.cifOrNif,
-            decoration: const InputDecoration(
-              labelText: 'CIF de la empresa',
-              hintText: 'B12345678',
-              prefixIcon: Icon(Icons.badge_outlined),
+            decoration: InputDecoration(
+              // CIF en España, RIF en Venezuela, NIT en El Salvador, EIN en
+              // EE. UU. — el documento cambia con el país, no con el idioma.
+              labelText: region.companyTaxIdLabel(l10n),
+              hintText: region.companyTaxIdHint,
+              prefixIcon: const Icon(Icons.badge_outlined),
             ),
             onChanged: (v) {
               data.cifOrNif = v.toUpperCase();
@@ -624,11 +762,12 @@ class _Step2RoleAndProfessional extends StatelessWidget {
           ),
         ] else if (data.role == 'tecnico') ...[
           TextFormField(
+            key: ValueKey('tax-${region.countryIso}'),
             initialValue: data.cifOrNif,
-            decoration: const InputDecoration(
-              labelText: 'NIF',
-              hintText: '12345678X',
-              prefixIcon: Icon(Icons.badge_outlined),
+            decoration: InputDecoration(
+              labelText: region.taxIdLabel(l10n),
+              hintText: region.personalTaxIdHint,
+              prefixIcon: const Icon(Icons.badge_outlined),
             ),
             onChanged: (v) {
               data.cifOrNif = v.toUpperCase();
@@ -637,11 +776,12 @@ class _Step2RoleAndProfessional extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           TextFormField(
+            key: ValueKey('board-${region.countryIso}'),
             initialValue: data.colegio,
-            decoration: const InputDecoration(
-              labelText: 'Colegio profesional',
-              hintText: 'Ej: COAM Madrid',
-              prefixIcon: Icon(Icons.school_outlined),
+            decoration: InputDecoration(
+              labelText: region.licenseBoardLabel(l10n),
+              hintText: region.licenseBoardHint,
+              prefixIcon: const Icon(Icons.school_outlined),
             ),
             onChanged: (v) {
               data.colegio = v;
@@ -650,11 +790,12 @@ class _Step2RoleAndProfessional extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           TextFormField(
+            key: ValueKey('license-${region.countryIso}'),
             initialValue: data.numColegiacion,
-            decoration: const InputDecoration(
-              labelText: 'Número de colegiación',
-              hintText: '14582',
-              prefixIcon: Icon(Icons.numbers_outlined),
+            decoration: InputDecoration(
+              labelText: region.licenseNumberLabel(l10n),
+              hintText: region.licenseNumberHint,
+              prefixIcon: const Icon(Icons.numbers_outlined),
             ),
             onChanged: (v) {
               data.numColegiacion = v;
@@ -663,11 +804,12 @@ class _Step2RoleAndProfessional extends StatelessWidget {
           ),
         ] else if (data.role == 'promotor') ...[
           TextFormField(
+            key: ValueKey('tax-owner-${region.countryIso}'),
             initialValue: data.cifOrNif,
-            decoration: const InputDecoration(
-              labelText: 'NIF',
-              hintText: '12345678X',
-              prefixIcon: Icon(Icons.badge_outlined),
+            decoration: InputDecoration(
+              labelText: region.taxIdLabel(l10n),
+              hintText: region.personalTaxIdHint,
+              prefixIcon: const Icon(Icons.badge_outlined),
             ),
             onChanged: (v) {
               data.cifOrNif = v.toUpperCase();
@@ -677,11 +819,13 @@ class _Step2RoleAndProfessional extends StatelessWidget {
         ],
         const SizedBox(height: AppSpacing.lg),
         TextFormField(
+          key: ValueKey('area-${region.countryIso}'),
           initialValue: data.province,
-          decoration: const InputDecoration(
-            labelText: 'Provincia',
-            hintText: 'Madrid',
-            prefixIcon: Icon(Icons.location_on_outlined),
+          decoration: InputDecoration(
+            // "Provincia" en España, "State" en EE. UU.
+            labelText: region.adminAreaLabel(l10n),
+            hintText: region.adminAreaHint,
+            prefixIcon: const Icon(Icons.location_on_outlined),
           ),
           onChanged: (v) {
             data.province = v;
@@ -782,15 +926,17 @@ class _Step3LegalConsents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Verifica tus datos', style: AppTypography.h1),
+          Text(l10n.registerStep3Title, style: AppTypography.h1),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Revisa la información antes de crear tu cuenta',
+            l10n.registerStep3Subtitle,
             style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -805,29 +951,36 @@ class _Step3LegalConsents extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Resumen de perfil',
+                Text(l10n.registerSummaryTitle,
                     style: AppTypography.h3.copyWith(fontSize: 16)),
                 const Divider(height: 24),
                 _SummaryRow(
                     icon: Icons.person_outline,
-                    label: 'Nombre',
+                    label: l10n.registerSummaryName,
                     value: data.fullName),
                 _SummaryRow(
                     icon: Icons.mail_outline,
-                    label: 'Email',
+                    label: l10n.registerSummaryEmail,
                     value: data.email),
                 _SummaryRow(
                     icon: Icons.phone_outlined,
-                    label: 'Teléfono',
+                    label: l10n.registerSummaryPhone,
                     value: data.phoneE164),
                 _SummaryRow(
                     icon: Icons.work_outline,
-                    label: 'Rol',
-                    value: data.role?.toUpperCase() ?? '—'),
+                    label: l10n.registerSummaryRole,
+                    value: _roleLabel(l10n) ?? l10n.commonNotAvailable),
+                // El idioma entra en el resumen a propósito: es una elección
+                // que el usuario hizo hace tres pantallas y que determina en
+                // qué idioma recibirá los emails de la plataforma.
+                _SummaryRow(
+                    icon: Icons.language_outlined,
+                    label: l10n.registerSummaryLanguage,
+                    value: data.language.nativeName),
                 if (data.organizationName.isNotEmpty)
                   _SummaryRow(
                       icon: Icons.business_outlined,
-                      label: 'Empresa',
+                      label: l10n.registerSummaryCompany,
                       value: data.organizationName),
               ],
             ),
@@ -840,8 +993,8 @@ class _Step3LegalConsents extends StatelessWidget {
               data.acceptedTerms = v ?? false;
               onChanged();
             },
-            label: 'Acepto los',
-            linkLabel: 'Términos y Condiciones',
+            label: l10n.registerAcceptThe,
+            linkLabel: l10n.registerTermsLink,
             linkUrl: AppConstants.termsUrl,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -851,19 +1004,29 @@ class _Step3LegalConsents extends StatelessWidget {
               data.acceptedPrivacy = v ?? false;
               onChanged();
             },
-            label: 'Acepto la',
-            linkLabel: 'Política de Privacidad',
+            label: l10n.registerAcceptThePrivacy,
+            linkLabel: l10n.registerPrivacyLink,
             linkUrl: AppConstants.privacyUrl,
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'Tu identidad se verificará en el siguiente paso conforme a la normativa de prevención de blanqueo (KYC).',
+            l10n.registerKycNotice,
             style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
     );
   }
+
+  /// Etiqueta traducida del rol. El valor crudo (`promotor`) nunca se muestra:
+  /// antes se pintaba `data.role!.toUpperCase()`, que en inglés dejaba un
+  /// "PROMOTOR" sin sentido en mitad del resumen.
+  String? _roleLabel(AppLocalizations l10n) => switch (data.role) {
+        'promotor' => l10n.roleOwnerTitle,
+        'constructor' => l10n.roleContractorTitle,
+        'tecnico' => l10n.roleArchitectTitle,
+        _ => null,
+      };
 }
 
 class _SummaryRow extends StatelessWidget {
@@ -946,8 +1109,8 @@ class _ConsentRowState extends State<_ConsentRow> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          content: Text('No se pudo abrir el documento. '
-              'Visítalo en ${widget.linkUrl}'),
+          content:
+              Text(context.l10n.registerLinkOpenFailed(widget.linkUrl)),
         ),
       );
     }
@@ -981,8 +1144,8 @@ class _ConsentRowState extends State<_ConsentRow> {
                       TextSpan(
                         text: widget.linkLabel,
                         recognizer: _linkRecognizer,
-                        semanticsLabel:
-                            '${widget.linkLabel} (abre en el navegador)',
+                        semanticsLabel: context.l10n
+                            .registerLinkOpensBrowser(widget.linkLabel),
                         style: AppTypography.body.copyWith(
                           color: context.colors.brandAccent,
                           decoration: TextDecoration.underline,
@@ -1014,8 +1177,10 @@ class _InviteContextBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orgName = (preview['org_name'] as String?) ?? 'una organización';
-    final inviter = (preview['inviter_name'] as String?) ?? 'tu equipo';
+    final l10n = context.l10n;
+    final orgName = (preview['org_name'] as String?) ?? l10n.inviteFallbackOrg;
+    final inviter =
+        (preview['inviter_name'] as String?) ?? l10n.inviteFallbackInviter;
 
     return Container(
       width: double.infinity,
@@ -1045,14 +1210,12 @@ class _InviteContextBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Te uniste como miembro de equipo',
+                Text(l10n.inviteBannerTitle,
                     style: AppTypography.body
                         .copyWith(fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
                 const SizedBox(height: 2),
                 Text(
-                  '$inviter te invitó al equipo de $orgName. '
-                  'Sólo necesitas tus datos personales — la empresa y el rol '
-                  'ya están definidos por tu equipo.',
+                  l10n.inviteBannerBody(inviter, orgName),
                   style: AppTypography.bodyS
                       .copyWith(color: context.colors.textSecondary),
                 ),
@@ -1080,6 +1243,8 @@ class _InvalidInviteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: context.colors.scaffold,
       body: SafeArea(
@@ -1100,7 +1265,7 @@ class _InvalidInviteScreen extends StatelessWidget {
                       color: AppColors.error, size: 48),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Text('Invitación no disponible',
+                Text(l10n.inviteInvalidTitle,
                     style: AppTypography.h2, textAlign: TextAlign.center),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
@@ -1111,12 +1276,12 @@ class _InvalidInviteScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xl),
                 ElevatedButton(
                   onPressed: onGoToNormalRegister,
-                  child: const Text('Crear cuenta normal'),
+                  child: Text(l10n.inviteGoToNormalRegister),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 TextButton(
                   onPressed: onGoToLogin,
-                  child: const Text('Ya tengo cuenta · Iniciar sesión'),
+                  child: Text(l10n.inviteGoToLogin),
                 ),
               ],
             ),
