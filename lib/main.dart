@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'app.dart';
+import 'core/analytics/analytics.dart';
 import 'core/i18n/app_language.dart';
 import 'core/i18n/locale_provider.dart';
 import 'core/utils/security_checks.dart';
@@ -95,6 +96,9 @@ Future<void> main() async {
 
   // Inicializar Supabase
   await SupabaseConfig.initialize();
+
+  // Analytics de producto (PostHog EU) — inerte sin POSTHOG_KEY.
+  await Analytics.initialize();
 
   // Inicializar Sentry para captura de errores (solo con DSN real)
   const sentryDsn = String.fromEnvironment('SENTRY_DSN');

@@ -112,6 +112,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginCreateAccount => 'Create an account';
 
   @override
+  String get loginContinueWithGoogle => 'Continue with Google';
+
+  @override
   String get loginShowPassword => 'Show password';
 
   @override
@@ -568,4 +571,228 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get countryPT => 'Portugal';
+
+  @override
+  String get pdfRoleOwner => 'Owner';
+
+  @override
+  String get pdfRoleContractor => 'General Contractor';
+
+  @override
+  String get pdfRoleArchitect => 'Architect / Engineer';
+
+  @override
+  String get pdfPactStateDraft => 'Draft';
+
+  @override
+  String get pdfPactStateSigning => 'Pending signatures';
+
+  @override
+  String get pdfPactStateActive => 'In progress';
+
+  @override
+  String get pdfPactStateCompleted => 'Completed';
+
+  @override
+  String get pdfPactStateCancelled => 'Cancelled';
+
+  @override
+  String get pdfPactStateDisputed => 'In dispute';
+
+  @override
+  String get pdfMilestoneStatePending => 'Pending';
+
+  @override
+  String get pdfMilestoneStateInExecution => 'In progress';
+
+  @override
+  String get pdfMilestoneStateInReview => 'Under review';
+
+  @override
+  String get pdfMilestoneStateValidated => 'Validated';
+
+  @override
+  String get pdfMilestoneStateApproved => 'Approved';
+
+  @override
+  String get pdfMilestoneStatePaid => 'Paid';
+
+  @override
+  String get pdfMilestoneStateDisputed => 'In dispute';
+
+  @override
+  String get pdfAddendumStateActive => 'Active';
+
+  @override
+  String get pdfAddendumStateCancelled => 'Cancelled';
+
+  @override
+  String get pdfAddendumStatePending => 'Pending';
+
+  @override
+  String get pdfSigned => '✓  SIGNED';
+
+  @override
+  String get pdfUnsigned => 'PENDING';
+
+  @override
+  String pdfPageNumber(int page, int total) {
+    return 'Page $page of $total';
+  }
+
+  @override
+  String get pdfSignatureDisclaimer =>
+      'The signatures below were made using advanced electronic signatures in compliance with eIDAS Regulation (EU) 910/2014 and Spanish Law 6/2020. Each signature was recorded with date, time, device, and a verifiable hash in PactStream.';
+
+  @override
+  String pdfReportDocTitle(String displayId) {
+    return 'Project Record · $displayId';
+  }
+
+  @override
+  String get pdfReportDocSubject =>
+      'Complete project record with milestone escrow';
+
+  @override
+  String get pdfReportTitle => 'PROJECT RECORD BOOK';
+
+  @override
+  String get pdfReportSubtitle => 'Complete record · PactStream';
+
+  @override
+  String get pdfReportHeaderBrand => 'PactStream · Project Record';
+
+  @override
+  String get pdfReportLabelReference => 'Reference';
+
+  @override
+  String get pdfReportLabelProject => 'Project';
+
+  @override
+  String get pdfReportLabelLocation => 'Location';
+
+  @override
+  String get pdfReportLabelType => 'Type';
+
+  @override
+  String get pdfReportMinorWork => 'Minor work (no permit required)';
+
+  @override
+  String get pdfReportMajorWork => 'Major work';
+
+  @override
+  String get pdfReportLabelStatus => 'Status';
+
+  @override
+  String get pdfReportLabelGenerated => 'Generated';
+
+  @override
+  String get pdfReportPartiesTitle => 'Parties involved';
+
+  @override
+  String get pdfReportHeaderRole => 'Role';
+
+  @override
+  String get pdfReportHeaderName => 'Name';
+
+  @override
+  String get pdfReportHeaderEmail => 'Email';
+
+  @override
+  String get pdfReportFinancialTitle => 'Financial summary';
+
+  @override
+  String get pdfReportOriginalEstimate => 'Original estimate';
+
+  @override
+  String get pdfReportChangeOrders => 'Change orders (active)';
+
+  @override
+  String get pdfReportEffectiveEstimate => 'Effective estimate';
+
+  @override
+  String get pdfReportAmountPaid => 'Amount executed and paid';
+
+  @override
+  String get pdfReportPendingPayment => 'Pending payment';
+
+  @override
+  String get pdfReportPercentComplete => '% Completed';
+
+  @override
+  String get pdfReportIvaIncluded => 'included';
+
+  @override
+  String get pdfReportIvaExcluded => 'excluded';
+
+  @override
+  String pdfReportIvaNote(String status, String rate) {
+    return 'VAT $status · rate $rate%';
+  }
+
+  @override
+  String get pdfReportTimelineTitle => 'Project timeline';
+
+  @override
+  String get pdfReportPactCreated => 'Pact created';
+
+  @override
+  String get pdfReportEstimatedStart => 'Estimated start';
+
+  @override
+  String pdfReportMilestonePaid(int ordinal, String amount) {
+    return 'Milestone $ordinal paid · $amount';
+  }
+
+  @override
+  String pdfReportAddendumActiveEvent(int ordinal, String amount) {
+    return 'Addendum #$ordinal active · $amount';
+  }
+
+  @override
+  String get pdfReportEstimatedEnd => 'Estimated end';
+
+  @override
+  String get pdfReportEstimatedSuffix => '(estimated)';
+
+  @override
+  String pdfReportMilestonesTitle(int count) {
+    return 'Milestones and progress billing ($count)';
+  }
+
+  @override
+  String get pdfReportHeaderDescription => 'Description';
+
+  @override
+  String get pdfReportHeaderAmount => 'Amount';
+
+  @override
+  String get pdfReportHeaderPaid => 'Paid';
+
+  @override
+  String pdfReportAddendumTitle(int count) {
+    return 'Change orders and addendums ($count)';
+  }
+
+  @override
+  String get pdfReportHeaderTitleJustification => 'Title / Justification';
+
+  @override
+  String get pdfReportHeaderExtraAmount => 'Extra amount';
+
+  @override
+  String get pdfReportHeaderExtraDays => 'Extra days';
+
+  @override
+  String get pdfReportSignaturesTitle => 'Verified signatures';
+
+  @override
+  String pdfReportFooterDate(String date) {
+    return 'Document generated on $date · confidential use';
+  }
+
+  @override
+  String pdfReportFooterReference(String displayId) {
+    return 'Record generated by PactStream · pactstream.es · Reference: $displayId';
+  }
 }

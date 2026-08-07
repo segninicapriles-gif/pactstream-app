@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/config/escrow_config.dart';
 import '../../../../core/services/biometric_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -75,10 +76,21 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
       _error = null;
     });
     try {
-      await PactActionsV2.fundInitialDeposit(widget.pactId);
-      if (!mounted) return;
-      Navigator.of(context).pop(true);
-      await showSuccessOverlay(context, message: 'Depósito confirmado');
+      if (EscrowConfig.isMangopay) {
+        // Genera el IBAN de custodia (Bankwire). El fondeo NO ocurre aquí: se
+        // confirma por webhook al recibirse la transferencia. Mostramos los
+        // datos bancarios encima del sheet y luego cerramos éste.
+        final details = await PactActionsV2.startMangopayPayin(widget.pactId);
+        if (!mounted) return;
+        await showMangopayBankDetailsSheet(context, details: details);
+        if (!mounted) return;
+        Navigator.of(context).pop(false);
+      } else {
+        await PactActionsV2.fundInitialDeposit(widget.pactId);
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
+        await showSuccessOverlay(context, message: 'Depósito confirmado');
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -115,31 +127,157 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          'Al confirmar, el pacto pasará a "En ejecución" y el constructor podrá empezar a emitir certificaciones. '
-          'En esta versión MVP el ingreso se simula — en producción Mangopay confirmará la transferencia.',
+          EscrowConfig.isMangopay
+              ? 'Te daremos un IBAN de custodia (Mangopay). Transfiere el importe indicado; '
+                  'el depósito se confirmará automáticamente al recibirse y el pacto pasará a "En ejecución".'
+              : 'Al confirmar, el pacto pasará a "En ejecución" y el constructor podrá empezar a emitir certificaciones. '
+                  'En esta versión MVP el ingreso se simula — en producción Mangopay confirmará la transferencia.',
           style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          value: _accepted,
-          onChanged: _loading ? null : (v) => setState(() => _accepted = v ?? false),
-          title: Text(
-            'Confirmo que he transferido el importe a la cuenta de custodia.',
-            style: AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
+        if (!EscrowConfig.isMangopay)
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            value: _accepted,
+            onChanged:
+                _loading ? null : (v) => setState(() => _accepted = v ?? false),
+            title: Text(
+              'Confirmo que he transferido el importe a la cuenta de custodia.',
+              style:
+                  AppTypography.bodyS.copyWith(color: context.colors.textPrimary),
+            ),
           ),
-        ),
         if (_error != null) _ErrorBanner(message: _error!),
         const SizedBox(height: AppSpacing.sm),
         _PrimaryButton(
-          enabled: _accepted && !_loading,
+          enabled: (EscrowConfig.isMangopay || _accepted) && !_loading,
           loading: _loading,
-          label:
-              'Confirmar depósito · ${AppFormatters.moneyShort(widget.requiredCents)}',
+          label: EscrowConfig.isMangopay
+              ? 'Obtener IBAN de custodia'
+              : 'Confirmar depósito · ${AppFormatters.moneyShort(widget.requiredCents)}',
           onPressed: _submit,
         ),
       ],
+    );
+  }
+}
+
+// =====================================================================
+// 1b · Datos bancarios del pay-in Mangopay (Bankwire)
+// =====================================================================
+
+Future<void> showMangopayBankDetailsSheet(
+  BuildContext context, {
+  required MangopayPayinDetails details,
+}) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Theme.of(context).colorScheme.surface,
+    shape: const RoundedRectangleBorder(borderRadius: AppRadius.sheetTop),
+    builder: (ctx) => _MangopayBankDetailsSheet(details: details),
+  );
+}
+
+class _MangopayBankDetailsSheet extends StatelessWidget {
+  const _MangopayBankDetailsSheet({required this.details});
+
+  final MangopayPayinDetails details;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SheetScaffold(
+      title: 'Transferencia a custodia',
+      icon: Icons.account_balance_outlined,
+      iconColor: context.colors.brandAccent,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: context.colors.brandAccentBg,
+            borderRadius: AppRadius.lgAll,
+            boxShadow: AppShadows.soft,
+          ),
+          child: Column(
+            children: [
+              Text('Importe a transferir',
+                  style: AppTypography.caption
+                      .copyWith(color: context.colors.textSecondary)),
+              const SizedBox(height: 4),
+              Text(AppFormatters.moneyLong(details.amountCents),
+                  style: AppTypography.h1
+                      .copyWith(color: context.colors.textPrimary)),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _CopyRow(label: 'Beneficiario', value: details.ownerName),
+        _CopyRow(label: 'IBAN', value: details.iban),
+        _CopyRow(label: 'BIC', value: details.bic),
+        _CopyRow(label: 'Concepto / referencia', value: details.wireReference),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'Incluye la referencia EXACTA en el concepto de la transferencia. '
+          'Al recibirse, el depósito se confirmará solo y el pacto pasará a "En ejecución".',
+          style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _PrimaryButton(
+          enabled: true,
+          loading: false,
+          label: 'Entendido',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+    );
+  }
+}
+
+class _CopyRow extends StatelessWidget {
+  const _CopyRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: AppTypography.caption
+                        .copyWith(color: context.colors.textSecondary)),
+                const SizedBox(height: 2),
+                SelectableText(
+                  value.isEmpty ? '—' : value,
+                  style: AppTypography.bodyS
+                      .copyWith(color: context.colors.textPrimary),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy_outlined, size: 18),
+            tooltip: 'Copiar',
+            onPressed: value.isEmpty
+                ? null
+                : () {
+                    AppHaptics.medium();
+                    Clipboard.setData(ClipboardData(text: value));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('$label copiado')),
+                    );
+                  },
+          ),
+        ],
+      ),
     );
   }
 }

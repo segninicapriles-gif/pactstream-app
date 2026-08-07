@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions, UserAttributes;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/routing/app_router.dart';
@@ -886,6 +887,46 @@ class _RoleDataCard extends StatelessWidget {
               ),
             ),
           ],
+          if (role == 'constructor') ...[
+            const Divider(height: 1, indent: 56),
+            ListTile(
+              leading: Icon(Icons.account_balance_wallet_outlined,
+                  color: context.colors.brandAccent),
+              title: Text('Ganancias y retiradas',
+                  style: AppTypography.body
+                      .copyWith(color: context.colors.brandAccent)),
+              trailing: Icon(Icons.chevron_right,
+                  color: context.colors.brandAccent),
+              onTap: () => context.push(AppRoutes.earnings),
+            ),
+          ],
+          // ── Ecosistema: saltar a las otras apps (identidad Google/email
+          // compartida; abren en el navegador con tu sesión o un toque de Google).
+          const Divider(height: 1, indent: 56),
+          ListTile(
+            leading: Icon(Icons.grid_view_outlined,
+                color: context.colors.brandAccent),
+            title: Text('Abrir CostPact',
+                style: AppTypography.body
+                    .copyWith(color: context.colors.brandAccent)),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () {
+              launchUrl(Uri.parse(AppConstants.costpactUrl),
+                  mode: LaunchMode.externalApplication);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.grid_view_outlined,
+                color: context.colors.brandAccent),
+            title: Text('Abrir FiscalCore',
+                style: AppTypography.body
+                    .copyWith(color: context.colors.brandAccent)),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () {
+              launchUrl(Uri.parse(AppConstants.fiscalcoreUrl),
+                  mode: LaunchMode.externalApplication);
+            },
+          ),
         ],
       ),
     );

@@ -48,6 +48,7 @@
   "loginPasswordTooShort": "Mínimo 8 caracteres",
   "loginForgotPassword": "¿Olvidaste tu contraseña?",
   "loginCreateAccount": "Crear cuenta nueva",
+  "loginContinueWithGoogle": "Continuar con Google",
   "loginShowPassword": "Mostrar contraseña",
   "loginHidePassword": "Ocultar contraseña",
 
@@ -247,5 +248,130 @@
   "countryAR": "Argentina",
   "countryPA": "Panamá",
   "countryUS": "Estados Unidos",
-  "countryPT": "Portugal"
+  "countryPT": "Portugal",
+
+  "pdfRoleOwner": "Promotor",
+  "pdfRoleContractor": "Constructor",
+  "pdfRoleArchitect": "Arquitecto técnico",
+  "@pdfRoleArchitect": {
+    "description": "Rol PDF: dirección facultativa. En EN = Architect / Engineer (AIA)."
+  },
+
+  "pdfPactStateDraft": "Borrador",
+  "pdfPactStateSigning": "En firma",
+  "pdfPactStateActive": "En ejecución",
+  "pdfPactStateCompleted": "Completado",
+  "pdfPactStateCancelled": "Cancelado",
+  "pdfPactStateDisputed": "En disputa",
+
+  "pdfMilestoneStatePending": "Pendiente",
+  "pdfMilestoneStateInExecution": "En ejecución",
+  "pdfMilestoneStateInReview": "En revisión",
+  "pdfMilestoneStateValidated": "Validado",
+  "pdfMilestoneStateApproved": "Aprobado",
+  "pdfMilestoneStatePaid": "Pagado",
+  "pdfMilestoneStateDisputed": "En disputa",
+
+  "pdfAddendumStateActive": "Activo",
+  "pdfAddendumStateCancelled": "Cancelado",
+  "pdfAddendumStatePending": "Pendiente",
+
+  "pdfSigned": "✓  FIRMADO",
+  "pdfUnsigned": "PENDIENTE",
+  "pdfPageNumber": "Pág. {page} de {total}",
+  "@pdfPageNumber": {
+    "placeholders": {
+      "page": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "pdfSignatureDisclaimer": "Las firmas a continuación fueron realizadas mediante firma electrónica avanzada conforme al Reglamento eIDAS (UE) 910/2014 y la Ley 6/2020 española. Cada firma quedó registrada con fecha, hora, dispositivo y hash verificable en PactStream.",
+  "@pdfSignatureDisclaimer": {
+    "description": "⚠️ AFIRMACIÓN REGULATORIA. eIDAS y Ley 6/2020 son europeas. Necesita revisión legal antes de lanzar fuera de la UE."
+  },
+
+  "pdfReportDocTitle": "Libro de la Obra · {displayId}",
+  "@pdfReportDocTitle": {
+    "placeholders": { "displayId": { "type": "String" } }
+  },
+  "pdfReportDocSubject": "Expediente completo de obra con custodia por hitos",
+  "pdfReportTitle": "LIBRO DE LA OBRA",
+  "pdfReportSubtitle": "Expediente completo · PactStream",
+  "pdfReportHeaderBrand": "PactStream · Libro de la Obra",
+  "pdfReportLabelReference": "Referencia",
+  "pdfReportLabelProject": "Obra",
+  "pdfReportLabelLocation": "Localización",
+  "pdfReportLabelType": "Tipo",
+  "pdfReportMinorWork": "Obra menor (sin licencia)",
+  "pdfReportMajorWork": "Obra mayor",
+  "pdfReportLabelStatus": "Estado",
+  "pdfReportLabelGenerated": "Generado",
+
+  "pdfReportPartiesTitle": "Partes intervinientes",
+  "pdfReportHeaderRole": "Rol",
+  "pdfReportHeaderName": "Nombre",
+  "pdfReportHeaderEmail": "Email",
+
+  "pdfReportFinancialTitle": "Resumen financiero",
+  "pdfReportOriginalEstimate": "Presupuesto original",
+  "pdfReportChangeOrders": "Modificados (anexos activos)",
+  "pdfReportEffectiveEstimate": "Presupuesto efectivo",
+  "pdfReportAmountPaid": "Importe ejecutado y pagado",
+  "pdfReportPendingPayment": "Pendiente de pago",
+  "pdfReportPercentComplete": "% Ejecutado",
+  "pdfReportIvaIncluded": "incluido",
+  "pdfReportIvaExcluded": "no incluido",
+  "pdfReportIvaNote": "IVA {status} · tipo {rate}%",
+  "@pdfReportIvaNote": {
+    "placeholders": {
+      "status": { "type": "String" },
+      "rate": { "type": "String" }
+    }
+  },
+
+  "pdfReportTimelineTitle": "Cronología de la obra",
+  "pdfReportPactCreated": "Pacto creado",
+  "pdfReportEstimatedStart": "Inicio estimado",
+  "pdfReportMilestonePaid": "Hito {ordinal} pagado · {amount}",
+  "@pdfReportMilestonePaid": {
+    "placeholders": {
+      "ordinal": { "type": "int" },
+      "amount": { "type": "String" }
+    }
+  },
+  "pdfReportAddendumActiveEvent": "Anexo #{ordinal} activo · {amount}",
+  "@pdfReportAddendumActiveEvent": {
+    "placeholders": {
+      "ordinal": { "type": "int" },
+      "amount": { "type": "String" }
+    }
+  },
+  "pdfReportEstimatedEnd": "Fin estimado",
+  "pdfReportEstimatedSuffix": "(estimado)",
+
+  "pdfReportMilestonesTitle": "Hitos y certificaciones ({count})",
+  "@pdfReportMilestonesTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "pdfReportHeaderDescription": "Descripción",
+  "pdfReportHeaderAmount": "Importe",
+  "pdfReportHeaderPaid": "Pagado",
+
+  "pdfReportAddendumTitle": "Modificados y anexos ({count})",
+  "@pdfReportAddendumTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "pdfReportHeaderTitleJustification": "Título / Justificación",
+  "pdfReportHeaderExtraAmount": "Importe extra",
+  "pdfReportHeaderExtraDays": "Días extra",
+
+  "pdfReportSignaturesTitle": "Firmas verificadas",
+  "pdfReportFooterDate": "Documento generado el {date} · uso confidencial",
+  "@pdfReportFooterDate": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "pdfReportFooterReference": "Expediente generado por PactStream · pactstream.es · Referencia: {displayId}",
+  "@pdfReportFooterReference": {
+    "placeholders": { "displayId": { "type": "String" } }
+  }
 }
