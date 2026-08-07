@@ -303,6 +303,12 @@ abstract class AppLocalizations {
   /// **'Crear cuenta nueva'**
   String get loginCreateAccount;
 
+  /// No description provided for @loginContinueWithGoogle.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar con Google'**
+  String get loginContinueWithGoogle;
+
   /// No description provided for @loginShowPassword.
   ///
   /// In es, this message translates to:
@@ -1136,6 +1142,414 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Portugal'**
   String get countryPT;
+
+  /// No description provided for @pdfRoleOwner.
+  ///
+  /// In es, this message translates to:
+  /// **'Promotor'**
+  String get pdfRoleOwner;
+
+  /// No description provided for @pdfRoleContractor.
+  ///
+  /// In es, this message translates to:
+  /// **'Constructor'**
+  String get pdfRoleContractor;
+
+  /// Rol PDF: dirección facultativa. En EN = Architect / Engineer (AIA).
+  ///
+  /// In es, this message translates to:
+  /// **'Arquitecto técnico'**
+  String get pdfRoleArchitect;
+
+  /// No description provided for @pdfPactStateDraft.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrador'**
+  String get pdfPactStateDraft;
+
+  /// No description provided for @pdfPactStateSigning.
+  ///
+  /// In es, this message translates to:
+  /// **'En firma'**
+  String get pdfPactStateSigning;
+
+  /// No description provided for @pdfPactStateActive.
+  ///
+  /// In es, this message translates to:
+  /// **'En ejecución'**
+  String get pdfPactStateActive;
+
+  /// No description provided for @pdfPactStateCompleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Completado'**
+  String get pdfPactStateCompleted;
+
+  /// No description provided for @pdfPactStateCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelado'**
+  String get pdfPactStateCancelled;
+
+  /// No description provided for @pdfPactStateDisputed.
+  ///
+  /// In es, this message translates to:
+  /// **'En disputa'**
+  String get pdfPactStateDisputed;
+
+  /// No description provided for @pdfMilestoneStatePending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente'**
+  String get pdfMilestoneStatePending;
+
+  /// No description provided for @pdfMilestoneStateInExecution.
+  ///
+  /// In es, this message translates to:
+  /// **'En ejecución'**
+  String get pdfMilestoneStateInExecution;
+
+  /// No description provided for @pdfMilestoneStateInReview.
+  ///
+  /// In es, this message translates to:
+  /// **'En revisión'**
+  String get pdfMilestoneStateInReview;
+
+  /// No description provided for @pdfMilestoneStateValidated.
+  ///
+  /// In es, this message translates to:
+  /// **'Validado'**
+  String get pdfMilestoneStateValidated;
+
+  /// No description provided for @pdfMilestoneStateApproved.
+  ///
+  /// In es, this message translates to:
+  /// **'Aprobado'**
+  String get pdfMilestoneStateApproved;
+
+  /// No description provided for @pdfMilestoneStatePaid.
+  ///
+  /// In es, this message translates to:
+  /// **'Pagado'**
+  String get pdfMilestoneStatePaid;
+
+  /// No description provided for @pdfMilestoneStateDisputed.
+  ///
+  /// In es, this message translates to:
+  /// **'En disputa'**
+  String get pdfMilestoneStateDisputed;
+
+  /// No description provided for @pdfAddendumStateActive.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo'**
+  String get pdfAddendumStateActive;
+
+  /// No description provided for @pdfAddendumStateCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelado'**
+  String get pdfAddendumStateCancelled;
+
+  /// No description provided for @pdfAddendumStatePending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente'**
+  String get pdfAddendumStatePending;
+
+  /// No description provided for @pdfSigned.
+  ///
+  /// In es, this message translates to:
+  /// **'✓  FIRMADO'**
+  String get pdfSigned;
+
+  /// No description provided for @pdfUnsigned.
+  ///
+  /// In es, this message translates to:
+  /// **'PENDIENTE'**
+  String get pdfUnsigned;
+
+  /// No description provided for @pdfPageNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Pág. {page} de {total}'**
+  String pdfPageNumber(int page, int total);
+
+  /// ⚠️ AFIRMACIÓN REGULATORIA. eIDAS y Ley 6/2020 son europeas. Necesita revisión legal antes de lanzar fuera de la UE.
+  ///
+  /// In es, this message translates to:
+  /// **'Las firmas a continuación fueron realizadas mediante firma electrónica avanzada conforme al Reglamento eIDAS (UE) 910/2014 y la Ley 6/2020 española. Cada firma quedó registrada con fecha, hora, dispositivo y hash verificable en PactStream.'**
+  String get pdfSignatureDisclaimer;
+
+  /// No description provided for @pdfReportDocTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Libro de la Obra · {displayId}'**
+  String pdfReportDocTitle(String displayId);
+
+  /// No description provided for @pdfReportDocSubject.
+  ///
+  /// In es, this message translates to:
+  /// **'Expediente completo de obra con custodia por hitos'**
+  String get pdfReportDocSubject;
+
+  /// No description provided for @pdfReportTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'LIBRO DE LA OBRA'**
+  String get pdfReportTitle;
+
+  /// No description provided for @pdfReportSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Expediente completo · PactStream'**
+  String get pdfReportSubtitle;
+
+  /// No description provided for @pdfReportHeaderBrand.
+  ///
+  /// In es, this message translates to:
+  /// **'PactStream · Libro de la Obra'**
+  String get pdfReportHeaderBrand;
+
+  /// No description provided for @pdfReportLabelReference.
+  ///
+  /// In es, this message translates to:
+  /// **'Referencia'**
+  String get pdfReportLabelReference;
+
+  /// No description provided for @pdfReportLabelProject.
+  ///
+  /// In es, this message translates to:
+  /// **'Obra'**
+  String get pdfReportLabelProject;
+
+  /// No description provided for @pdfReportLabelLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Localización'**
+  String get pdfReportLabelLocation;
+
+  /// No description provided for @pdfReportLabelType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo'**
+  String get pdfReportLabelType;
+
+  /// No description provided for @pdfReportMinorWork.
+  ///
+  /// In es, this message translates to:
+  /// **'Obra menor (sin licencia)'**
+  String get pdfReportMinorWork;
+
+  /// No description provided for @pdfReportMajorWork.
+  ///
+  /// In es, this message translates to:
+  /// **'Obra mayor'**
+  String get pdfReportMajorWork;
+
+  /// No description provided for @pdfReportLabelStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get pdfReportLabelStatus;
+
+  /// No description provided for @pdfReportLabelGenerated.
+  ///
+  /// In es, this message translates to:
+  /// **'Generado'**
+  String get pdfReportLabelGenerated;
+
+  /// No description provided for @pdfReportPartiesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Partes intervinientes'**
+  String get pdfReportPartiesTitle;
+
+  /// No description provided for @pdfReportHeaderRole.
+  ///
+  /// In es, this message translates to:
+  /// **'Rol'**
+  String get pdfReportHeaderRole;
+
+  /// No description provided for @pdfReportHeaderName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get pdfReportHeaderName;
+
+  /// No description provided for @pdfReportHeaderEmail.
+  ///
+  /// In es, this message translates to:
+  /// **'Email'**
+  String get pdfReportHeaderEmail;
+
+  /// No description provided for @pdfReportFinancialTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen financiero'**
+  String get pdfReportFinancialTitle;
+
+  /// No description provided for @pdfReportOriginalEstimate.
+  ///
+  /// In es, this message translates to:
+  /// **'Presupuesto original'**
+  String get pdfReportOriginalEstimate;
+
+  /// No description provided for @pdfReportChangeOrders.
+  ///
+  /// In es, this message translates to:
+  /// **'Modificados (anexos activos)'**
+  String get pdfReportChangeOrders;
+
+  /// No description provided for @pdfReportEffectiveEstimate.
+  ///
+  /// In es, this message translates to:
+  /// **'Presupuesto efectivo'**
+  String get pdfReportEffectiveEstimate;
+
+  /// No description provided for @pdfReportAmountPaid.
+  ///
+  /// In es, this message translates to:
+  /// **'Importe ejecutado y pagado'**
+  String get pdfReportAmountPaid;
+
+  /// No description provided for @pdfReportPendingPayment.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente de pago'**
+  String get pdfReportPendingPayment;
+
+  /// No description provided for @pdfReportPercentComplete.
+  ///
+  /// In es, this message translates to:
+  /// **'% Ejecutado'**
+  String get pdfReportPercentComplete;
+
+  /// No description provided for @pdfReportIvaIncluded.
+  ///
+  /// In es, this message translates to:
+  /// **'incluido'**
+  String get pdfReportIvaIncluded;
+
+  /// No description provided for @pdfReportIvaExcluded.
+  ///
+  /// In es, this message translates to:
+  /// **'no incluido'**
+  String get pdfReportIvaExcluded;
+
+  /// No description provided for @pdfReportIvaNote.
+  ///
+  /// In es, this message translates to:
+  /// **'IVA {status} · tipo {rate}%'**
+  String pdfReportIvaNote(String status, String rate);
+
+  /// No description provided for @pdfReportTimelineTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cronología de la obra'**
+  String get pdfReportTimelineTitle;
+
+  /// No description provided for @pdfReportPactCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'Pacto creado'**
+  String get pdfReportPactCreated;
+
+  /// No description provided for @pdfReportEstimatedStart.
+  ///
+  /// In es, this message translates to:
+  /// **'Inicio estimado'**
+  String get pdfReportEstimatedStart;
+
+  /// No description provided for @pdfReportMilestonePaid.
+  ///
+  /// In es, this message translates to:
+  /// **'Hito {ordinal} pagado · {amount}'**
+  String pdfReportMilestonePaid(int ordinal, String amount);
+
+  /// No description provided for @pdfReportAddendumActiveEvent.
+  ///
+  /// In es, this message translates to:
+  /// **'Anexo #{ordinal} activo · {amount}'**
+  String pdfReportAddendumActiveEvent(int ordinal, String amount);
+
+  /// No description provided for @pdfReportEstimatedEnd.
+  ///
+  /// In es, this message translates to:
+  /// **'Fin estimado'**
+  String get pdfReportEstimatedEnd;
+
+  /// No description provided for @pdfReportEstimatedSuffix.
+  ///
+  /// In es, this message translates to:
+  /// **'(estimado)'**
+  String get pdfReportEstimatedSuffix;
+
+  /// No description provided for @pdfReportMilestonesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Hitos y certificaciones ({count})'**
+  String pdfReportMilestonesTitle(int count);
+
+  /// No description provided for @pdfReportHeaderDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get pdfReportHeaderDescription;
+
+  /// No description provided for @pdfReportHeaderAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Importe'**
+  String get pdfReportHeaderAmount;
+
+  /// No description provided for @pdfReportHeaderPaid.
+  ///
+  /// In es, this message translates to:
+  /// **'Pagado'**
+  String get pdfReportHeaderPaid;
+
+  /// No description provided for @pdfReportAddendumTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Modificados y anexos ({count})'**
+  String pdfReportAddendumTitle(int count);
+
+  /// No description provided for @pdfReportHeaderTitleJustification.
+  ///
+  /// In es, this message translates to:
+  /// **'Título / Justificación'**
+  String get pdfReportHeaderTitleJustification;
+
+  /// No description provided for @pdfReportHeaderExtraAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Importe extra'**
+  String get pdfReportHeaderExtraAmount;
+
+  /// No description provided for @pdfReportHeaderExtraDays.
+  ///
+  /// In es, this message translates to:
+  /// **'Días extra'**
+  String get pdfReportHeaderExtraDays;
+
+  /// No description provided for @pdfReportSignaturesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Firmas verificadas'**
+  String get pdfReportSignaturesTitle;
+
+  /// No description provided for @pdfReportFooterDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento generado el {date} · uso confidencial'**
+  String pdfReportFooterDate(String date);
+
+  /// No description provided for @pdfReportFooterReference.
+  ///
+  /// In es, this message translates to:
+  /// **'Expediente generado por PactStream · pactstream.es · Referencia: {displayId}'**
+  String pdfReportFooterReference(String displayId);
 }
 
 class _AppLocalizationsDelegate

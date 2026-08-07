@@ -39,6 +39,7 @@
   "loginPasswordTooShort": "Mínimo 8 caracteres",
   "loginForgotPassword": "¿Olvidaste tu contraseña?",
   "loginCreateAccount": "Crear cuenta nueva",
+  "loginContinueWithGoogle": "Continuar con Google",
   "loginShowPassword": "Mostrar contraseña",
   "loginHidePassword": "Ocultar contraseña",
 
@@ -218,5 +219,16 @@
   "countryAR": "Argentina",
   "countryPA": "Panamá",
   "countryUS": "Estados Unidos",
-  "countryPT": "Portugal"
+  "countryPT": "Portugal",
+
+  "pdfRoleOwner": "Desarrollador",
+  "pdfRoleArchitect": "Ingeniero/Arquitecto",
+
+  "pdfReportDocTitle": "Libro de la Obra · {displayId}",
+  "@pdfReportDocTitle": {
+    "placeholders": { "displayId": { "type": "String" } }
+  },
+  "pdfReportAmountPaid": "Monto ejecutado y pagado",
+  "pdfReportHeaderAmount": "Monto",
+  "pdfReportHeaderExtraAmount": "Monto extra"
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +15,8 @@ import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../ai/presentation/widgets/ai_verification_card.dart';
 import '../../data/milestone_detail.dart';
+import '../../../../core/config/escrow_config.dart';
+import '../../data/pact_actions_v2.dart';
 import '../../data/pact_providers.dart';
 import '../../data/dispute_actions.dart';
 import '../widgets/pact_state_badge.dart';
@@ -1079,11 +1083,22 @@ class _PromotorDecideCtaState extends ConsumerState<_PromotorDecideCta> {
       _error = null;
     });
     try {
-      await ref.read(pactsRepositoryProvider).promotorDecideMilestone(
-            milestoneId: widget.milestone.id,
-            decision: decision,
-            rationale: rationale.isEmpty ? null : rationale,
-          );
+      if (decision == 'approve' && EscrowConfig.isMangopay) {
+        // Modo Mangopay: aprobar libera dinero real (Transfer → confirm), no
+        // el mock. La objeción (dispute) sigue el flujo normal.
+        await PactActionsV2.releaseMilestone(widget.milestone.id);
+      } else {
+        await ref.read(pactsRepositoryProvider).promotorDecideMilestone(
+              milestoneId: widget.milestone.id,
+              decision: decision,
+              rationale: rationale.isEmpty ? null : rationale,
+            );
+      }
+      // Cierre del bucle fiscal (R3): al aprobar, pedir a CostPact la emisión
+      // de la factura Verifactu. Fire-and-forget, no bloquea la aprobación.
+      if (decision == 'approve' && EscrowConfig.invoiceBridgeOn) {
+        unawaited(PactActionsV2.emitInvoiceForMilestone(widget.milestone.id));
+      }
       ref.invalidate(milestoneDetailProvider(widget.milestone.id));
       ref.invalidate(pactDetailProvider(widget.milestone.pactId));
       ref.invalidate(myPactsProvider);

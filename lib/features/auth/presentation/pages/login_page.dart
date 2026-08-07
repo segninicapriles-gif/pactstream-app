@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/analytics/analytics.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/i18n/l10n_extension.dart';
 import '../../../../core/i18n/locale_provider.dart';
@@ -36,8 +41,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _loading = false;
   String? _errorMessage;
 
+  /// Viva solo durante el flujo OAuth: espera el evento `signedIn` que llega
+  /// por deep link (`pactstream://callback`) tras autenticar en el navegador,
+  /// para navegar entonces a splash. Se cancela al salir de la pantalla.
+  StreamSubscription<AuthState>? _oauthSub;
+
   @override
   void dispose() {
+    _oauthSub?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -158,6 +169,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      final uid = SupabaseConfig.currentUser?.id;
+      if (uid != null) unawaited(Analytics.identify(uid));
+      unawaited(Analytics.capture('login_completed', {'method': 'password'}));
       if (!mounted) return;
       // Si venimos con ?redirect= (p.ej. invitación de organización),
       // honramos el destino. Solo aceptamos rutas internas ('/...').
@@ -171,6 +185,44 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       // Route through splash so KYC/onboarding checks run properly
       context.go(AppRoutes.splash);
     } on Exception catch (e) {
+      setState(() => _errorMessage = humanizeError(e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+
+    unawaited(Analytics.capture('login_started', {'method': 'google'}));
+
+    // A diferencia del login por contraseña, `signInWithOAuth` solo lanza el
+    // navegador y retorna: la sesión llega DESPUÉS por el deep link, disparando
+    // `AuthChangeEvent.signedIn`. Por eso la navegación cuelga de este listener
+    // (contenido en esta pantalla, sin tocar el router global) y no de un await.
+    // Navegamos a splash, que corre los checks de KYC/onboarding y enruta al
+    // destino correcto.
+    _oauthSub?.cancel();
+    _oauthSub = SupabaseConfig.authStream.listen((data) {
+      if (data.event == AuthChangeEvent.signedIn && mounted) {
+        _oauthSub?.cancel();
+        context.go(AppRoutes.splash);
+      }
+    });
+
+    try {
+      // redirectTo debe estar en la allowlist de Supabase (Auth → URL
+      // Configuration → Redirect URLs) y el proveedor Google habilitado.
+      // En web se omite: Supabase redirige a la Site URL configurada.
+      await SupabaseConfig.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: kIsWeb ? null : AppConstants.loginCallbackDeepLink,
+      );
+    } on Exception catch (e) {
+      _oauthSub?.cancel();
       setState(() => _errorMessage = humanizeError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -327,6 +379,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         )
                       : Text(context.l10n.loginTitle),
                 ),
+                const SizedBox(height: AppSpacing.md),
+
+                OutlinedButton.icon(
+                  onPressed: _loading ? null : _signInWithGoogle,
+                  icon: SvgPicture.string(
+                    _googleGlyphSvg,
+                    width: 18,
+                    height: 18,
+                  ),
+                  label: Text(context.l10n.loginContinueWithGoogle),
+                ),
                 const SizedBox(height: AppSpacing.lg),
 
                 Row(
@@ -377,3 +440,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
+
+/// Logo "G" oficial de Google (4 colores). Markup SVG estático, sin texto
+/// traducible → `const` de módulo correcto (no aplica el antipatrón i18n de
+/// literales que deben cambiar con el idioma).
+const String _googleGlyphSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">'
+    '<path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>'
+    '<path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>'
+    '<path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>'
+    '<path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>'
+    '</svg>';

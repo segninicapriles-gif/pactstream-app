@@ -112,6 +112,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get loginCreateAccount => 'Crear cuenta nueva';
 
   @override
+  String get loginContinueWithGoogle => 'Continuar con Google';
+
+  @override
   String get loginShowPassword => 'Mostrar contraseña';
 
   @override
@@ -569,6 +572,230 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get countryPT => 'Portugal';
+
+  @override
+  String get pdfRoleOwner => 'Promotor';
+
+  @override
+  String get pdfRoleContractor => 'Constructor';
+
+  @override
+  String get pdfRoleArchitect => 'Arquitecto técnico';
+
+  @override
+  String get pdfPactStateDraft => 'Borrador';
+
+  @override
+  String get pdfPactStateSigning => 'En firma';
+
+  @override
+  String get pdfPactStateActive => 'En ejecución';
+
+  @override
+  String get pdfPactStateCompleted => 'Completado';
+
+  @override
+  String get pdfPactStateCancelled => 'Cancelado';
+
+  @override
+  String get pdfPactStateDisputed => 'En disputa';
+
+  @override
+  String get pdfMilestoneStatePending => 'Pendiente';
+
+  @override
+  String get pdfMilestoneStateInExecution => 'En ejecución';
+
+  @override
+  String get pdfMilestoneStateInReview => 'En revisión';
+
+  @override
+  String get pdfMilestoneStateValidated => 'Validado';
+
+  @override
+  String get pdfMilestoneStateApproved => 'Aprobado';
+
+  @override
+  String get pdfMilestoneStatePaid => 'Pagado';
+
+  @override
+  String get pdfMilestoneStateDisputed => 'En disputa';
+
+  @override
+  String get pdfAddendumStateActive => 'Activo';
+
+  @override
+  String get pdfAddendumStateCancelled => 'Cancelado';
+
+  @override
+  String get pdfAddendumStatePending => 'Pendiente';
+
+  @override
+  String get pdfSigned => '✓  FIRMADO';
+
+  @override
+  String get pdfUnsigned => 'PENDIENTE';
+
+  @override
+  String pdfPageNumber(int page, int total) {
+    return 'Pág. $page de $total';
+  }
+
+  @override
+  String get pdfSignatureDisclaimer =>
+      'Las firmas a continuación fueron realizadas mediante firma electrónica avanzada conforme al Reglamento eIDAS (UE) 910/2014 y la Ley 6/2020 española. Cada firma quedó registrada con fecha, hora, dispositivo y hash verificable en PactStream.';
+
+  @override
+  String pdfReportDocTitle(String displayId) {
+    return 'Libro de la Obra · $displayId';
+  }
+
+  @override
+  String get pdfReportDocSubject =>
+      'Expediente completo de obra con custodia por hitos';
+
+  @override
+  String get pdfReportTitle => 'LIBRO DE LA OBRA';
+
+  @override
+  String get pdfReportSubtitle => 'Expediente completo · PactStream';
+
+  @override
+  String get pdfReportHeaderBrand => 'PactStream · Libro de la Obra';
+
+  @override
+  String get pdfReportLabelReference => 'Referencia';
+
+  @override
+  String get pdfReportLabelProject => 'Obra';
+
+  @override
+  String get pdfReportLabelLocation => 'Localización';
+
+  @override
+  String get pdfReportLabelType => 'Tipo';
+
+  @override
+  String get pdfReportMinorWork => 'Obra menor (sin licencia)';
+
+  @override
+  String get pdfReportMajorWork => 'Obra mayor';
+
+  @override
+  String get pdfReportLabelStatus => 'Estado';
+
+  @override
+  String get pdfReportLabelGenerated => 'Generado';
+
+  @override
+  String get pdfReportPartiesTitle => 'Partes intervinientes';
+
+  @override
+  String get pdfReportHeaderRole => 'Rol';
+
+  @override
+  String get pdfReportHeaderName => 'Nombre';
+
+  @override
+  String get pdfReportHeaderEmail => 'Email';
+
+  @override
+  String get pdfReportFinancialTitle => 'Resumen financiero';
+
+  @override
+  String get pdfReportOriginalEstimate => 'Presupuesto original';
+
+  @override
+  String get pdfReportChangeOrders => 'Modificados (anexos activos)';
+
+  @override
+  String get pdfReportEffectiveEstimate => 'Presupuesto efectivo';
+
+  @override
+  String get pdfReportAmountPaid => 'Importe ejecutado y pagado';
+
+  @override
+  String get pdfReportPendingPayment => 'Pendiente de pago';
+
+  @override
+  String get pdfReportPercentComplete => '% Ejecutado';
+
+  @override
+  String get pdfReportIvaIncluded => 'incluido';
+
+  @override
+  String get pdfReportIvaExcluded => 'no incluido';
+
+  @override
+  String pdfReportIvaNote(String status, String rate) {
+    return 'IVA $status · tipo $rate%';
+  }
+
+  @override
+  String get pdfReportTimelineTitle => 'Cronología de la obra';
+
+  @override
+  String get pdfReportPactCreated => 'Pacto creado';
+
+  @override
+  String get pdfReportEstimatedStart => 'Inicio estimado';
+
+  @override
+  String pdfReportMilestonePaid(int ordinal, String amount) {
+    return 'Hito $ordinal pagado · $amount';
+  }
+
+  @override
+  String pdfReportAddendumActiveEvent(int ordinal, String amount) {
+    return 'Anexo #$ordinal activo · $amount';
+  }
+
+  @override
+  String get pdfReportEstimatedEnd => 'Fin estimado';
+
+  @override
+  String get pdfReportEstimatedSuffix => '(estimado)';
+
+  @override
+  String pdfReportMilestonesTitle(int count) {
+    return 'Hitos y certificaciones ($count)';
+  }
+
+  @override
+  String get pdfReportHeaderDescription => 'Descripción';
+
+  @override
+  String get pdfReportHeaderAmount => 'Importe';
+
+  @override
+  String get pdfReportHeaderPaid => 'Pagado';
+
+  @override
+  String pdfReportAddendumTitle(int count) {
+    return 'Modificados y anexos ($count)';
+  }
+
+  @override
+  String get pdfReportHeaderTitleJustification => 'Título / Justificación';
+
+  @override
+  String get pdfReportHeaderExtraAmount => 'Importe extra';
+
+  @override
+  String get pdfReportHeaderExtraDays => 'Días extra';
+
+  @override
+  String get pdfReportSignaturesTitle => 'Firmas verificadas';
+
+  @override
+  String pdfReportFooterDate(String date) {
+    return 'Documento generado el $date · uso confidencial';
+  }
+
+  @override
+  String pdfReportFooterReference(String displayId) {
+    return 'Expediente generado por PactStream · pactstream.es · Referencia: $displayId';
+  }
 }
 
 /// The translations for Spanish Castilian, as used in Latin America and the Caribbean (`es_419`).
@@ -677,6 +904,9 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
 
   @override
   String get loginCreateAccount => 'Crear cuenta nueva';
+
+  @override
+  String get loginContinueWithGoogle => 'Continuar con Google';
 
   @override
   String get loginShowPassword => 'Mostrar contraseña';
@@ -1135,4 +1365,24 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
 
   @override
   String get countryPT => 'Portugal';
+
+  @override
+  String get pdfRoleOwner => 'Desarrollador';
+
+  @override
+  String get pdfRoleArchitect => 'Ingeniero/Arquitecto';
+
+  @override
+  String pdfReportDocTitle(String displayId) {
+    return 'Libro de la Obra · $displayId';
+  }
+
+  @override
+  String get pdfReportAmountPaid => 'Monto ejecutado y pagado';
+
+  @override
+  String get pdfReportHeaderAmount => 'Monto';
+
+  @override
+  String get pdfReportHeaderExtraAmount => 'Monto extra';
 }
