@@ -1,0 +1,22 @@
+-- =====================================================================
+-- evidence_verification: nuevo valor 'pending'
+-- =====================================================================
+-- Contexto (7-ago-2026): auditoría de trazabilidad. La columna
+-- milestone_evidences.geolocation_verification se creó con
+-- DEFAULT 'verified', pero NADIE la calcula: aparece una sola vez en todo
+-- el repositorio, su propia definición. Es decir, cada evidencia declara
+-- que su geolocalización fue verificada sin que se haya comprobado nada.
+--
+-- No es una función que falte: es un dato que afirma algo falso. Un perito
+-- o un verificador que abriera la base de datos en una disputa leería
+-- «geolocalización: verificada» sobre evidencias que nadie contrastó.
+--
+-- Este valor permite decir la verdad —«todavía no comprobado»— sin esperar
+-- a que exista la verificación geográfica, que depende de tener un punto de
+-- referencia de la obra (hoy obra_address_line es solo texto libre).
+--
+-- Va en su propia migración porque PostgreSQL no permite USAR un valor de
+-- enum recién añadido dentro de la misma transacción que lo añade. El
+-- cambio de DEFAULT viaja en la migración siguiente.
+
+ALTER TYPE evidence_verification ADD VALUE IF NOT EXISTS 'pending';
