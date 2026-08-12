@@ -1548,7 +1548,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfReportFooterReference.
   ///
   /// In es, this message translates to:
-  /// **'Expediente generado por PactStream · pactstream.es · Referencia: {displayId}'**
+  /// **'Expediente generado por PactStream · pactstream.io · Referencia: {displayId}'**
   String pdfReportFooterReference(String displayId);
 }
 

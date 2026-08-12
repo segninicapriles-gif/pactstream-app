@@ -207,7 +207,7 @@ class ContractPdfBuilder {
 
           _clause('Séptima · Protección de datos',
               'Las partes consienten el tratamiento de sus datos por PactStream conforme a la política de '
-              'privacidad disponible en pactstream.es/legal. Se aplica el RGPD y la LOPDGDD.',
+              'privacidad disponible en pactstream.io/privacidad. Se aplica el RGPD y la LOPDGDD.',
               fontBold),
 
           _clause('Octava · Aceptación y firma electrónica',

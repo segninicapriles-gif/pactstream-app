@@ -794,7 +794,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String pdfReportFooterReference(String displayId) {
-    return 'Expediente generado por PactStream · pactstream.es · Referencia: $displayId';
+    return 'Expediente generado por PactStream · pactstream.io · Referencia: $displayId';
   }
 }
 

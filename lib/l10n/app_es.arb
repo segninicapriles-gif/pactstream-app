@@ -370,7 +370,7 @@
   "@pdfReportFooterDate": {
     "placeholders": { "date": { "type": "String" } }
   },
-  "pdfReportFooterReference": "Expediente generado por PactStream · pactstream.es · Referencia: {displayId}",
+  "pdfReportFooterReference": "Expediente generado por PactStream · pactstream.io · Referencia: {displayId}",
   "@pdfReportFooterReference": {
     "placeholders": { "displayId": { "type": "String" } }
   }
