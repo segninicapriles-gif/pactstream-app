@@ -15,18 +15,16 @@ abstract final class AppConstants {
   static const String supportEmail = 'soporte@pactstream.io';
   static const String privacyEmail = 'privacidad@pactstream.io';
   static const String dpoEmail = 'dpo@pactstream.io';
-  // Rutas legales verificadas en produccion el 12-ago-2026: solo existen
-  // /legal (Aviso Legal) y /privacidad (Politica de Privacidad). Todo lo
-  // que cuelga de /legal/* devuelve 404.
-  //
-  // 🔴 termsUrl y escrowTermsUrl apuntan a paginas QUE NO EXISTEN. termsUrl
-  // se usa en el registro (register_page.dart) tras "Acepto los Terminos y
-  // Condiciones": hoy ese enlace da 404 y no hay ningun documento de
-  // terminos publicado. No se redirige a /legal porque el Aviso Legal es
-  // otro documento distinto y sustituir uno por otro es decision juridica,
-  // no tecnica. Se arregla publicando las paginas en pactstream-website.
-  static const String termsUrl = 'https://pactstream.io/legal/terminos';
+  // Rutas legales verificadas con curl contra produccion el 12-ago-2026.
+  // Las tres primeras devuelven 200; no inventar sub-rutas /legal/*, que
+  // devuelven 404 (fue asi como termsUrl y privacyUrl acabaron rotos).
+  static const String legalNoticeUrl = 'https://pactstream.io/legal';
+  static const String termsUrl = 'https://pactstream.io/terminos';
   static const String privacyUrl = 'https://pactstream.io/privacidad';
+
+  // 🔴 Sigue sin existir: /legal/escrow devuelve 404 y no hay documento de
+  // condiciones de escrow publicado. Hoy no se usa en ninguna pantalla; si
+  // se llega a usar, publicar la pagina antes.
   static const String escrowTermsUrl = 'https://pactstream.io/legal/escrow';
 
   // Deep links de auth (deben estar dados de alta en Supabase →
