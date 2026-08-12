@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
 
+import '../../../../core/i18n/l10n_extension.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -67,7 +69,10 @@ class ObraReportPreviewPage extends ConsumerWidget {
             ? _WebObraReportView(detail: detail, pactId: pactId)
             : PdfPreview(
                 build: (format) async {
-                  final builder = ObraReportBuilder(detail: detail);
+                  final builder = ObraReportBuilder(
+                    detail: detail,
+                    l10n: context.l10n,
+                  );
                   return await builder.buildBytes();
                 },
                 canChangePageFormat: false,
@@ -109,18 +114,20 @@ class _WebObraReportView extends StatefulWidget {
 }
 
 class _WebObraReportViewState extends State<_WebObraReportView> {
+  late AppLocalizations _l10n;
   Uint8List? _bytes;
   Object? _error;
 
   @override
-  void initState() {
-    super.initState();
-    _generatePdf();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _l10n = context.l10n;
+    if (_bytes == null && _error == null) _generatePdf();
   }
 
   Future<void> _generatePdf() async {
     try {
-      final builder = ObraReportBuilder(detail: widget.detail);
+      final builder = ObraReportBuilder(detail: widget.detail, l10n: _l10n);
       final bytes = await builder.buildBytes();
       if (mounted) setState(() => _bytes = bytes);
     } catch (e) {

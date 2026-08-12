@@ -7,27 +7,19 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../../../core/utils/formatters.dart';
+import '../../../l10n/gen/app_localizations.dart';
 import 'pact_detail.dart';
 
 /// Genera el "Libro de la Obra" — expediente completo en PDF de un pacto
 /// terminado (o en cualquier estado).
 ///
-/// Incluye:
-///   1. Portada con datos de la obra y partes
-///   2. Resumen financiero (presupuesto, anexos, total efectivo, % ejecutado)
-///   3. Timeline de la obra (fechas clave)
-///   4. Hitos: estado, importes, fechas de ejecución y pago
-///   5. Anexos firmados con impacto económico
-///   6. Bloque de firmas verificadas de todas las partes
-///
-/// Uso:
-/// ```dart
-/// final bytes = await ObraReportBuilder(detail: detail).buildBytes();
-/// ```
+/// Requiere [l10n] para generar el PDF en el idioma del usuario.
+/// El caller lo obtiene con `context.l10n` y lo pasa al constructor.
 class ObraReportBuilder {
-  ObraReportBuilder({required this.detail});
+  ObraReportBuilder({required this.detail, required this.l10n});
 
   final PactDetail detail;
+  final AppLocalizations l10n;
 
   static Future<pw.Font?> _tryFont(
     Future<pw.Font> Function() loader, {
@@ -75,7 +67,6 @@ class ObraReportBuilder {
     final activeAddendums = detail.activeAddendums;
     final allAddendums = detail.addendums;
 
-    // Cálculos financieros
     final originalBudget = p.totalAmountCents;
     final addendumDelta =
         activeAddendums.fold<int>(0, (acc, a) => acc + a.extraAmountCents);
@@ -86,10 +77,10 @@ class ObraReportBuilder {
         : 0.0;
 
     final pdf = pw.Document(
-      title: 'Libro de la Obra · ${p.displayId}',
+      title: l10n.pdfReportDocTitle(p.displayId),
       author: 'PactStream',
       creator: 'PactStream',
-      subject: 'Expediente completo de obra con custodia por hitos',
+      subject: l10n.pdfReportDocSubject,
     );
 
     pdf.addPage(
@@ -118,7 +109,7 @@ class ObraReportBuilder {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  'LIBRO DE LA OBRA',
+                  l10n.pdfReportTitle,
                   style: pw.TextStyle(
                     font: fontBold,
                     fontSize: 20,
@@ -128,7 +119,7 @@ class ObraReportBuilder {
                 ),
                 pw.SizedBox(height: 4),
                 pw.Text(
-                  'Expediente completo · PactStream',
+                  l10n.pdfReportSubtitle,
                   style: pw.TextStyle(
                     font: fontItalic,
                     fontSize: 11,
@@ -138,10 +129,10 @@ class ObraReportBuilder {
                 pw.SizedBox(height: 16),
                 pw.Container(height: 0.5, color: _cyan.shade(50)),
                 pw.SizedBox(height: 14),
-                _coverRow('Referencia', p.displayId, fontBold, fontMono),
-                _coverRow('Obra', p.title, fontBold, fontMono),
+                _coverRow(l10n.pdfReportLabelReference, p.displayId, fontBold, fontMono),
+                _coverRow(l10n.pdfReportLabelProject, p.title, fontBold, fontMono),
                 _coverRow(
-                  'Localización',
+                  l10n.pdfReportLabelLocation,
                   '${p.obraAddressLine}'
                   '${p.obraCity != null ? ", ${p.obraCity}" : ""}'
                   '${p.obraProvince != null && p.obraProvince != p.obraCity ? " (${p.obraProvince})" : ""}',
@@ -149,19 +140,19 @@ class ObraReportBuilder {
                   fontMono,
                 ),
                 _coverRow(
-                  'Tipo',
-                  isMenor ? 'Obra menor (sin licencia)' : 'Obra mayor',
+                  l10n.pdfReportLabelType,
+                  isMenor ? l10n.pdfReportMinorWork : l10n.pdfReportMajorWork,
                   fontBold,
                   fontMono,
                 ),
                 _coverRow(
-                  'Estado',
+                  l10n.pdfReportLabelStatus,
                   _pactStateLabel(p.state),
                   fontBold,
                   fontMono,
                 ),
                 _coverRow(
-                  'Generado',
+                  l10n.pdfReportLabelGenerated,
                   _dateStr(DateTime.now()),
                   fontBold,
                   fontMono,
@@ -173,7 +164,7 @@ class ObraReportBuilder {
           pw.SizedBox(height: 20),
 
           // Partes
-          _sectionTitle('Partes intervinientes', fontBold),
+          _sectionTitle(l10n.pdfReportPartiesTitle, fontBold),
           pw.SizedBox(height: 8),
           pw.Table(
             border: pw.TableBorder.all(color: _ink200, width: 0.5),
@@ -183,7 +174,7 @@ class ObraReportBuilder {
               2: pw.FlexColumnWidth(2),
             },
             children: [
-              _tableHeader(['Rol', 'Nombre', 'Email'], fontBold),
+              _tableHeader([l10n.pdfReportHeaderRole, l10n.pdfReportHeaderName, l10n.pdfReportHeaderEmail], fontBold),
               ...detail.parties.map(
                 (party) => _tableRow([
                   _roleLabel(party.role),
@@ -199,14 +190,14 @@ class ObraReportBuilder {
           // ══════════════════════════════════════════
           // 2. RESUMEN FINANCIERO
           // ══════════════════════════════════════════
-          _sectionTitle('Resumen financiero', fontBold),
+          _sectionTitle(l10n.pdfReportFinancialTitle, fontBold),
           pw.SizedBox(height: 10),
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Expanded(
                 child: _finCard(
-                  'Presupuesto original',
+                  l10n.pdfReportOriginalEstimate,
                   AppFormatters.moneyLong(originalBudget),
                   _ink500,
                   fontBold,
@@ -215,7 +206,7 @@ class ObraReportBuilder {
               pw.SizedBox(width: 8),
               pw.Expanded(
                 child: _finCard(
-                  'Modificados (anexos activos)',
+                  l10n.pdfReportChangeOrders,
                   '${addendumDelta >= 0 ? "+" : ""}${AppFormatters.moneyLong(addendumDelta)}',
                   addendumDelta >= 0 ? _success : _error,
                   fontBold,
@@ -224,7 +215,7 @@ class ObraReportBuilder {
               pw.SizedBox(width: 8),
               pw.Expanded(
                 child: _finCard(
-                  'Presupuesto efectivo',
+                  l10n.pdfReportEffectiveEstimate,
                   AppFormatters.moneyLong(effectiveBudget),
                   _navy,
                   fontBold,
@@ -238,7 +229,7 @@ class ObraReportBuilder {
             children: [
               pw.Expanded(
                 child: _finCard(
-                  'Importe ejecutado y pagado',
+                  l10n.pdfReportAmountPaid,
                   AppFormatters.moneyLong(amountPaid),
                   _success,
                   fontBold,
@@ -247,7 +238,7 @@ class ObraReportBuilder {
               pw.SizedBox(width: 8),
               pw.Expanded(
                 child: _finCard(
-                  'Pendiente de pago',
+                  l10n.pdfReportPendingPayment,
                   AppFormatters.moneyLong(effectiveBudget - amountPaid),
                   _ink500,
                   fontBold,
@@ -256,7 +247,7 @@ class ObraReportBuilder {
               pw.SizedBox(width: 8),
               pw.Expanded(
                 child: _finCard(
-                  '% Ejecutado',
+                  l10n.pdfReportPercentComplete,
                   '${pctExecuted.toStringAsFixed(1)}%',
                   pctExecuted >= 100 ? _success : _navy,
                   fontBold,
@@ -268,8 +259,10 @@ class ObraReportBuilder {
           if (p.ivaRatePct != null) ...[
             pw.SizedBox(height: 6),
             pw.Text(
-              'IVA ${p.ivaIncluded == true ? "incluido" : "no incluido"} · '
-              'tipo ${p.ivaRatePct}%',
+              l10n.pdfReportIvaNote(
+                p.ivaIncluded == true ? l10n.pdfReportIvaIncluded : l10n.pdfReportIvaExcluded,
+                '${p.ivaRatePct}',
+              ),
               style: pw.TextStyle(fontSize: 8, color: _ink500),
             ),
           ],
@@ -279,7 +272,7 @@ class ObraReportBuilder {
           // ══════════════════════════════════════════
           // 3. TIMELINE
           // ══════════════════════════════════════════
-          _sectionTitle('Cronología de la obra', fontBold),
+          _sectionTitle(l10n.pdfReportTimelineTitle, fontBold),
           pw.SizedBox(height: 10),
           ..._buildTimeline(fontBold, fontMono),
 
@@ -289,7 +282,7 @@ class ObraReportBuilder {
           // 4. HITOS / CERTIFICACIONES
           // ══════════════════════════════════════════
           _sectionTitle(
-            'Hitos y certificaciones (${detail.milestones.length})',
+            l10n.pdfReportMilestonesTitle(detail.milestones.length),
             fontBold,
           ),
           pw.SizedBox(height: 8),
@@ -304,7 +297,7 @@ class ObraReportBuilder {
             },
             children: [
               _tableHeader(
-                ['#', 'Descripción', 'Importe', 'Pagado', 'Estado'],
+                ['#', l10n.pdfReportHeaderDescription, l10n.pdfReportHeaderAmount, l10n.pdfReportHeaderPaid, l10n.pdfReportLabelStatus],
                 fontBold,
               ),
               ...detail.milestones.map((m) => _milestoneRow(m)),
@@ -318,7 +311,7 @@ class ObraReportBuilder {
           // ══════════════════════════════════════════
           if (allAddendums.isNotEmpty) ...[
             _sectionTitle(
-              'Modificados y anexos (${allAddendums.length})',
+              l10n.pdfReportAddendumTitle(allAddendums.length),
               fontBold,
             ),
             pw.SizedBox(height: 8),
@@ -333,7 +326,7 @@ class ObraReportBuilder {
               },
               children: [
                 _tableHeader(
-                  ['#', 'Título / Justificación', 'Importe extra', 'Días extra', 'Estado'],
+                  ['#', l10n.pdfReportHeaderTitleJustification, l10n.pdfReportHeaderExtraAmount, l10n.pdfReportHeaderExtraDays, l10n.pdfReportLabelStatus],
                   fontBold,
                 ),
                 ...allAddendums.map((a) => _addendumRow(a)),
@@ -345,12 +338,10 @@ class ObraReportBuilder {
           // ══════════════════════════════════════════
           // 6. FIRMAS
           // ══════════════════════════════════════════
-          _sectionTitle('Firmas verificadas', fontBold),
+          _sectionTitle(l10n.pdfReportSignaturesTitle, fontBold),
           pw.SizedBox(height: 6),
           pw.Text(
-            'Las firmas a continuación fueron realizadas mediante firma electrónica '
-            'avanzada conforme al Reglamento eIDAS (UE) 910/2014 y la Ley 6/2020 española. '
-            'Cada firma quedó registrada con fecha, hora, dispositivo y hash verificable en PactStream.',
+            l10n.pdfSignatureDisclaimer,
             style: pw.TextStyle(fontSize: 9, color: _ink600, lineSpacing: 2),
             textAlign: pw.TextAlign.justify,
           ),
@@ -368,8 +359,7 @@ class ObraReportBuilder {
             child: pw.Row(
               children: [
                 pw.Text(
-                  'Expediente generado por PactStream · pactstream.es · '
-                  'Referencia: ${p.displayId}',
+                  l10n.pdfReportFooterReference(p.displayId),
                   style: pw.TextStyle(
                     font: fontMono,
                     fontSize: 7.5,
@@ -421,7 +411,7 @@ class ObraReportBuilder {
               ),
               pw.SizedBox(width: 6),
               pw.Text(
-                'PactStream · Libro de la Obra',
+                l10n.pdfReportHeaderBrand,
                 style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
                   color: _navy,
@@ -449,11 +439,11 @@ class ObraReportBuilder {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'Documento generado el ${_dateStr(DateTime.now())} · uso confidencial',
+            l10n.pdfReportFooterDate(_dateStr(DateTime.now())),
             style: pw.TextStyle(fontSize: 7, color: _ink500),
           ),
           pw.Text(
-            'Pág. ${ctx.pageNumber} de ${ctx.pagesCount}',
+            l10n.pdfPageNumber(ctx.pageNumber, ctx.pagesCount),
             style: pw.TextStyle(fontSize: 8, color: _ink500),
           ),
         ],
@@ -547,18 +537,18 @@ class ObraReportBuilder {
     final events = <_TimelineEvent>[];
     final p = detail.pact;
 
-    events.add(_TimelineEvent(p.createdAt, 'Pacto creado', _navy));
+    events.add(_TimelineEvent(p.createdAt, l10n.pdfReportPactCreated, _navy));
 
     if (p.estimatedStartDate != null) {
       events.add(_TimelineEvent(
-          p.estimatedStartDate!, 'Inicio estimado', _ink500, estimated: true));
+          p.estimatedStartDate!, l10n.pdfReportEstimatedStart, _ink500, estimated: true));
     }
 
     for (final m in detail.milestones) {
       if (m.paidAt != null) {
         events.add(_TimelineEvent(
           m.paidAt!,
-          'Hito ${m.ordinal} pagado · ${AppFormatters.moneyShort(m.amountCents)}',
+          l10n.pdfReportMilestonePaid(m.ordinal, AppFormatters.moneyShort(m.amountCents)),
           _success,
         ));
       }
@@ -567,14 +557,14 @@ class ObraReportBuilder {
     for (final a in detail.activeAddendums) {
       events.add(_TimelineEvent(
         a.createdAt,
-        'Anexo #${a.ordinal} activo · ${a.extraAmountCents >= 0 ? "+" : ""}${AppFormatters.moneyShort(a.extraAmountCents)}',
+        l10n.pdfReportAddendumActiveEvent(a.ordinal, '${a.extraAmountCents >= 0 ? "+" : ""}${AppFormatters.moneyShort(a.extraAmountCents)}'),
         _warning,
       ));
     }
 
     if (p.estimatedEndDate != null) {
       events.add(_TimelineEvent(
-          p.estimatedEndDate!, 'Fin estimado', _ink500, estimated: true));
+          p.estimatedEndDate!, l10n.pdfReportEstimatedEnd, _ink500, estimated: true));
     }
 
     events.sort((a, b) => a.date.compareTo(b.date));
@@ -610,7 +600,7 @@ class ObraReportBuilder {
             ),
             pw.Expanded(
               child: pw.Text(
-                e.label + (e.estimated ? ' (estimado)' : ''),
+                e.label + (e.estimated ? ' ${l10n.pdfReportEstimatedSuffix}' : ''),
                 style: pw.TextStyle(
                   fontSize: 9,
                   color: e.estimated ? _ink500 : _ink900,
@@ -771,11 +761,7 @@ class ObraReportBuilder {
         pw.Padding(
           padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           child: pw.Text(
-            isActive
-                ? 'Activo'
-                : isCancelled
-                    ? 'Cancelado'
-                    : 'Pendiente',
+            _addendumStateLabel(a.state),
             style: pw.TextStyle(
               fontSize: 8,
               color: stateColor,
@@ -833,7 +819,7 @@ class ObraReportBuilder {
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(
-                signed ? '✓  FIRMADO' : 'PENDIENTE',
+                signed ? l10n.pdfSigned : l10n.pdfUnsigned,
                 style: pw.TextStyle(
                   font: bold,
                   fontSize: 9,
@@ -870,11 +856,11 @@ class ObraReportBuilder {
   String _roleLabel(String role) {
     switch (role) {
       case 'promotor':
-        return 'Promotor';
+        return l10n.pdfRoleOwner;
       case 'constructor':
-        return 'Constructor';
+        return l10n.pdfRoleContractor;
       case 'tecnico':
-        return 'Arquitecto técnico';
+        return l10n.pdfRoleArchitect;
       default:
         return role;
     }
@@ -883,17 +869,17 @@ class ObraReportBuilder {
   String _pactStateLabel(String state) {
     switch (state) {
       case 'draft':
-        return 'Borrador';
+        return l10n.pdfPactStateDraft;
       case 'signing':
-        return 'En firma';
+        return l10n.pdfPactStateSigning;
       case 'active':
-        return 'En ejecución';
+        return l10n.pdfPactStateActive;
       case 'completed':
-        return 'Completado';
+        return l10n.pdfPactStateCompleted;
       case 'cancelled':
-        return 'Cancelado';
+        return l10n.pdfPactStateCancelled;
       case 'disputed':
-        return 'En disputa';
+        return l10n.pdfPactStateDisputed;
       default:
         return state;
     }
@@ -902,21 +888,32 @@ class ObraReportBuilder {
   String _milestoneStateLabel(String state) {
     switch (state) {
       case 'pending':
-        return 'Pendiente';
+        return l10n.pdfMilestoneStatePending;
       case 'in_execution':
-        return 'En ejecución';
+        return l10n.pdfMilestoneStateInExecution;
       case 'ready_for_review':
-        return 'En revisión';
+        return l10n.pdfMilestoneStateInReview;
       case 'validated':
-        return 'Validado';
+        return l10n.pdfMilestoneStateValidated;
       case 'approved':
-        return 'Aprobado';
+        return l10n.pdfMilestoneStateApproved;
       case 'paid':
-        return 'Pagado';
+        return l10n.pdfMilestoneStatePaid;
       case 'disputed':
-        return 'En disputa';
+        return l10n.pdfMilestoneStateDisputed;
       default:
         return state;
+    }
+  }
+
+  String _addendumStateLabel(String state) {
+    switch (state) {
+      case 'active':
+        return l10n.pdfAddendumStateActive;
+      case 'cancelled':
+        return l10n.pdfAddendumStateCancelled;
+      default:
+        return l10n.pdfAddendumStatePending;
     }
   }
 }
