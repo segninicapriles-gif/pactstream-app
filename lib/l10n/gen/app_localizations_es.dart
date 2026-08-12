@@ -1378,10 +1378,32 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   }
 
   @override
+  String get pdfReportLabelLocation => 'Ubicación';
+
+  @override
+  String get pdfReportMinorWork => 'Obra menor (sin permiso)';
+
+  @override
+  String get pdfReportHeaderEmail => 'Correo';
+
+  @override
+  String get pdfReportChangeOrders => 'Órdenes de cambio (anexos activos)';
+
+  @override
   String get pdfReportAmountPaid => 'Monto ejecutado y pagado';
 
   @override
+  String pdfReportIvaNote(String status, String rate) {
+    return 'IVA $status · tasa $rate%';
+  }
+
+  @override
   String get pdfReportHeaderAmount => 'Monto';
+
+  @override
+  String pdfReportAddendumTitle(int count) {
+    return 'Órdenes de cambio y anexos ($count)';
+  }
 
   @override
   String get pdfReportHeaderExtraAmount => 'Monto extra';

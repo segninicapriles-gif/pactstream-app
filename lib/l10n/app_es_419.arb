@@ -230,5 +230,18 @@
   },
   "pdfReportAmountPaid": "Monto ejecutado y pagado",
   "pdfReportHeaderAmount": "Monto",
-  "pdfReportHeaderExtraAmount": "Monto extra"
+  "pdfReportHeaderExtraAmount": "Monto extra",
+
+  "pdfReportLabelLocation": "Ubicación",
+  "pdfReportMinorWork": "Obra menor (sin permiso)",
+  "pdfReportHeaderEmail": "Correo",
+  "pdfReportChangeOrders": "Órdenes de cambio (anexos activos)",
+  "pdfReportAddendumTitle": "Órdenes de cambio y anexos ({count})",
+  "@pdfReportAddendumTitle": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "pdfReportIvaNote": "IVA {status} · tasa {rate}%",
+  "@pdfReportIvaNote": {
+    "placeholders": { "status": { "type": "String" }, "rate": { "type": "String" } }
+  }
 }
