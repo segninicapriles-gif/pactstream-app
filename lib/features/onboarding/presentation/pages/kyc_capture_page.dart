@@ -238,7 +238,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
           const SizedBox(height: AppSpacing.xxxl),
           Center(
             child: Icon(Icons.hourglass_bottom,
-                size: 48, color: AppColors.warning),
+                size: 48, color: context.colors.warningText),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(

@@ -126,8 +126,8 @@ class _NewPactStepTeamState extends State<NewPactStepTeam> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline,
-                    color: AppColors.warning, size: 18),
+                Icon(Icons.info_outline,
+                    color: context.colors.warningText, size: 18),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(

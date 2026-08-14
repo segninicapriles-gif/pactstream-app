@@ -435,8 +435,8 @@ class _RevokeMemberSheetState extends State<_RevokeMemberSheet> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline,
-                    size: 16, color: AppColors.warning),
+                Icon(Icons.info_outline,
+                    size: 16, color: context.colors.warningText),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Text(

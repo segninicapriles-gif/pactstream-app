@@ -765,8 +765,8 @@ class _ProposeAddendumSheetState extends State<_ProposeAddendumSheet> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber_rounded,
-                    size: 16, color: AppColors.warning),
+                Icon(Icons.warning_amber_rounded,
+                    size: 16, color: context.colors.warningText),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Text(

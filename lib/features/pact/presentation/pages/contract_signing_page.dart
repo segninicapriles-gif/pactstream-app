@@ -163,8 +163,8 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                 color: context.colors.warningBg,
                 child: Row(
                   children: [
-                    const Icon(Icons.gavel,
-                        color: AppColors.warning, size: 20),
+                    Icon(Icons.gavel,
+                        color: context.colors.warningText, size: 20),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(

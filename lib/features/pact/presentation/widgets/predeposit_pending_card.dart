@@ -250,7 +250,7 @@ class _CountdownNotice extends StatelessWidget {
       children: [
         Icon(Icons.timer_outlined,
             size: 14,
-            color: isOverdue ? AppColors.error : AppColors.warning),
+            color: isOverdue ? AppColors.error : context.colors.warningText),
         const SizedBox(width: 4),
         Expanded(
           child: Text(label,

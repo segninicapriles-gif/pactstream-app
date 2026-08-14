@@ -899,8 +899,8 @@ class _PartyTile extends StatelessWidget {
                 Icon(Icons.check_circle_outline,
                     color: co.brandAccent, size: 22)
               else
-                const Icon(Icons.hourglass_empty,
-                    color: AppColors.warning, size: 22),
+                Icon(Icons.hourglass_empty,
+                    color: context.colors.warningText, size: 22),
               if (canResend && !party.hasAccepted) ...[
                 const SizedBox(height: 2),
                 TextButton(

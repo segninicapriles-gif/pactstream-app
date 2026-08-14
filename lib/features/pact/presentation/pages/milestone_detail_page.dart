@@ -1296,7 +1296,7 @@ class _ReworkBanner extends StatelessWidget {
         children: [
           Icon(
             rejected ? Icons.cancel_outlined : Icons.help_outline,
-            color: rejected ? AppColors.error : AppColors.warning,
+            color: rejected ? AppColors.error : context.colors.warningText,
             size: 20,
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -1555,7 +1555,7 @@ class _DisputeBanner extends ConsumerWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.gavel, color: AppColors.warning, size: 22),
+                Icon(Icons.gavel, color: context.colors.warningText, size: 22),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(

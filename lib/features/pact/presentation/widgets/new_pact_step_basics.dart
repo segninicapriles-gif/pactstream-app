@@ -127,8 +127,8 @@ class _NewPactStepBasicsState extends State<NewPactStepBasics> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        size: 18, color: AppColors.warning),
+                    Icon(Icons.warning_amber_rounded,
+                        size: 18, color: context.colors.warningText),
                     const SizedBox(width: AppSpacing.xs),
                     Text('Declaración del promotor',
                         style: AppTypography.bodyS

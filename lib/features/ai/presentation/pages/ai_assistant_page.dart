@@ -433,8 +433,8 @@ class _ToolCallProposal extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.touch_app,
-                  size: 14, color: AppColors.warning),
+              Icon(Icons.touch_app,
+                  size: 14, color: context.colors.warningText),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
