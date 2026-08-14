@@ -633,7 +633,7 @@ class _DocUploadCard extends StatelessWidget {
                 // Upload button
                 Icon(
                   isUploaded ? Icons.swap_horiz : Icons.upload_outlined,
-                  color: isUploaded ? AppColors.success : c.brandAccent,
+                  color: isUploaded ? c.successText : c.brandAccent,
                   size: 20,
                 ),
               ],

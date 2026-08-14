@@ -497,7 +497,9 @@ class _WorksIllustration extends StatelessWidget {
                             Icon(
                               Icons.check_circle_rounded,
                               size: 14,
-                              color: AppColors.success,
+                              // Viñeta de 14px: exenta por ir junto a su texto,
+                              // pero a 2,29:1 sobre blanco no se veía.
+                              color: context.colors.successText,
                             ),
                             const SizedBox(width: 6),
                             Container(

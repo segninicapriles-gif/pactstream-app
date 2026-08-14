@@ -890,8 +890,11 @@ class _PartyTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (party.hasSigned)
-                const Icon(Icons.verified,
-                    color: AppColors.success, size: 22)
+                // Aquí el icono ES el indicador de estado, sin etiqueta que lo
+                // acompañe: WCAG 1.4.11 pide 3:1 y el relleno daba 2,29:1 sobre
+                // tarjeta blanca. `successText` resuelve por tema.
+                Icon(Icons.verified,
+                    color: context.colors.successText, size: 22)
               else if (party.hasAccepted)
                 Icon(Icons.check_circle_outline,
                     color: co.brandAccent, size: 22)
