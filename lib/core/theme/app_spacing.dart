@@ -1,17 +1,29 @@
-/// Sistema de espaciado del Design System v1.0.
+import 'app_tokens.g.dart';
+
+/// Sistema de espaciado — Sistema ARCO.
 ///
-/// Base de 4pt con un escalón intermedio de 12pt (md) heredado de
-/// Material Design. Cualquier valor fuera de esta escala es un bug.
+/// Base 4pt con un escalón intermedio de 12 (md) heredado de Material.
+/// Cualquier valor fuera de esta escala es un bug.
+///
+/// Los valores se delegan a [ArcoTokens], generado desde
+/// `design-system/tokens.json`. Nota histórica: hasta el 13-ago-2026 esta era
+/// la ÚNICA escala de espaciado completa del ecosistema — el canon ARCO nunca
+/// definió una, así que las cuatro superficies web improvisaban o heredaban la
+/// de Tailwind. Cuando se centralizó, esta escala fue la que se adoptó como
+/// canon: era la única que existía de verdad.
+///
+/// Esta clase se conserva como fachada: los widgets siguen escribiendo
+/// `AppSpacing.lg`.
 abstract final class AppSpacing {
   AppSpacing._();
 
-  static const double xs = 4.0;
-  static const double sm = 8.0;
-  static const double md = 12.0;
-  static const double lg = 16.0;
-  static const double xl = 24.0;
-  static const double xxl = 32.0;
-  static const double xxxl = 48.0;
-  static const double huge = 64.0;
-  static const double massive = 96.0;
+  static const double xs = ArcoTokens.spaceXs;
+  static const double sm = ArcoTokens.spaceSm;
+  static const double md = ArcoTokens.spaceMd;
+  static const double lg = ArcoTokens.spaceLg;
+  static const double xl = ArcoTokens.spaceXl;
+  static const double xxl = ArcoTokens.spaceXxl;
+  static const double xxxl = ArcoTokens.spaceXxxl;
+  static const double huge = ArcoTokens.spaceHuge;
+  static const double massive = ArcoTokens.spaceMassive;
 }

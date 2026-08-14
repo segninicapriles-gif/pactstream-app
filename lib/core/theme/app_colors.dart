@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 
-/// Paleta de colores de PactStream.
+import 'app_tokens.g.dart';
+
+/// Paleta de colores de PactStream — Sistema ARCO.
 ///
-/// Basada en el Design System v1.0 (PactStream-DesignSystem.html).
-/// Cualquier color hardcoded fuera de este archivo es un bug.
+/// Cualquier color hardcoded fuera de este archivo es un bug. Y desde el
+/// 13-ago-2026, los colores de MARCA y los SEMÁNTICOS tampoco viven aquí: se
+/// delegan a [ArcoTokens], generado desde `design-system/tokens.json`, que es
+/// la misma fuente de la que salen CostPact, FiscalCore, admin-panel y cae-app.
+///
+/// La escala `ink*` de abajo NO se ha tocado: es una rampa de 10 pasos propia de
+/// la app móvil y el canon solo define tres (900/600/400). Migrarla exigiría
+/// decidir los siete restantes, que es trabajo de diseño, no de fontanería.
 abstract final class AppColors {
   AppColors._();
 
-  // === BRAND ===
-  static const Color psNavy = Color(0xFF080D42);
-  static const Color psBlue = Color(0xFF0121DC);
-  static const Color psCyan = Color(0xFFA9F3FF);
+  // === BRAND — del generador ===
+  static const Color psNavy = ArcoTokens.brandDeep;
+  static const Color psBlue = ArcoTokens.brandPrimary;
+  static const Color psCyan = ArcoTokens.brandLight;
 
   // Gradients
   static const LinearGradient psGradient = LinearGradient(
@@ -38,11 +46,26 @@ abstract final class AppColors {
   static const Color ink50 = Color(0xFFFAFBFD);
   static const Color white = Color(0xFFFFFFFF);
 
-  // === SEMÁNTICOS ===
-  static const Color success = Color(0xFF00C389);
-  static const Color warning = Color(0xFFFFB020);
-  static const Color error = Color(0xFFFF4D6D);
+  // === SEMÁNTICOS — del generador, en par fill+ink ===
+  //
+  // 🔴 `success`/`warning`/`error` son los RELLENOS: puntos, barras, gauges,
+  // fondos de pill. NO son colores de texto — sobre blanco dan 2,1 / 2,0 / 3,4:1
+  // y el mínimo AA es 4,5. Para texto van las variantes `*Ink`, que sí pasan
+  // (5,40 / 5,02 / 5,90:1).
+  //
+  // El valor de los tres rellenos no cambia respecto a antes; lo nuevo son las
+  // variantes de texto, que hasta ahora no existían en la app móvil. Repasar los
+  // usos de texto que hoy tiran del relleno es trabajo aparte: cambiar un color
+  // de texto se ve, y no se hace a ciegas sobre 200 pantallas.
+  static const Color success = ArcoTokens.successFill;
+  static const Color warning = ArcoTokens.warningFill;
+  static const Color error = ArcoTokens.errorFill;
   static const Color info = psBlue;
+
+  /// Variantes de TEXTO de los semánticos (AA ≥ 4,5:1 sobre blanco).
+  static const Color successInk = ArcoTokens.successInk;
+  static const Color warningInk = ArcoTokens.warningInk;
+  static const Color errorInk = ArcoTokens.errorInk;
 
   // Backgrounds suaves para los semánticos (light)
   static const Color successBg = Color(0x1A00C389); // 10% alpha

@@ -1,23 +1,32 @@
 import 'package:flutter/widgets.dart';
 
-/// Radios de PactStream — Sistema ARCO (DESIGN-ECOSISTEMA.md 2026-07-18).
+import 'app_tokens.g.dart';
+
+/// Radios de PactStream — Sistema ARCO.
 ///
-/// Escala ARCO: xs 6 · sm 10 · md 14 (inputs) · lg 20 (card app) ·
-/// xl 28 (card marketing/hero) · pill 999 (CTA primario, pills de estado).
+/// Los valores ya NO viven aquí: se delegan a [ArcoTokens], generado desde
+/// `design-system/tokens.json`. Antes eran una transcripción a mano del canon
+/// —correcta, pero sin nada que impidiera que se separara del resto del
+/// ecosistema en la siguiente edición.
+///
+/// Esta clase se conserva como fachada: los widgets siguen escribiendo
+/// `AppRadius.lg` y no hay que tocar 200 ficheros.
 abstract final class AppRadius {
   AppRadius._();
 
-  // xxs=2 y micro=4 se conservan para drag-handles/progress bars (fuera de
-  // la escala ARCO, no especificados por el design system). El resto sigue
-  // la escala ARCO: xs 6 · sm 10 · md 14 · lg 20 · xl 28 · pill 999.
+  // xxs=2 y micro=4 NO están en el canon: son para drag-handles y barras de
+  // progreso, elementos que el design system no cubre. Se quedan literales
+  // a propósito y así queda dicho.
   static const double xxs = 2.0;
   static const double micro = 4.0;
-  static const double xs = 6.0;
-  static const double sm = 10.0;
-  static const double md = 14.0;
-  static const double lg = 20.0;
-  static const double xl = 28.0;
-  static const double pill = 999.0;
+
+  // El resto sale del generador. Escala ARCO §5: 6 · 10 · 14 · 20 · 28 · 999.
+  static const double xs = ArcoTokens.radiusXs;
+  static const double sm = ArcoTokens.radiusSm;
+  static const double md = ArcoTokens.radiusMd;
+  static const double lg = ArcoTokens.radiusLg;
+  static const double xl = ArcoTokens.radiusXl;
+  static const double pill = ArcoTokens.radiusPill;
 
   // BorderRadius helpers
   static const BorderRadius xxsAll = BorderRadius.all(Radius.circular(xxs));
