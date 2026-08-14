@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'app_tokens.g.dart';
+import 'app_tokens.generated.dart';
 
 /// Radios de PactStream — Sistema ARCO.
 ///

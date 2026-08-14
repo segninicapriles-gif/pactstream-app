@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'app_tokens.g.dart';
+import 'app_tokens.generated.dart';
 
 /// Paleta de colores de PactStream — Sistema ARCO.
 ///

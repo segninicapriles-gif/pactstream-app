@@ -1,4 +1,4 @@
-import 'app_tokens.g.dart';
+import 'app_tokens.generated.dart';
 
 /// Sistema de espaciado — Sistema ARCO.
 ///

@@ -62,6 +62,17 @@ android/**/GeneratedPluginRegistrant.java
 # Web
 
 # Code generation
+#
+# ⚠️ Estas reglas son para la codegen de Flutter (build_runner): ficheros que cualquiera
+# puede regenerar en local con `dart run build_runner build`, y por eso no se versionan.
+#
+# NO metas aquí los tokens del sistema de diseño. `lib/core/theme/app_tokens.generated.dart`
+# lo produce `design-system/tooling/generate.mjs`, que vive en OTRO repo (PactStream), así
+# que quien clone esto no puede regenerarlo. Se llamaba `app_tokens.g.dart` y `*.g.dart` lo
+# excluía: era el único *.g.dart del proyecto —aquí no hay build_runner— y tres ficheros
+# RASTREADOS lo importaban, de modo que un clon limpio no compilaba. Por eso ahora lleva el
+# sufijo `.generated.dart`, igual que sus hermanos `tokens.generated.css` de las otras
+# cuatro superficies, y SÍ se versiona.
 *.g.dart
 *.freezed.dart
 *.gr.dart
