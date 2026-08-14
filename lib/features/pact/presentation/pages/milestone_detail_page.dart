@@ -425,7 +425,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                         ),
                         child: Text('TÚ',
                             style: AppTypography.caption.copyWith(
-                              color: AppColors.success,
+                              color: context.colors.successText,
                               fontSize: 9,
                               fontWeight: FontWeight.w800,
                             )),
@@ -520,7 +520,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
                         '${ev.gpsLatitude!.toStringAsFixed(5)}, ${ev.gpsLongitude!.toStringAsFixed(5)}'
                         ' (±${ev.gpsAccuracyMeters?.toStringAsFixed(0) ?? "?"} m)',
                         style: AppTypography.caption.copyWith(
-                          color: AppColors.success,
+                          color: context.colors.successText,
                           letterSpacing: 0,
                           fontWeight: FontWeight.w600,
                         ),
@@ -570,7 +570,7 @@ class _EvidenceCardState extends ConsumerState<_EvidenceCard> {
         ),
         child: Center(
           child: Text('No se pudo cargar la imagen',
-              style: AppTypography.bodyS.copyWith(color: AppColors.error)),
+              style: AppTypography.bodyS.copyWith(color: context.colors.errorText)),
         ),
       );
     }
@@ -818,7 +818,7 @@ class _SubmitForReviewCtaState
           if (_error != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(_error!,
-                style: AppTypography.bodyS.copyWith(color: AppColors.error)),
+                style: AppTypography.bodyS.copyWith(color: context.colors.errorText)),
           ],
           const SizedBox(height: AppSpacing.md),
           ElevatedButton.icon(
@@ -991,7 +991,7 @@ class _TechReviewCtaState extends ConsumerState<_TechReviewCta> {
           if (_error != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(_error!,
-                style: AppTypography.bodyS.copyWith(color: AppColors.error)),
+                style: AppTypography.bodyS.copyWith(color: context.colors.errorText)),
           ],
           const SizedBox(height: AppSpacing.md),
           if (_submitting)
@@ -1220,7 +1220,7 @@ class _PromotorDecideCtaState extends ConsumerState<_PromotorDecideCta> {
           if (_error != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(_error!,
-                style: AppTypography.bodyS.copyWith(color: AppColors.error)),
+                style: AppTypography.bodyS.copyWith(color: context.colors.errorText)),
           ],
           const SizedBox(height: AppSpacing.md),
           if (_submitting)

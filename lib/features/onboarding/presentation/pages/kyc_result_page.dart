@@ -206,7 +206,7 @@ class _RejectedResult extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(context.l10n.kycRejectedReasonLabel,
-                  style: AppTypography.caption.copyWith(color: AppColors.error)),
+                  style: AppTypography.caption.copyWith(color: context.colors.errorText)),
               const SizedBox(height: AppSpacing.xs),
               // Motivo GENÉRICO: hoy se muestra siempre el mismo, venga el
               // rechazo de Veriff por lo que venga. Cuando el backend devuelva

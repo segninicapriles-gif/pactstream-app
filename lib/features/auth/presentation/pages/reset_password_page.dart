@@ -171,7 +171,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
               Text(
                 _errorMessage!,
                 style:
-                    AppTypography.bodyS.copyWith(color: AppColors.error),
+                    AppTypography.bodyS.copyWith(color: context.colors.errorText),
               ),
             ],
             const SizedBox(height: AppSpacing.xl),

@@ -285,7 +285,7 @@ class _ErrorView extends StatelessWidget {
           child: Text(
             message,
             textAlign: TextAlign.center,
-            style: AppTypography.bodyS.copyWith(color: AppColors.error),
+            style: AppTypography.bodyS.copyWith(color: context.colors.errorText),
           ),
         ),
         const SizedBox(height: AppSpacing.xl),

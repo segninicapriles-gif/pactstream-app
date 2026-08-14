@@ -614,7 +614,7 @@ class _PactCard extends StatelessWidget {
                     Text(
                       '${pact.partiesAccepted}/${pact.partiesTotal} partes aceptaron',
                       style: AppTypography.bodyS.copyWith(
-                          color: AppColors.warning,
+                          color: context.colors.warningText,
                           fontWeight: FontWeight.w600),
                     ),
                 ],

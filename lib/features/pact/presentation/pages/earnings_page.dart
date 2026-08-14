@@ -625,7 +625,7 @@ class _RegisterBankSheetState extends State<_RegisterBankSheet> {
               const SizedBox(height: AppSpacing.md),
               Text(_error!,
                   style:
-                      AppTypography.bodyS.copyWith(color: AppColors.error)),
+                      AppTypography.bodyS.copyWith(color: context.colors.errorText)),
             ],
             const SizedBox(height: AppSpacing.lg),
             ElevatedButton(

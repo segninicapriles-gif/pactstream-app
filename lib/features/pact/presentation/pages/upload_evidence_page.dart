@@ -266,7 +266,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
                       Expanded(
                         child: Text(_error!,
                             style: AppTypography.bodyS
-                                .copyWith(color: AppColors.error)),
+                                .copyWith(color: context.colors.errorText)),
                       ),
                     ],
                   ),

@@ -32,7 +32,7 @@ class PactStateStyle {
         return PactStateStyle(
           label: 'Invitaciones',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'signing':
         return PactStateStyle(
@@ -50,7 +50,7 @@ class PactStateStyle {
         return PactStateStyle(
           label: 'Pendiente depósito',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'funded':
         return PactStateStyle(
@@ -63,20 +63,20 @@ class PactStateStyle {
         return PactStateStyle(
           label: 'Activo',
           bg: context.colors.successBg,
-          fg: AppColors.success,
+          fg: context.colors.successText,
         );
       case 'paused_pending_tech':
         return PactStateStyle(
           label: 'Pausada',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'in_dispute':
       case 'disputed':
         return PactStateStyle(
           label: 'En disputa',
           bg: context.colors.errorBg,
-          fg: AppColors.error,
+          fg: context.colors.errorText,
         );
       // "Completado" = resultado bueno alcanzado (obra terminada y pagada) →
       // VERDE, igual que `completado` en CostPact. Distinto de "cerrado",
@@ -85,7 +85,7 @@ class PactStateStyle {
         return PactStateStyle(
           label: 'Completado',
           bg: context.colors.successBg,
-          fg: AppColors.success,
+          fg: context.colors.successText,
         );
       case 'closed':
         return PactStateStyle(
@@ -97,7 +97,7 @@ class PactStateStyle {
         return PactStateStyle(
           label: 'Cancelado',
           bg: context.colors.errorBg,
-          fg: AppColors.error,
+          fg: context.colors.errorText,
         );
       default:
         return PactStateStyle(
@@ -127,25 +127,25 @@ class PactStateStyle {
         return PactStateStyle(
           label: 'Para revisar',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'in_validation':
         return PactStateStyle(
           label: 'Validando',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'info_requested':
         return PactStateStyle(
           label: 'Info pedida',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'rejected_by_tech':
         return PactStateStyle(
           label: 'Rechazado',
           bg: context.colors.errorBg,
-          fg: AppColors.error,
+          fg: context.colors.errorText,
         );
       case 'approved_by_tech':
         return PactStateStyle(
@@ -157,7 +157,7 @@ class PactStateStyle {
         return PactStateStyle(
           label: 'Esperando promotor',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'disputed':
       case 'rejected':
@@ -165,31 +165,31 @@ class PactStateStyle {
         return PactStateStyle(
           label: 'En disputa',
           bg: context.colors.errorBg,
-          fg: AppColors.error,
+          fg: context.colors.errorText,
         );
       case 'paid':
         return PactStateStyle(
           label: 'Pagado',
           bg: context.colors.successBg,
-          fg: AppColors.success,
+          fg: context.colors.successText,
         );
       case 'paused_no_predeposit':
         return PactStateStyle(
           label: 'Obra paralizada',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'paused_pending_tech':
         return PactStateStyle(
           label: 'Pendiente técnico',
           bg: context.colors.warningBg,
-          fg: AppColors.warning,
+          fg: context.colors.warningText,
         );
       case 'cancelled':
         return PactStateStyle(
           label: 'Cancelado',
           bg: context.colors.errorBg,
-          fg: AppColors.error,
+          fg: context.colors.errorText,
         );
       case 'completed':
         return PactStateStyle(

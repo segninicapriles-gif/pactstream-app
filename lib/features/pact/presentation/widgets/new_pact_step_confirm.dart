@@ -167,7 +167,7 @@ class _NewPactStepConfirmState extends State<NewPactStepConfirm> {
                         Expanded(
                           child: Text(widget.errorMessage!,
                               style: AppTypography.bodyS
-                                  .copyWith(color: AppColors.error)),
+                                  .copyWith(color: context.colors.errorText)),
                         ),
                       ],
                     ),

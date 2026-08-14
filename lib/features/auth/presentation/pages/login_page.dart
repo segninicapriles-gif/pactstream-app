@@ -92,13 +92,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(err!,
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.error)),
+                        .copyWith(color: context.colors.errorText)),
               ],
               if (sent != null) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Text(sent!,
                     style: AppTypography.bodyS
-                        .copyWith(color: AppColors.success)),
+                        .copyWith(color: context.colors.successText)),
               ],
             ],
           ),
@@ -360,7 +360,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: Text(
                       _errorMessage!,
                       style: AppTypography.bodyS
-                          .copyWith(color: AppColors.error),
+                          .copyWith(color: context.colors.errorText),
                     ),
                   ),
                 ],

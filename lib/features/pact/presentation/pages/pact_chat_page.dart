@@ -109,7 +109,7 @@ class _PactChatPageState extends ConsumerState<PactChatPage> {
                     child: Text(
                       e.toString().replaceFirst('Exception: ', ''),
                       textAlign: TextAlign.center,
-                      style: AppTypography.body.copyWith(color: AppColors.error),
+                      style: AppTypography.body.copyWith(color: context.colors.errorText),
                     ),
                   ),
                 ),

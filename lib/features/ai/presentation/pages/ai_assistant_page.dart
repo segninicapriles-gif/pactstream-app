@@ -795,7 +795,7 @@ class _ErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: AppTypography.bodyS
-                  .copyWith(color: AppColors.error),
+                  .copyWith(color: context.colors.errorText),
             ),
           ),
           IconButton(

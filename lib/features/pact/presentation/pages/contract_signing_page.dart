@@ -171,7 +171,7 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                         'Lee el contrato completo. Tu firma electrónica '
                         'tiene la misma validez legal que una manuscrita.',
                         style: AppTypography.bodyS
-                            .copyWith(color: AppColors.warning),
+                            .copyWith(color: context.colors.warningText),
                       ),
                     ),
                   ],
@@ -292,7 +292,7 @@ class _ContractSigningPageState extends ConsumerState<ContractSigningPage> {
                         const SizedBox(height: AppSpacing.xs),
                         Text(_error!,
                             style: AppTypography.bodyS
-                                .copyWith(color: AppColors.error)),
+                                .copyWith(color: context.colors.errorText)),
                       ],
                       const SizedBox(height: AppSpacing.sm),
                       ElevatedButton.icon(

@@ -848,7 +848,7 @@ class _PartyTile extends StatelessWidget {
                         ),
                         child: Text('TÚ',
                             style: AppTypography.caption.copyWith(
-                              color: AppColors.success,
+                              color: context.colors.successText,
                               fontSize: 9,
                               fontWeight: FontWeight.w800,
                             )),
@@ -1534,7 +1534,7 @@ class _PrimaryActionCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(error!,
                 style: AppTypography.bodyS
-                    .copyWith(color: AppColors.error)),
+                    .copyWith(color: context.colors.errorText)),
           ],
           const SizedBox(height: AppSpacing.md),
           ElevatedButton.icon(

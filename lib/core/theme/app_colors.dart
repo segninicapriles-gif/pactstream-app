@@ -180,6 +180,9 @@ class _ResolvedColors {
         warningBg = AppColors.warningBg,
         errorBg = AppColors.errorBg,
         infoBg = AppColors.infoBg,
+        successText = AppColors.successInk,
+        warningText = AppColors.warningInk,
+        errorText = AppColors.errorInk,
         chipBg = AppColors.ink100,
         chipText = AppColors.ink600,
         inputFill = AppColors.white,
@@ -207,6 +210,9 @@ class _ResolvedColors {
         warningBg = AppColors.darkWarningBg,
         errorBg = AppColors.darkErrorBg,
         infoBg = AppColors.darkInfoBg,
+        successText = AppColors.success,
+        warningText = AppColors.warning,
+        errorText = AppColors.error,
         chipBg = AppColors.darkSurfaceElevated,
         chipText = AppColors.ink400,
         inputFill = AppColors.darkSurfaceElevated,
@@ -235,6 +241,18 @@ class _ResolvedColors {
   final Color warningBg;
   final Color errorBg;
   final Color infoBg;
+
+  /// TEXTO semántico, resuelto por tema. Es el par que faltaba: `*Bg` daba el
+  /// fondo tintado pero nadie daba el color del texto que va encima, así que se
+  /// usaba el RELLENO (`AppColors.warning`) — 2,0:1 sobre su propio fondo pálido.
+  ///
+  /// ⚠️ No es el mismo valor en los dos temas, y por eso NO se puede sustituir por
+  /// una constante: en claro va la variante oscurecida (Ink), que pasa AA sobre el
+  /// fondo pálido; en oscuro va el relleno brillante, porque la Ink sería oscuro
+  /// sobre oscuro.
+  final Color successText;
+  final Color warningText;
+  final Color errorText;
   final Color chipBg;
   final Color chipText;
   final Color inputFill;

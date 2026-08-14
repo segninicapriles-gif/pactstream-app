@@ -480,7 +480,7 @@ _NotifSpec _specFor(String type, BuildContext context) {
       return _NotifSpec(
         icon: Icons.play_arrow_rounded,
         bg: context.colors.successBg,
-        fg: AppColors.success,
+        fg: context.colors.successText,
       );
     case 'milestone_pending_tech_review':
       return _NotifSpec(
@@ -492,31 +492,31 @@ _NotifSpec _specFor(String type, BuildContext context) {
       return _NotifSpec(
         icon: Icons.account_balance_wallet_outlined,
         bg: context.colors.warningBg,
-        fg: AppColors.warning,
+        fg: context.colors.warningText,
       );
     case 'milestone_needs_rework':
       return _NotifSpec(
         icon: Icons.help_outline,
         bg: context.colors.errorBg,
-        fg: AppColors.error,
+        fg: context.colors.errorText,
       );
     case 'milestone_paid':
       return _NotifSpec(
         icon: Icons.verified,
         bg: context.colors.successBg,
-        fg: AppColors.success,
+        fg: context.colors.successText,
       );
     case 'milestone_disputed':
       return _NotifSpec(
         icon: Icons.gavel,
         bg: context.colors.errorBg,
-        fg: AppColors.error,
+        fg: context.colors.errorText,
       );
     case 'pact_completed':
       return _NotifSpec(
         icon: Icons.celebration,
         bg: context.colors.successBg,
-        fg: AppColors.success,
+        fg: context.colors.successText,
       );
     default:
       return _NotifSpec(

@@ -410,7 +410,7 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
                         child: Text(
                           'Datos importados del presupuesto $_importSource. Revisa y completa los campos restantes.',
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.success,
+                            color: context.colors.successText,
                           ),
                         ),
                       ),

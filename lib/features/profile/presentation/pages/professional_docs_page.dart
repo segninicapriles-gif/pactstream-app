@@ -615,7 +615,7 @@ class _DocUploadCard extends StatelessWidget {
                               child: Text(
                                 uploaded!.fileName,
                                 style: AppTypography.caption.copyWith(
-                                  color: AppColors.success,
+                                  color: context.colors.successText,
                                   fontWeight: FontWeight.w600,
                                 ),
                                 maxLines: 1,

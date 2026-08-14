@@ -540,21 +540,21 @@ class _KycStatusBadge extends StatelessWidget {
       _spec(BuildContext context) => switch (status) {
             'pending_review' => (
               bg: context.colors.warningBg,
-              fg: AppColors.warning,
+              fg: context.colors.warningText,
               icon: Icons.access_time,
               label: 'Verificación en revisión (24h)',
               cta: null,
             ),
             'rejected' => (
               bg: context.colors.errorBg,
-              fg: AppColors.error,
+              fg: context.colors.errorText,
               icon: Icons.error_outline,
               label: 'Verificación rechazada',
               cta: 'Reintentar',
             ),
             _ => (
               bg: context.colors.warningBg,
-              fg: AppColors.warning,
+              fg: context.colors.warningText,
               icon: Icons.warning_amber_outlined,
               label: 'Verifica tu identidad para operar',
               cta: 'Verificar ahora',

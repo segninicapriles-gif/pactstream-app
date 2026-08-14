@@ -374,7 +374,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 ),
                 child: Text(
                   _errorMessage!,
-                  style: AppTypography.bodyS.copyWith(color: AppColors.error),
+                  style: AppTypography.bodyS.copyWith(color: context.colors.errorText),
                 ),
               ),
             Padding(

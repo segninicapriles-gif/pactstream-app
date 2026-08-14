@@ -434,7 +434,7 @@ class _MemberTile extends StatelessWidget {
                         ),
                         child: Text('TÚ',
                             style: AppTypography.caption.copyWith(
-                                color: AppColors.success,
+                                color: context.colors.successText,
                                 fontWeight: FontWeight.w800,
                                 fontSize: 10)),
                       ),
@@ -501,7 +501,7 @@ class _MemberTile extends StatelessWidget {
                           size: 18, color: AppColors.error),
                       title: Text(
                           member.isPending ? 'Cancelar invitación' : 'Revocar',
-                          style: const TextStyle(color: AppColors.error)),
+                          style: TextStyle(color: context.colors.errorText)),
                     ),
                   ),
               ],

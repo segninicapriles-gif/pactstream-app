@@ -114,7 +114,7 @@ abstract final class AppTheme {
           ),
           labelStyle: AppTypography.bodyS.copyWith(color: AppColors.ink700),
           hintStyle: AppTypography.body.copyWith(color: AppColors.ink400),
-          errorStyle: AppTypography.bodyS.copyWith(color: AppColors.error),
+          errorStyle: AppTypography.bodyS.copyWith(color: AppColors.errorInk),
         ),
         // Gramática §8b: tarjetas SIN borde visible (shape sin `side` →
         // BorderSide.none por defecto en RoundedRectangleBorder). Material's

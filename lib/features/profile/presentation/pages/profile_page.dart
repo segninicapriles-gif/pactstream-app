@@ -690,7 +690,7 @@ class _KycSection extends StatelessWidget {
     final spec = switch (status) {
       'verified' => (
         bg: context.colors.successBg,
-        fg: AppColors.success,
+        fg: context.colors.successText,
         icon: Icons.verified_user,
         label: 'Identidad verificada',
         cta: null,
@@ -698,7 +698,7 @@ class _KycSection extends StatelessWidget {
       ),
       'pending_review' => (
         bg: context.colors.warningBg,
-        fg: AppColors.warning,
+        fg: context.colors.warningText,
         icon: Icons.access_time,
         label: 'En revisión manual',
         cta: null,
@@ -706,7 +706,7 @@ class _KycSection extends StatelessWidget {
       ),
       'rejected' => (
         bg: context.colors.errorBg,
-        fg: AppColors.error,
+        fg: context.colors.errorText,
         icon: Icons.error_outline,
         label: 'Verificación rechazada',
         cta: 'Reintentar',
@@ -714,7 +714,7 @@ class _KycSection extends StatelessWidget {
       ),
       _ => (
         bg: context.colors.warningBg,
-        fg: AppColors.warning,
+        fg: context.colors.warningText,
         icon: Icons.warning_amber_outlined,
         label: 'Identidad sin verificar',
         cta: 'Verificar ahora',
@@ -1449,7 +1449,7 @@ class _AccountActionsCardState extends ConsumerState<_AccountActionsCard> {
                 const Icon(Icons.delete_outline, color: AppColors.error),
             title: Text(
               'Borrar cuenta',
-              style: AppTypography.body.copyWith(color: AppColors.error),
+              style: AppTypography.body.copyWith(color: context.colors.errorText),
             ),
             subtitle: Text(
               'RGPD · derecho de supresión',

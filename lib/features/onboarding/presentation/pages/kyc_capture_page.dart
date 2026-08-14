@@ -383,7 +383,7 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
               borderRadius: AppRadius.smAll,
             ),
             child: Text(_errorMessage!,
-                style: AppTypography.bodyS.copyWith(color: AppColors.error)),
+                style: AppTypography.bodyS.copyWith(color: context.colors.errorText)),
           ),
           const SizedBox(height: AppSpacing.md),
         ],
