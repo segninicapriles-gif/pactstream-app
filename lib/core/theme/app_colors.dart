@@ -9,9 +9,11 @@ import 'app_tokens.g.dart';
 /// delegan a [ArcoTokens], generado desde `design-system/tokens.json`, que es
 /// la misma fuente de la que salen CostPact, FiscalCore, admin-panel y cae-app.
 ///
-/// La escala `ink*` de abajo NO se ha tocado: es una rampa de 10 pasos propia de
-/// la app móvil y el canon solo define tres (900/600/400). Migrarla exigiría
-/// decidir los siete restantes, que es trabajo de diseño, no de fontanería.
+/// La rampa `ink*` de 10 pasos TAMBIÉN se delega desde el 14-ago-2026: sus
+/// objetivos de luminancia se incorporaron al canon (ink.ramp en tokens.json)
+/// tomándolos de aquí, que era la única rampa completa del ecosistema. Se
+/// reconcilió un paso: ink400 daba 2,34:1 sobre blanco, por debajo del 3:1 de
+/// elementos gráficos; ahora da 3,38:1.
 abstract final class AppColors {
   AppColors._();
 
@@ -34,16 +36,16 @@ abstract final class AppColors {
   );
 
   // === INK (escala neutra · light) ===
-  static const Color ink900 = Color(0xFF0A0E2A);
-  static const Color ink800 = Color(0xFF14193D);
-  static const Color ink700 = Color(0xFF2A2F5C);
-  static const Color ink600 = Color(0xFF4D5380);
-  static const Color ink500 = Color(0xFF767BA3);
-  static const Color ink400 = Color(0xFFA4A8C4);
-  static const Color ink300 = Color(0xFFD0D3E3);
-  static const Color ink200 = Color(0xFFE7E9F1);
-  static const Color ink100 = Color(0xFFF3F4F9);
-  static const Color ink50 = Color(0xFFFAFBFD);
+  static const Color ink900 = ArcoTokens.ink900;
+  static const Color ink800 = ArcoTokens.ink800;
+  static const Color ink700 = ArcoTokens.ink700;
+  static const Color ink600 = ArcoTokens.ink600;
+  static const Color ink500 = ArcoTokens.ink500;
+  static const Color ink400 = ArcoTokens.ink400;
+  static const Color ink300 = ArcoTokens.ink300;
+  static const Color ink200 = ArcoTokens.ink200;
+  static const Color ink100 = ArcoTokens.ink100;
+  static const Color ink50 = ArcoTokens.ink50;
   static const Color white = Color(0xFFFFFFFF);
 
   // === SEMÁNTICOS — del generador, en par fill+ink ===
