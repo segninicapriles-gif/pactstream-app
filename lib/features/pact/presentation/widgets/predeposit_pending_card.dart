@@ -188,8 +188,8 @@ class PredepositPendingCard extends StatelessWidget {
               icon: const Icon(Icons.warning_amber_rounded, size: 18),
               onPressed: onForceAdvance,
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.warning,
-                side: const BorderSide(color: AppColors.warning),
+                foregroundColor: context.colors.warningText,
+                side: BorderSide(color: context.colors.warningText),
               ),
               label: const Text('Avanzar bajo mi responsabilidad'),
             ),

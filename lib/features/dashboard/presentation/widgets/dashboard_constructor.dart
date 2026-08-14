@@ -88,7 +88,7 @@ class _Content extends StatelessWidget {
                 ? '${next.pactTitle} · ${_dateLabel(next.targetDate)}'
                 : 'Ninguna certificación validada todavía',
             subtitleColor: next != null
-                ? AppColors.success
+                ? context.colors.successText
                 : AppColors.psCyan,
             icon: Icons.payments_outlined,
           ),
@@ -107,7 +107,7 @@ class _Content extends StatelessWidget {
                   subtitle: data.newWorksThisMonth > 0
                       ? '+${data.newWorksThisMonth} este mes'
                       : null,
-                  subtitleColor: AppColors.success,
+                  subtitleColor: context.colors.successText,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -122,8 +122,8 @@ class _Content extends StatelessWidget {
                       ? 'Sin pendientes'
                       : 'Anexos / contratos',
                   subtitleColor: data.urgentTasks.isEmpty
-                      ? AppColors.success
-                      : AppColors.warning,
+                      ? context.colors.successText
+                      : context.colors.warningText,
                 ),
               ),
             ],

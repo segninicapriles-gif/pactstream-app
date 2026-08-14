@@ -679,7 +679,7 @@ class _MoneySummary extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           _moneyRow('Liberado',
               AppFormatters.moneyShort(detail.amountReleasedCents),
-              valueColor: AppColors.success),
+              valueColor: context.colors.successText),
           _moneyRow(
               'En custodia',
               AppFormatters.moneyShort(detail.amountInCustodyCents),

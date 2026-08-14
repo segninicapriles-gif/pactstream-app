@@ -411,7 +411,7 @@ class _ProfessionalDocsPageState extends ConsumerState<ProfessionalDocsPage> {
                           backgroundColor: c.border,
                           valueColor: AlwaysStoppedAnimation(
                             requiredUploaded == requiredCount
-                                ? AppColors.success
+                                ? context.colors.successText
                                 : AppColors.psBlue,
                           ),
                         ),

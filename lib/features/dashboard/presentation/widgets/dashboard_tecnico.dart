@@ -91,7 +91,7 @@ class _Content extends StatelessWidget {
                 ? '+${data.newWorksThisMonth} este mes'
                 : 'Todas tus obras como técnico',
             subtitleColor: data.newWorksThisMonth > 0
-                ? AppColors.success
+                ? context.colors.successText
                 : AppColors.psCyan,
             icon: Icons.architecture_outlined,
             gradientColors: const [
@@ -117,8 +117,8 @@ class _Content extends StatelessWidget {
                       ? 'Sin pendientes'
                       : 'Acciones tuyas',
                   subtitleColor: data.urgentTasks.isEmpty
-                      ? AppColors.success
-                      : AppColors.warning,
+                      ? context.colors.successText
+                      : context.colors.warningText,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),

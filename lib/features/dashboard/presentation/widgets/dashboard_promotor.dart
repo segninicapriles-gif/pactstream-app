@@ -82,7 +82,7 @@ class _Content extends StatelessWidget {
                 ? 'Garantizado'
                 : 'Sin obras con depósito todavía',
             subtitleColor: data.inCustodyCents > 0
-                ? AppColors.success
+                ? context.colors.successText
                 : AppColors.psCyan,
             secondaryLabel: data.nextRelease != null ? 'PRÓXIMA LIBERACIÓN' : null,
             secondaryValue: data.nextRelease != null
@@ -105,7 +105,7 @@ class _Content extends StatelessWidget {
                       ? '+${data.newWorksThisMonth} este mes'
                       : 'Sin cambios este mes',
                   subtitleColor: data.newWorksThisMonth > 0
-                      ? AppColors.success
+                      ? context.colors.successText
                       : context.colors.textTertiary,
                 ),
               ),
@@ -121,8 +121,8 @@ class _Content extends StatelessWidget {
                       ? 'Sin pendientes'
                       : 'Requieren acción',
                   subtitleColor: data.urgentTasks.isEmpty
-                      ? AppColors.success
-                      : AppColors.warning,
+                      ? context.colors.successText
+                      : context.colors.warningText,
                 ),
               ),
             ],

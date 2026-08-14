@@ -1010,7 +1010,7 @@ class _TechReviewCtaState extends ConsumerState<_TechReviewCta> {
                   'Comentario opcional para el constructor'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.white,
-                foregroundColor: AppColors.success,
+                foregroundColor: context.colors.successText,
               ),
               label: const Text('Aprobar técnicamente'),
             ),
@@ -1242,7 +1242,7 @@ class _PromotorDecideCtaState extends ConsumerState<_PromotorDecideCta> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.white,
-                foregroundColor: AppColors.success,
+                foregroundColor: context.colors.successText,
               ),
               label: Text(
                 'Aprobar y liberar ${AppFormatters.moneyShort(m.amountCents)}',

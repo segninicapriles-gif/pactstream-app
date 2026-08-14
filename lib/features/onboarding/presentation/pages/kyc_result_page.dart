@@ -90,7 +90,7 @@ class _VerifiedResult extends StatelessWidget {
               _ResultRow(
                   label: context.l10n.kycOperationsLabel,
                   value: context.l10n.kycOperationsAvailable,
-                  valueColor: AppColors.success),
+                  valueColor: context.colors.successText),
             ],
           ),
         ),
