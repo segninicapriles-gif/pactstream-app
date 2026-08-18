@@ -10,6 +10,7 @@ import 'core/theme/app_scroll_behavior.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/widgets/responsive_wrapper.dart';
+import 'features/pact/data/evidence_queue.dart';
 import 'l10n/gen/app_localizations.dart';
 
 class PactStreamApp extends ConsumerWidget {
@@ -20,6 +21,11 @@ class PactStreamApp extends ConsumerWidget {
     final router = ref.watch(goRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
     final language = ref.watch(appLanguageProvider);
+
+    // Mantener viva la cola offline de evidencias durante toda la sesión:
+    // así drena al recuperar cobertura o al reanudar la app aunque no haya
+    // ninguna pantalla de evidencias abierta.
+    ref.watch(evidenceQueueProvider);
 
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,

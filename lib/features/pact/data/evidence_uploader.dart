@@ -19,9 +19,59 @@ class EvidenceUploader {
 
   static const _bucketName = 'milestone-evidences';
 
-  /// Sube un archivo a Storage y devuelve metadatos.
+  /// SHA-256 del contenido en hex (evidencia de integridad).
+  static String hashOf(Uint8List bytes) => sha256.convert(bytes).toString();
+
+  /// Calcula la ruta de Storage de forma DETERMINISTA a partir del contenido.
   ///
   /// Path final: `{pact_id}/{milestone_id}/{epoch}-{hash8}.{ext}`
+  ///
+  /// La cola offline la calcula UNA vez al encolar y la persiste, de modo que
+  /// el reintento suba siempre a la misma ruta (idempotencia). El epoch es el
+  /// del momento de captura, no el del reintento.
+  static String computeStoragePath({
+    required String pactId,
+    required String milestoneId,
+    required Uint8List bytes,
+    required String filename,
+    DateTime? capturedAt,
+  }) {
+    final hashHex = hashOf(bytes);
+    final ext = _extOf(filename);
+    final epoch = (capturedAt ?? DateTime.now()).millisecondsSinceEpoch;
+    return '$pactId/$milestoneId/$epoch-${hashHex.substring(0, 8)}$ext';
+  }
+
+  /// Sube bytes a una ruta de Storage YA CALCULADA. Idempotente: si el
+  /// objeto ya existe (un reintento tras subir pero fallar el registro en
+  /// BD), lo trata como éxito en vez de propagar el error.
+  Future<void> uploadToPath({
+    required String storagePath,
+    required Uint8List bytes,
+    required String mimeType,
+  }) async {
+    final storage = SupabaseConfig.client.storage.from(_bucketName);
+    try {
+      await storage.uploadBinary(
+        storagePath,
+        bytes,
+        fileOptions: FileOptions(
+          contentType: mimeType,
+          upsert: false,
+        ),
+      );
+    } on StorageException catch (e) {
+      // 409 / "Duplicate" / "already exists" → ya estaba subido.
+      final msg = e.message.toLowerCase();
+      final isDuplicate = e.statusCode == '409' ||
+          msg.contains('already exists') ||
+          msg.contains('duplicate') ||
+          msg.contains('resource already exists');
+      if (!isDuplicate) rethrow;
+    }
+  }
+
+  /// Sube un archivo a Storage y devuelve metadatos. Ruta única por llamada.
   Future<UploadResult> uploadFile({
     required String pactId,
     required String milestoneId,
@@ -29,30 +79,20 @@ class EvidenceUploader {
     required String filename,
     required String mimeType,
   }) async {
-    // 1. Hash SHA-256 del archivo (evidencia de integridad)
-    final digest = sha256.convert(bytes);
-    final hashHex = digest.toString();
-
-    // 2. Path único en Storage
-    final ext = _extFromName(filename);
-    final stem =
-        '${DateTime.now().millisecondsSinceEpoch}-${hashHex.substring(0, 8)}';
-    final storagePath = '$pactId/$milestoneId/$stem$ext';
-
-    // 3. Subir a Supabase Storage
-    final storage = SupabaseConfig.client.storage.from(_bucketName);
-    await storage.uploadBinary(
-      storagePath,
-      bytes,
-      fileOptions: FileOptions(
-        contentType: mimeType,
-        upsert: false,
-      ),
+    final storagePath = computeStoragePath(
+      pactId: pactId,
+      milestoneId: milestoneId,
+      bytes: bytes,
+      filename: filename,
     );
-
+    await uploadToPath(
+      storagePath: storagePath,
+      bytes: bytes,
+      mimeType: mimeType,
+    );
     return UploadResult(
       storagePath: storagePath,
-      sha256Hash: hashHex,
+      sha256Hash: hashOf(bytes),
       sizeBytes: bytes.length,
       mimeType: mimeType,
     );
@@ -68,7 +108,7 @@ class EvidenceUploader {
     return storage.createSignedUrl(storagePath, expiresIn.inSeconds);
   }
 
-  String _extFromName(String name) {
+  static String _extOf(String name) {
     final dot = name.lastIndexOf('.');
     if (dot < 0 || dot == name.length - 1) return '';
     return name.substring(dot).toLowerCase();

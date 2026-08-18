@@ -12,7 +12,7 @@ import '../../../../core/theme/app_shadows.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/error_humanizer.dart';
-import '../../data/pact_providers.dart';
+import '../../data/evidence_queue.dart';
 
 /// Pantalla de subida de evidencia para un hito en curso.
 ///
@@ -157,27 +157,17 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
     });
 
     try {
-      final uploader = ref.read(evidenceUploaderProvider);
-      final repo = ref.read(pactsRepositoryProvider);
-
-      // 1. Sube a Storage
-      final mime = _mimeFromXFile(_picked!);
-      final upload = await uploader.uploadFile(
+      // Cola-primero: la evidencia se guarda SIEMPRE en la cola local (con
+      // sus bytes, GPS y hash), y de ahí se envía. Si hay red, sube en el
+      // acto; si no, se enviará sola al recuperar cobertura. Así nada se
+      // pierde aunque el usuario cierre la app en una obra sin señal.
+      final queue = ref.read(evidenceQueueProvider.notifier);
+      final id = await queue.enqueue(
         pactId: widget.pactId,
         milestoneId: widget.milestoneId,
         bytes: _bytes!,
         filename: _picked!.name,
-        mimeType: mime,
-      );
-
-      // 2. Registra en BD
-      await repo.recordMilestoneEvidence(
-        milestoneId: widget.milestoneId,
-        evidenceType: 'photo',
-        storagePath: upload.storagePath,
-        sha256Hash: upload.sha256Hash,
-        fileSizeBytes: upload.sizeBytes,
-        mimeType: upload.mimeType,
+        mimeType: _mimeFromXFile(_picked!),
         description: _descriptionCtrl.text.trim().isEmpty
             ? null
             : _descriptionCtrl.text.trim(),
@@ -187,17 +177,23 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
         clientTimestamp: DateTime.now(),
       );
 
-      // Invalidar caches
-      ref.invalidate(milestoneDetailProvider(widget.milestoneId));
+      // enqueue() ya intentó un envío inmediato. Si la entrada ya no está en
+      // la cola, subió al vuelo; si sigue, quedó a la espera de conexión.
+      final uploadedNow =
+          !ref.read(evidenceQueueProvider).any((e) => e.id == id);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: AppColors.success,
+          backgroundColor:
+              uploadedNow ? AppColors.success : AppColors.psBlue,
           behavior: SnackBarBehavior.floating,
-          content: Text('Evidencia subida correctamente',
-              style: AppTypography.bodyS
-                  .copyWith(color: AppColors.white)),
+          content: Text(
+            uploadedNow
+                ? 'Evidencia subida correctamente'
+                : 'Evidencia guardada — se enviará automáticamente al recuperar conexión',
+            style: AppTypography.bodyS.copyWith(color: AppColors.white),
+          ),
         ),
       );
       context.pop();

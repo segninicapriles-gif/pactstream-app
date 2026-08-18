@@ -14,6 +14,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/error_humanizer.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../ai/presentation/widgets/ai_verification_card.dart';
+import '../../data/evidence_queue.dart';
 import '../../data/milestone_detail.dart';
 import '../../../../core/config/escrow_config.dart';
 import '../../data/pact_actions_v2.dart';
@@ -92,6 +93,7 @@ class MilestoneDetailPage extends ConsumerWidget {
                         )
                     : null,
               ),
+              _PendingEvidenceBanner(milestoneId: milestoneId),
               const SizedBox(height: AppSpacing.md),
               // === IA: Dictamen de evidencias ===
               AiVerificationCard(
@@ -295,6 +297,118 @@ class _EvidencesSection extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
             ],
         ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// BANNER: EVIDENCIAS EN COLA OFFLINE (pendientes de envío)
+// =====================================================================
+//
+// Se pinta solo si hay capturas de ESTE hito en la cola local esperando
+// conexión o con un fallo de envío. La cola las envía sola al recuperar
+// cobertura; aquí damos visibilidad y un botón de reintento manual.
+
+class _PendingEvidenceBanner extends ConsumerWidget {
+  const _PendingEvidenceBanner({required this.milestoneId});
+
+  final String milestoneId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pending =
+        ref.watch(pendingEvidenceForMilestoneProvider(milestoneId));
+    if (pending.isEmpty) return const SizedBox.shrink();
+
+    final co = context.colors;
+    final anyFailed =
+        pending.any((e) => e.status == QueuedEvidenceStatus.failed);
+    final uploading =
+        pending.any((e) => e.status == QueuedEvidenceStatus.uploading);
+    final n = pending.length;
+
+    final accent = anyFailed ? AppColors.error : AppColors.psBlue;
+    final IconData icon;
+    final String title;
+    final String subtitle;
+    if (uploading) {
+      icon = Icons.cloud_upload_outlined;
+      title = 'Enviando evidencia${n == 1 ? "" : "s"}…';
+      subtitle = 'Subiendo $n captura${n == 1 ? "" : "s"} al servidor.';
+    } else if (anyFailed) {
+      icon = Icons.error_outline;
+      title = '$n evidencia${n == 1 ? "" : "s"} sin enviar';
+      subtitle =
+          'No se pudieron subir. Comprueba la conexión y reinténtalo.';
+    } else {
+      icon = Icons.cloud_off_outlined;
+      title = '$n evidencia${n == 1 ? "" : "s"} en espera';
+      subtitle =
+          'Guardada${n == 1 ? "" : "s"} en el dispositivo. Se enviará${n == 1 ? "" : "n"} sola${n == 1 ? "" : "s"} al recuperar conexión.';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: anyFailed ? co.errorBg : co.brandAccentBg,
+          borderRadius: AppRadius.lgAll,
+          border: Border.all(color: accent.withValues(alpha: 0.4)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (uploading)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Icon(icon, color: accent, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTypography.body.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: co.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: AppTypography.bodyS
+                            .copyWith(color: co.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (anyFailed) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.refresh, size: 18),
+                  onPressed: () => ref
+                      .read(evidenceQueueProvider.notifier)
+                      .retryMilestone(milestoneId),
+                  label: const Text('Reintentar ahora'),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

@@ -52,6 +52,10 @@ dependencies:
   # Storage local
   shared_preferences: ^2.3.4
   flutter_secure_storage: ^9.2.4
+  path_provider: ^2.1.5 # ruta de documentos para la cola offline de evidencias
+
+  # Conectividad (cola offline de evidencias: drenar al recuperar cobertura)
+  connectivity_plus: ^6.1.0
 
   # Crypto (para hashes SHA-256 de evidencias)
   crypto: ^3.0.6
