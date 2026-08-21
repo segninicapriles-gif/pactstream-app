@@ -90,7 +90,7 @@ class PactActionsV2 {
   static Future<MangopayPayinDetails> startMangopayPayin(String pactId) async {
     try {
       final res = await SupabaseConfig.client.functions.invoke(
-        'mangopay-payin',
+        'escrow-payin',
         body: {'pact_id': pactId},
       );
       final data = res.data;
@@ -107,7 +107,7 @@ class PactActionsV2 {
       throw const PactActionException('Respuesta inesperada del servidor', null);
     } catch (e) {
       if (e is PactActionException) rethrow;
-      throw PactActionException('No se pudo iniciar el depósito con Mangopay', e);
+      throw PactActionException('No se pudo iniciar el depósito de custodia', e);
     }
   }
 
@@ -118,11 +118,11 @@ class PactActionsV2 {
   static Future<void> releaseMilestone(String milestoneId) async {
     try {
       await SupabaseConfig.client.functions.invoke(
-        'mangopay-release',
+        'escrow-release',
         body: {'milestone_id': milestoneId},
       );
     } catch (e) {
-      throw PactActionException('No se pudo liberar el hito con Mangopay', e);
+      throw PactActionException('No se pudo liberar el hito', e);
     }
   }
 
@@ -173,7 +173,7 @@ class PactActionsV2 {
   }) async {
     try {
       await SupabaseConfig.client.functions.invoke(
-        'mangopay-bank-account',
+        'escrow-bank-account',
         body: {
           'owner_name': ownerName,
           'iban': iban,
@@ -195,7 +195,7 @@ class PactActionsV2 {
   static Future<int> requestPayout({int? amountCents}) async {
     try {
       final res = await SupabaseConfig.client.functions.invoke(
-        'mangopay-payout',
+        'escrow-payout',
         body: amountCents == null ? {} : {'amount_cents': amountCents},
       );
       final data = res.data;

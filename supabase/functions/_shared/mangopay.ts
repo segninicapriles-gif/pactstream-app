@@ -9,6 +9,10 @@
 // Entorno: sandbox por defecto (`api.sandbox.mangopay.com`). NUNCA apuntar a
 // producción sin haber verificado el flujo completo contra sandbox.
 
+import type { EscrowProvider, NaturalUserInput } from './escrow.ts'
+// Se conserva el nombre por compatibilidad con imports previos.
+export type { NaturalUserInput } from './escrow.ts'
+
 export interface MangopayConfig {
   clientId: string
   apiKey: string
@@ -23,19 +27,7 @@ export function getMangopayConfig(): MangopayConfig | null {
   return { clientId, apiKey, baseUrl }
 }
 
-export interface NaturalUserInput {
-  firstName: string
-  lastName: string
-  email: string
-  // PAYER: solo paga (promotor) — Mangopay pide únicamente nombre + email + T&C.
-  // OWNER: puede cobrar (constructor) — Mangopay exige birthday/nationality/country.
-  category: 'PAYER' | 'OWNER'
-  birthday?: number // unix timestamp en segundos
-  nationality?: string // ISO 3166-1 alpha-2, p.ej. 'ES'
-  countryOfResidence?: string
-}
-
-export class MangopayClient {
+export class MangopayClient implements EscrowProvider {
   private cfg: MangopayConfig
   private cachedToken: { value: string; expiresAt: number } | null = null
 

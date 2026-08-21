@@ -76,10 +76,10 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
       _error = null;
     });
     try {
-      if (EscrowConfig.isMangopay) {
-        // Genera el IBAN de custodia (Bankwire). El fondeo NO ocurre aquí: se
-        // confirma por webhook al recibirse la transferencia. Mostramos los
-        // datos bancarios encima del sheet y luego cerramos éste.
+      if (EscrowConfig.isLiveEscrow) {
+        // Genera el IBAN de custodia. El fondeo NO ocurre aquí: se confirma por
+        // webhook al recibirse la transferencia. Mostramos los datos bancarios
+        // encima del sheet y luego cerramos éste.
         final details = await PactActionsV2.startMangopayPayin(widget.pactId);
         if (!mounted) return;
         await showMangopayBankDetailsSheet(context, details: details);
@@ -127,15 +127,15 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          EscrowConfig.isMangopay
-              ? 'Te daremos un IBAN de custodia (Mangopay). Transfiere el importe indicado; '
+          EscrowConfig.isLiveEscrow
+              ? 'Te daremos un IBAN de custodia regulada. Transfiere el importe indicado; '
                   'el depósito se confirmará automáticamente al recibirse y el pacto pasará a "En ejecución".'
               : 'Al confirmar, el pacto pasará a "En ejecución" y el constructor podrá empezar a emitir certificaciones. '
-                  'En esta versión MVP el ingreso se simula — en producción Mangopay confirmará la transferencia.',
+                  'En esta versión MVP el ingreso se simula — en producción una cuenta de custodia regulada confirmará la transferencia.',
           style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
-        if (!EscrowConfig.isMangopay)
+        if (!EscrowConfig.isLiveEscrow)
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,
@@ -151,9 +151,9 @@ class _FundDepositSheetState extends State<_FundDepositSheet> {
         if (_error != null) _ErrorBanner(message: _error!),
         const SizedBox(height: AppSpacing.sm),
         _PrimaryButton(
-          enabled: (EscrowConfig.isMangopay || _accepted) && !_loading,
+          enabled: (EscrowConfig.isLiveEscrow || _accepted) && !_loading,
           loading: _loading,
-          label: EscrowConfig.isMangopay
+          label: EscrowConfig.isLiveEscrow
               ? 'Obtener IBAN de custodia'
               : 'Confirmar depósito · ${AppFormatters.moneyShort(widget.requiredCents)}',
           onPressed: _submit,

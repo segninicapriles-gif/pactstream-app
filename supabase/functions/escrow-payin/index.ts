@@ -1,4 +1,4 @@
-// Edge Function: mangopay-payin  (Fase 2.1 — sandbox)
+// Edge Function: escrow-payin  (proveedor-neutral vía getEscrowClient)
 //
 // Inicia el depósito inicial de un pacto vía Bankwire PayIn de Mangopay:
 //   1. Asegura la wallet de custodia del pacto (pacts.mangopay_wallet_id).
@@ -14,7 +14,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
-import { getMangopayClient } from '../_shared/mangopay.ts'
+import { getEscrowClient } from '../_shared/escrow.ts'
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -34,8 +34,8 @@ serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
-    const mangopay = getMangopayClient()
-    if (!mangopay) return json({ error: 'Mangopay no configurado' }, 503)
+    const escrow = getEscrowClient()
+    if (!escrow) return json({ error: 'Proveedor de escrow no configurado' }, 503)
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json({ error: 'Sesión requerida' }, 401)
@@ -58,7 +58,7 @@ serve(async (req: Request) => {
       .eq('auth_provider_id', userData.user.id).maybeSingle()
     if (!profile) return json({ error: 'Perfil no encontrado' }, 404)
     if (!profile.mangopay_user_id) {
-      return json({ error: 'El promotor debe completar el alta en Mangopay primero (onboard)' }, 409)
+      return json({ error: 'El promotor debe completar el alta en el proveedor de escrow primero (onboard)' }, 409)
     }
 
     const body = await req.json().catch(() => ({}))
@@ -93,7 +93,7 @@ serve(async (req: Request) => {
     // 1. Wallet de custodia por pacto (idempotente: crea solo si falta).
     let walletId: string = pact.mangopay_wallet_id ?? ''
     if (!walletId) {
-      const wallet = await mangopay.createWallet(
+      const wallet = await escrow.createWallet(
         String(profile.mangopay_user_id), `PactStream custodia ${pact.id}`,
       )
       walletId = wallet.id
@@ -108,7 +108,7 @@ serve(async (req: Request) => {
       .in('state', ['created', 'pending'])
       .maybeSingle()
     if (existing?.mangopay_transaction_id) {
-      const pin = await mangopay.getPayIn(existing.mangopay_transaction_id)
+      const pin = await escrow.getPayIn(existing.mangopay_transaction_id)
       return json({
         payin_id: pin.id, status: pin.status, amount_cents: amountCents,
         iban: pin.iban, bic: pin.bic, owner_name: pin.ownerName, wire_reference: pin.wireReference,
@@ -117,7 +117,7 @@ serve(async (req: Request) => {
     }
 
     // 3. Crear el Bankwire PayIn.
-    const payin = await mangopay.createBankwirePayIn(
+    const payin = await escrow.createBankwirePayIn(
       String(profile.mangopay_user_id), walletId, amountCents,
     )
 

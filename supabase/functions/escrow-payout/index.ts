@@ -1,4 +1,4 @@
-// Edge Function: mangopay-payout  (Fase 2.3 — sandbox)
+// Edge Function: escrow-payout  (proveedor-neutral vía getEscrowClient)
 //
 // El constructor retira su saldo de la wallet Mangopay a su banco (PayOut
 // Bankwire). ASÍNCRONO: el estado final llega por webhook PAYOUT_NORMAL_*.
@@ -13,7 +13,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
-import { getMangopayClient } from '../_shared/mangopay.ts'
+import { getEscrowClient } from '../_shared/escrow.ts'
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -33,8 +33,8 @@ serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
-    const mangopay = getMangopayClient()
-    if (!mangopay) return json({ error: 'Mangopay no configurado' }, 503)
+    const escrow = getEscrowClient()
+    if (!escrow) return json({ error: 'Proveedor de escrow no configurado' }, 503)
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json({ error: 'Sesión requerida' }, 401)
@@ -57,7 +57,7 @@ serve(async (req: Request) => {
       .select('id, mangopay_user_id, mangopay_bank_account_id')
       .eq('auth_provider_id', userData.user.id).maybeSingle()
     if (!profile?.mangopay_user_id) {
-      return json({ error: 'No estás dado de alta en Mangopay' }, 409)
+      return json({ error: 'No estás dado de alta en el proveedor de escrow' }, 409)
     }
     if (!profile.mangopay_bank_account_id) {
       return json({ error: 'Registra primero tu cuenta bancaria' }, 409)
@@ -66,22 +66,22 @@ serve(async (req: Request) => {
     const mpUserId = String(profile.mangopay_user_id)
 
     // Prerrequisito duro de Mangopay: KYC REGULAR para poder cobrar.
-    const kyc = await mangopay.getKycLevel(mpUserId)
+    const kyc = await escrow.getKycLevel(mpUserId)
     if (kyc !== 'REGULAR') {
-      return json({ error: 'Tu verificación KYC de Mangopay está pendiente; no puedes retirar todavía' }, 409)
+      return json({ error: 'Tu verificación KYC del proveedor de pagos está pendiente; no puedes retirar todavía' }, 409)
     }
 
-    const walletId = await mangopay.getOrCreateEurWallet(
+    const walletId = await escrow.getOrCreateEurWallet(
       mpUserId, `PactStream constructor ${profile.id}`,
     )
-    const balance = await mangopay.getWalletBalanceCents(walletId)
+    const balance = await escrow.getWalletBalanceCents(walletId)
 
     const body = await req.json().catch(() => ({}))
     const requested = Number(body?.amount_cents ?? balance)
     const amountCents = Math.min(requested, balance)
     if (!(amountCents > 0)) return json({ error: 'No hay saldo disponible para retirar' }, 400)
 
-    const payout = await mangopay.createBankwirePayout(
+    const payout = await escrow.createBankwirePayout(
       mpUserId, walletId, String(profile.mangopay_bank_account_id), amountCents,
     )
 

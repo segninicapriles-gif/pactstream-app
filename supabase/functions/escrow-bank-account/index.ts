@@ -1,4 +1,4 @@
-// Edge Function: mangopay-bank-account  (Fase 2.3 — sandbox)
+// Edge Function: escrow-bank-account  (proveedor-neutral vía getEscrowClient)
 //
 // El constructor registra su cuenta bancaria IBAN (destino del payout). Guarda
 // el id en users.mangopay_bank_account_id. NO mueve dinero.
@@ -9,7 +9,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
-import { getMangopayClient } from '../_shared/mangopay.ts'
+import { getEscrowClient } from '../_shared/escrow.ts'
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -29,8 +29,8 @@ serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
-    const mangopay = getMangopayClient()
-    if (!mangopay) return json({ error: 'Mangopay no configurado' }, 503)
+    const escrow = getEscrowClient()
+    if (!escrow) return json({ error: 'Proveedor de escrow no configurado' }, 503)
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json({ error: 'Sesión requerida' }, 401)
@@ -52,7 +52,7 @@ serve(async (req: Request) => {
       .from('users').select('id, mangopay_user_id')
       .eq('auth_provider_id', userData.user.id).maybeSingle()
     if (!profile?.mangopay_user_id) {
-      return json({ error: 'Debes completar el alta en Mangopay primero (onboard OWNER)' }, 409)
+      return json({ error: 'Debes completar el alta en el proveedor de escrow primero (onboard OWNER)' }, 409)
     }
 
     const body = await req.json().catch(() => ({}))
@@ -61,7 +61,7 @@ serve(async (req: Request) => {
     const addr = body?.address ?? {}
     if (!ownerName || !iban) return json({ error: 'Faltan owner_name o iban' }, 400)
 
-    const account = await mangopay.createIbanBankAccount(
+    const account = await escrow.createIbanBankAccount(
       String(profile.mangopay_user_id),
       ownerName,
       iban,

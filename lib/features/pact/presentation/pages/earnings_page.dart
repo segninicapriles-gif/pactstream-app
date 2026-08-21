@@ -45,7 +45,7 @@ class WalletStatus {
 final walletStatusProvider =
     FutureProvider.autoDispose<WalletStatus>((ref) async {
   final res = await SupabaseConfig.client.functions
-      .invoke('mangopay-wallet-status', body: {});
+      .invoke('escrow-wallet-status', body: {});
   final data = res.data;
   if (data is Map) {
     return WalletStatus.fromMap(Map<String, dynamic>.from(data));

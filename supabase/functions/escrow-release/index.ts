@@ -1,4 +1,4 @@
-// Edge Function: mangopay-release  (Fase 2.2 — sandbox)
+// Edge Function: escrow-release  (proveedor-neutral vía getEscrowClient)
 //
 // Al aprobar un hito (en modo ESCROW_PROVIDER=mangopay), libera el neto de la
 // certificación: Transfer escrow-wallet → wallet del constructor (síncrono) y,
@@ -13,7 +13,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
-import { getMangopayClient } from '../_shared/mangopay.ts'
+import { getEscrowClient } from '../_shared/escrow.ts'
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -33,8 +33,8 @@ serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
-    const mangopay = getMangopayClient()
-    if (!mangopay) return json({ error: 'Mangopay no configurado' }, 503)
+    const escrow = getEscrowClient()
+    if (!escrow) return json({ error: 'Proveedor de escrow no configurado' }, 503)
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json({ error: 'Sesión requerida' }, 401)
@@ -56,7 +56,7 @@ serve(async (req: Request) => {
       .from('users').select('id, mangopay_user_id')
       .eq('auth_provider_id', userData.user.id).maybeSingle()
     if (!profile?.mangopay_user_id) {
-      return json({ error: 'El promotor no está dado de alta en Mangopay' }, 409)
+      return json({ error: 'El promotor no está dado de alta en el proveedor de escrow' }, 409)
     }
 
     const body = await req.json().catch(() => ({}))
@@ -82,7 +82,7 @@ serve(async (req: Request) => {
       .eq('id', ms.pact_id).maybeSingle()
     if (!pact) return json({ error: 'Pacto no encontrado' }, 404)
     if (!pact.mangopay_wallet_id) {
-      return json({ error: 'El pacto no tiene custodia Mangopay (sin pay-in)' }, 409)
+      return json({ error: 'El pacto no tiene custodia de escrow (sin pay-in)' }, 409)
     }
 
     // El caller debe ser el promotor del pacto.
@@ -113,16 +113,16 @@ serve(async (req: Request) => {
       .from('users').select('mangopay_user_id')
       .eq('id', constructorParty.user_id).maybeSingle()
     if (!constructorUser?.mangopay_user_id) {
-      return json({ error: 'El constructor no está dado de alta en Mangopay' }, 409)
+      return json({ error: 'El constructor no está dado de alta en el proveedor de escrow' }, 409)
     }
 
-    const constructorWalletId = await mangopay.getOrCreateEurWallet(
+    const constructorWalletId = await escrow.getOrCreateEurWallet(
       String(constructorUser.mangopay_user_id),
       `PactStream constructor ${constructorParty.user_id}`,
     )
 
     // Transfer SÍNCRONO escrow → constructor. Solo si SUCCEEDED marcamos paid.
-    const transfer = await mangopay.createTransfer(
+    const transfer = await escrow.createTransfer(
       String(profile.mangopay_user_id),
       String(pact.mangopay_wallet_id),
       constructorWalletId,
