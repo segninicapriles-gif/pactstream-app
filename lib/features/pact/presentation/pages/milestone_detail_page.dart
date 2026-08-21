@@ -1197,9 +1197,9 @@ class _PromotorDecideCtaState extends ConsumerState<_PromotorDecideCta> {
       _error = null;
     });
     try {
-      if (decision == 'approve' && EscrowConfig.isMangopay) {
-        // Modo Mangopay: aprobar libera dinero real (Transfer → confirm), no
-        // el mock. La objeción (dispute) sigue el flujo normal.
+      if (decision == 'approve' && EscrowConfig.isLiveEscrow) {
+        // Escrow live (Stripe/MangoPay): aprobar libera dinero real
+        // (Transfer → confirm), no el mock. La objeción (dispute) sigue el flujo normal.
         await PactActionsV2.releaseMilestone(widget.milestone.id);
       } else {
         await ref.read(pactsRepositoryProvider).promotorDecideMilestone(

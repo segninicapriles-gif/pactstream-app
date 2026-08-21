@@ -1,4 +1,4 @@
-// Edge Function: mangopay-onboard  (Fase 2.0 — sandbox, NO mueve dinero)
+// Edge Function: escrow-onboard  (proveedor-neutral — NO mueve dinero)
 //
 // Crea el usuario Mangopay del usuario autenticado y guarda mangopay_user_id en
 // public.users. La creación de wallet y el pay-in llegan en la Fase 2.1.
@@ -16,7 +16,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
-import { getMangopayClient } from '../_shared/mangopay.ts'
+import { getEscrowClient } from '../_shared/escrow.ts'
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -36,8 +36,8 @@ serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
-    const mangopay = getMangopayClient()
-    if (!mangopay) return json({ error: 'Mangopay no configurado' }, 503)
+    const escrow = getEscrowClient()
+    if (!escrow) return json({ error: 'Proveedor de escrow no configurado' }, 503)
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json({ error: 'Sesión requerida' }, 401)
@@ -80,7 +80,7 @@ serve(async (req: Request) => {
     const firstName = nameParts[0] || String(profile.full_name ?? '—')
     const lastName = nameParts.slice(1).join(' ') || '—'
 
-    const mpUser = await mangopay.createNaturalUser({
+    const mpUser = await escrow.createNaturalUser({
       firstName,
       lastName,
       email: String(profile.email),
@@ -95,6 +95,6 @@ serve(async (req: Request) => {
     return json({ mangopay_user_id: mpUser.id, category }, 200)
   } catch (error) {
     console.error('mangopay-onboard error:', error instanceof Error ? error.message : error)
-    return json({ error: 'Error creando el usuario Mangopay' }, 500)
+    return json({ error: 'Error creando el usuario en el proveedor de escrow' }, 500)
   }
 })

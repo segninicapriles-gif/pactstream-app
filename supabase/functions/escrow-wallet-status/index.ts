@@ -1,4 +1,4 @@
-// Edge Function: mangopay-wallet-status  (Fase 2.3 — solo lectura)
+// Edge Function: escrow-wallet-status  (proveedor-neutral — solo lectura)
 //
 // Devuelve el estado de cobros del usuario autenticado para la pantalla de
 // ganancias: si está dado de alta en Mangopay, su nivel KYC, si tiene cuenta
@@ -8,7 +8,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
-import { getMangopayClient } from '../_shared/mangopay.ts'
+import { getEscrowClient } from '../_shared/escrow.ts'
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -38,8 +38,8 @@ serve(async (req: Request) => {
     const { data: userData, error: authErr } = await userClient.auth.getUser()
     if (authErr || !userData.user) return json({ error: 'No autenticado' }, 401)
 
-    const mangopay = getMangopayClient()
-    if (!mangopay) {
+    const escrow = getEscrowClient()
+    if (!escrow) {
       return json({ configured: false, onboarded: false, kyc_level: null, has_bank_account: false, balance_cents: 0 }, 200)
     }
 
@@ -57,9 +57,9 @@ serve(async (req: Request) => {
     }
 
     const mpUserId = String(profile.mangopay_user_id)
-    const kyc = await mangopay.getKycLevel(mpUserId)
-    const walletId = await mangopay.getOrCreateEurWallet(mpUserId, `PactStream constructor ${profile.id}`)
-    const balance = await mangopay.getWalletBalanceCents(walletId)
+    const kyc = await escrow.getKycLevel(mpUserId)
+    const walletId = await escrow.getOrCreateEurWallet(mpUserId, `PactStream constructor ${profile.id}`)
+    const balance = await escrow.getWalletBalanceCents(walletId)
 
     return json({
       configured: true,

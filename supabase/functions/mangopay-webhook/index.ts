@@ -21,8 +21,15 @@ function json(body: unknown, status: number): Response {
   })
 }
 
+function makeAdmin() {
+  return createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  )
+}
+
 async function markProcessed(
-  admin: ReturnType<typeof createClient>,
+  admin: ReturnType<typeof makeAdmin>,
   externalId: string,
   result: string,
 ): Promise<void> {
@@ -41,10 +48,7 @@ serve(async (req: Request) => {
       return json({ error: 'Faltan EventType/RessourceId' }, 400)
     }
 
-    const admin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    )
+    const admin = makeAdmin()
 
     // Idempotencia por (provider, external_id). Un mismo recurso genera varios
     // tipos de evento, así que combinamos ambos para no colisionar entre ellos.
