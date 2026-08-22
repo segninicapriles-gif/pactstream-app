@@ -41,7 +41,8 @@ import type {
 export interface StripeConfig {
   secretKey: string
   baseUrl: string
-  connectCountry: string // país de la cuenta conectada / del banco de fondeo (ISO-2)
+  connectCountry: string // país de la cuenta conectada del constructor (ISO-2), p.ej. ES
+  bankTransferCountry: string // país del IBAN virtual de fondeo (eu_bank_transfer)
   apiVersion: string
 }
 
@@ -52,6 +53,10 @@ export function getStripeConfig(): StripeConfig | null {
     secretKey,
     baseUrl: Deno.env.get('STRIPE_BASE_URL') ?? 'https://api.stripe.com',
     connectCountry: Deno.env.get('STRIPE_CONNECT_COUNTRY') ?? 'ES',
+    // ⚠️ eu_bank_transfer SOLO admite DE/FR/IE/NL como país del IBAN de fondeo
+    // (NO ES). SEPA es transfronteriza: el promotor español transfiere sin
+    // problema a un IBAN irlandés. Configurable; default IE.
+    bankTransferCountry: Deno.env.get('STRIPE_BANK_TRANSFER_COUNTRY') ?? 'IE',
     apiVersion: Deno.env.get('STRIPE_API_VERSION') ?? '2024-06-20',
   }
 }
@@ -235,7 +240,7 @@ export class StripeEscrowClient implements EscrowProvider {
           funding_type: 'bank_transfer',
           bank_transfer: {
             type: 'eu_bank_transfer',
-            eu_bank_transfer: { country: this.cfg.connectCountry },
+            eu_bank_transfer: { country: this.cfg.bankTransferCountry },
           },
         },
       },
@@ -370,7 +375,7 @@ export class StripeEscrowClient implements EscrowProvider {
 // (default 500000 = 5.000 €). NO usar en producción.
 export class MockStripeClient extends StripeEscrowClient {
   constructor() {
-    super({ secretKey: 'sim', baseUrl: 'sim', connectCountry: 'ES', apiVersion: 'sim' })
+    super({ secretKey: 'sim', baseUrl: 'sim', connectCountry: 'ES', bankTransferCountry: 'IE', apiVersion: 'sim' })
   }
   private id(prefix: string): string {
     return `${prefix}_${crypto.randomUUID().slice(0, 8)}`

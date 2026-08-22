@@ -144,6 +144,7 @@ const CFG: StripeConfig = {
   secretKey: 'sk_test_builder',
   baseUrl: 'https://api.stripe.test',
   connectCountry: 'ES',
+  bankTransferCountry: 'IE',
   apiVersion: '2024-06-20',
 }
 
@@ -224,6 +225,9 @@ Deno.test('Stripe createBankwirePayIn: PaymentIntent customer_balance/eu_bank_tr
     assertStringIncludes(req.body, 'transfer_group=wallet_pact_1')
     assertStringIncludes(req.body, 'payment_method_types%5B0%5D=customer_balance')
     assertStringIncludes(req.body, '%5Bbank_transfer%5D%5Btype%5D=eu_bank_transfer')
+    // Regresión (bug detectado en test live): el país del IBAN de fondeo NO es ES
+    // (eu_bank_transfer solo admite DE/FR/IE/NL) → debe ser el bankTransferCountry.
+    assertStringIncludes(req.body, '%5Beu_bank_transfer%5D%5Bcountry%5D=IE')
   } finally {
     s.restore()
   }
