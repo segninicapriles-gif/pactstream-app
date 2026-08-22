@@ -43,7 +43,8 @@ export interface StripeConfig {
   baseUrl: string
   connectCountry: string // país de la cuenta conectada del constructor (ISO-2), p.ej. ES
   bankTransferCountry: string // país del IBAN virtual de fondeo (eu_bank_transfer)
-  apiVersion: string
+  apiVersion: string // versión estable para endpoints v1
+  apiVersionV2: string // versión (preview) para /v2/core/accounts
 }
 
 export function getStripeConfig(): StripeConfig | null {
@@ -58,6 +59,12 @@ export function getStripeConfig(): StripeConfig | null {
     // problema a un IBAN irlandés. Configurable; default IE.
     bankTransferCountry: Deno.env.get('STRIPE_BANK_TRANSFER_COUNTRY') ?? 'IE',
     apiVersion: Deno.env.get('STRIPE_API_VERSION') ?? '2024-06-20',
+    // ⚠️ Accounts v2 (/v2/core/accounts) es API PREVIEW → exige una Stripe-Version
+    // preview y cuerpo JSON. Las plataformas Connect nuevas ya NO admiten crear
+    // cuentas con /v1/accounts. El id v2 (acct_…) SÍ sirve en endpoints v1
+    // (transfers/payouts/external_accounts/retrieve): por eso solo la CREACIÓN
+    // migra a v2. Versión pineada y configurable (las preview cambian).
+    apiVersionV2: Deno.env.get('STRIPE_API_VERSION_V2') ?? '2026-07-29.preview',
   }
 }
 
@@ -185,9 +192,36 @@ export class StripeEscrowClient implements EscrowProvider {
     return text ? JSON.parse(text) : {}
   }
 
+  // Petición a la API v2 (Accounts). JSON + Stripe-Version PREVIEW. `stripeContext`
+  // añade la cabecera Stripe-Context (operar en el contexto de una cuenta).
+  protected async apiV2(
+    path: string,
+    method: 'GET' | 'POST',
+    body?: Record<string, unknown>,
+    stripeContext?: string,
+  ): Promise<Record<string, unknown>> {
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${this.cfg.secretKey}`,
+      'Stripe-Version': this.cfg.apiVersionV2,
+      'Content-Type': 'application/json',
+    }
+    if (stripeContext) headers['Stripe-Context'] = stripeContext
+    const res = await fetch(`${this.cfg.baseUrl}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    })
+    const text = await res.text()
+    if (!res.ok) {
+      throw new Error(`Stripe v2 ${method} ${path} ${res.status}: ${text}`)
+    }
+    return text ? JSON.parse(text) : {}
+  }
+
   async createNaturalUser(input: NaturalUserInput): Promise<{ id: string }> {
     if (input.category === 'PAYER') {
-      // Promotor: solo deposita → Customer.
+      // Promotor: solo deposita → Customer (v1, sin cambios: los Customers no son
+      // "Accounts v2").
       const data = await this.api('/v1/customers', 'POST', {
         email: input.email,
         name: `${input.firstName} ${input.lastName}`.trim(),
@@ -195,22 +229,25 @@ export class StripeEscrowClient implements EscrowProvider {
       })
       return { id: String(data.id) }
     }
-    // Constructor: puede cobrar → cuenta conectada custom con payouts MANUALES.
-    const data = await this.api('/v1/accounts', 'POST', {
-      type: 'custom',
-      country: input.countryOfResidence ?? this.cfg.connectCountry,
-      email: input.email,
-      business_type: 'individual',
-      capabilities: { transfers: { requested: true } },
-      // Payouts manuales: el dinero NO sale de la cuenta conectada hasta que
-      // PactStream dispara el payout (control de escrow).
-      settings: { payouts: { schedule: { interval: 'manual' } } },
-      individual: {
-        first_name: input.firstName,
-        last_name: input.lastName,
-        email: input.email,
+    // Constructor: puede cobrar → cuenta conectada ACCOUNTS v2 (dashboard:'none' ≈
+    // el antiguo "custom": la plataforma controla todo). Configuración RECIPIENT con
+    // `stripe_balance.stripe_transfers` → habilita recibir Transfers desde el balance
+    // de plataforma y AUTO-solicita la capability de payouts a banco. El id v2 (acct_…)
+    // se usa luego en los endpoints v1 de transfer/payout/external_account.
+    const data = await this.apiV2('/v2/core/accounts', 'POST', {
+      dashboard: 'none',
+      contact_email: input.email,
+      display_name: `${input.firstName} ${input.lastName}`.trim(),
+      identity: {
+        country: input.countryOfResidence ?? this.cfg.connectCountry,
+        entity_type: 'individual',
       },
-      metadata: { category: 'OWNER', source: 'pactstream' },
+      // La plataforma asume comisiones y pérdidas.
+      defaults: { responsibilities: { fees_collector: 'application', losses_collector: 'application' } },
+      configuration: {
+        recipient: { capabilities: { stripe_balance: { stripe_transfers: { requested: true } } } },
+      },
+      include: ['configuration.recipient', 'identity', 'requirements'],
     })
     return { id: String(data.id) }
   }
@@ -375,7 +412,7 @@ export class StripeEscrowClient implements EscrowProvider {
 // (default 500000 = 5.000 €). NO usar en producción.
 export class MockStripeClient extends StripeEscrowClient {
   constructor() {
-    super({ secretKey: 'sim', baseUrl: 'sim', connectCountry: 'ES', bankTransferCountry: 'IE', apiVersion: 'sim' })
+    super({ secretKey: 'sim', baseUrl: 'sim', connectCountry: 'ES', bankTransferCountry: 'IE', apiVersion: 'sim', apiVersionV2: 'sim' })
   }
   private id(prefix: string): string {
     return `${prefix}_${crypto.randomUUID().slice(0, 8)}`

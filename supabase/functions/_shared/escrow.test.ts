@@ -146,6 +146,7 @@ const CFG: StripeConfig = {
   connectCountry: 'ES',
   bankTransferCountry: 'IE',
   apiVersion: '2024-06-20',
+  apiVersionV2: '2026-07-29.preview',
 }
 
 interface Captured { url: string; method: string; headers: Headers; body: string }
@@ -166,7 +167,7 @@ function stubFetch(responseObj: unknown): { restore: () => void; last: () => Cap
   return { restore: () => { globalThis.fetch = original }, last: () => captured! }
 }
 
-Deno.test('Stripe createNaturalUser(OWNER): POST /v1/accounts custom + transfers + payouts manual', async () => {
+Deno.test('Stripe createNaturalUser(OWNER): POST /v2/core/accounts recipient/stripe_transfers (JSON + preview)', async () => {
   const s = stubFetch({ id: 'acct_1' })
   try {
     const c = new StripeEscrowClient(CFG)
@@ -174,11 +175,16 @@ Deno.test('Stripe createNaturalUser(OWNER): POST /v1/accounts custom + transfers
     assertEquals(r.id, 'acct_1')
     const req = s.last()
     assertEquals(req.method, 'POST')
-    assertEquals(req.url, 'https://api.stripe.test/v1/accounts')
+    assertEquals(req.url, 'https://api.stripe.test/v2/core/accounts')
     assertEquals(req.headers.get('Authorization'), 'Bearer sk_test_builder')
-    assertStringIncludes(req.body, 'type=custom')
-    assertStringIncludes(req.body, 'capabilities%5Btransfers%5D%5Brequested%5D=true')
-    assertStringIncludes(req.body, 'settings%5Bpayouts%5D%5Bschedule%5D%5Binterval%5D=manual')
+    assertEquals(req.headers.get('Stripe-Version'), '2026-07-29.preview')
+    assertEquals(req.headers.get('Content-Type'), 'application/json')
+    const body = JSON.parse(req.body)
+    assertEquals(body.dashboard, 'none')
+    assertEquals(body.identity.country, 'ES')
+    assertEquals(body.identity.entity_type, 'individual')
+    assertEquals(body.configuration.recipient.capabilities.stripe_balance.stripe_transfers.requested, true)
+    assertEquals(body.defaults.responsibilities.fees_collector, 'application')
   } finally {
     s.restore()
   }
