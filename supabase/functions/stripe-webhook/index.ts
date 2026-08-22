@@ -131,6 +131,18 @@ serve(async (req: Request) => {
       }
     }
 
+    // ── Estado de la cuenta conectada / capabilities (Accounts v2, thin events) ──
+    // p.ej. v2.core.account[configuration.recipient].capability_status_updated,
+    //       v2.core.account[requirements].updated, v2.core.account.updated.
+    // Decisión de arquitectura: la FUENTE DE VERDAD del estado de cobros es la
+    // lectura EN VIVO de getKycLevel() (escrow-wallet-status consulta la cuenta al
+    // cargar). Estos eventos se registran en webhook_events (upsert de arriba) solo
+    // para auditoría/trazabilidad — no persistimos flag ni hacemos fetch de la cuenta.
+    // La app refleja 'active' en cuanto el constructor reconsulta tras el KYC.
+    if (eventType.startsWith('v2.core.account')) {
+      await markProcessed(admin, eventId, 'recorded')
+    }
+
     // 200: Stripe reintenta si no recibe 2xx.
     return json({ received: true }, 200)
   } catch (error) {

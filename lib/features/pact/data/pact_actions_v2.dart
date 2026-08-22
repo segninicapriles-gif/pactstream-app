@@ -208,6 +208,32 @@ class PactActionsV2 {
     }
   }
 
+  /// El constructor inicia (o reanuda) su verificación de identidad para cobros.
+  ///
+  /// El backend asegura su cuenta conectada del proveedor de escrow (la crea si aún
+  /// no existe) y devuelve la URL de un onboarding ALOJADO de un solo uso. La app la
+  /// abre en el navegador; al volver NO hay callback directo, así que el estado
+  /// ('verificado') se refleja al reconsultar `escrow-wallet-status`.
+  static Future<String> startEscrowOnboarding({String country = 'ES'}) async {
+    try {
+      final res = await SupabaseConfig.client.functions.invoke(
+        'escrow-onboard-link',
+        body: {'country': country},
+      );
+      final data = res.data;
+      if (data is Map &&
+          data['url'] is String &&
+          (data['url'] as String).isNotEmpty) {
+        return data['url'] as String;
+      }
+      throw const PactActionException('Respuesta inesperada del servidor', null);
+    } catch (e) {
+      if (e is PactActionException) rethrow;
+      throw PactActionException(
+          'No se pudo iniciar la verificación de cobros', e);
+    }
+  }
+
   // === Constructor ===
 
   /// Constructor crea una nueva certificación.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -74,11 +75,41 @@ final payoutHistoryProvider =
 
 /// Ganancias del constructor: saldo disponible en custodia liberada, estado de
 /// cobros (KYC + cuenta bancaria) y retiradas a banco.
-class EarningsPage extends ConsumerWidget {
+class EarningsPage extends ConsumerStatefulWidget {
   const EarningsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EarningsPage> createState() => _EarningsPageState();
+}
+
+class _EarningsPageState extends ConsumerState<EarningsPage>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // La verificación de identidad se completa en el navegador (onboarding alojado)
+    // y NO tiene callback directo a la app. Al reanudar, re-consultamos el estado de
+    // cobros: getKycLevel lee el proveedor en vivo, así que el cambio a 'verificado'
+    // aparece en cuanto el constructor vuelve.
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(walletStatusProvider);
+      ref.invalidate(payoutHistoryProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final statusAsync = ref.watch(walletStatusProvider);
 
     return Scaffold(
@@ -127,15 +158,21 @@ class _Content extends ConsumerWidget {
         _BalanceCard(cents: status.balanceCents, active: status.onboarded),
         const SizedBox(height: AppSpacing.lg),
 
-        if (!status.onboarded)
+        if (!status.onboarded) ...[
           const _InfoCard(
-            icon: Icons.info_outline,
-            title: 'Tu cuenta de cobros aún no está activa',
+            icon: Icons.verified_user_outlined,
+            title: 'Activa tu cuenta de cobros',
             body:
-                'Se activa automáticamente al recibir tu primera liberación de un hito. '
-                'Cuando tengas saldo, aquí podrás retirarlo a tu banco.',
-          )
-        else ...[
+                'Verifica tu identidad para poder recibir las liberaciones de tus hitos '
+                'y retirarlas a tu banco. Solo se hace una vez.',
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _ActionButton(
+            icon: Icons.arrow_forward,
+            label: 'Verificar mi identidad',
+            onPressed: () => _launchEscrowOnboarding(context, ref),
+          ),
+        ] else ...[
           _StatusRow(
             ok: status.kycVerified,
             okLabel: 'Identidad verificada',
@@ -178,6 +215,33 @@ class _Content extends ConsumerWidget {
 }
 
 // =====================================================================
+// Onboarding de cobros (verificación de identidad alojada)
+// =====================================================================
+
+/// Pide al backend el enlace de onboarding alojado y lo abre en el navegador.
+/// Al volver, el observer de [EarningsPage] refresca el estado (sin callback
+/// directo). Compartido por el alta inicial y por reanudar un KYC incompleto.
+Future<void> _launchEscrowOnboarding(BuildContext context, WidgetRef ref) async {
+  try {
+    final url = await PactActionsV2.startEscrowOnboarding();
+    if (!context.mounted) return;
+    final launched =
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo abrir la verificación')),
+      );
+    }
+    ref.invalidate(walletStatusProvider);
+  } catch (e) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(humanizeError(e))),
+    );
+  }
+}
+
+// =====================================================================
 // CTA principal (depende del estado)
 // =====================================================================
 
@@ -196,14 +260,26 @@ class _PrimaryAction extends ConsumerWidget {
         onPressed: () => _openRegisterBank(context, ref),
       );
     }
-    // KYC pendiente → no puede retirar todavía.
+    // KYC pendiente/incompleto → no puede retirar todavía. Puede reanudar el
+    // onboarding alojado (Stripe decide qué falta a partir de los requisitos).
     if (!status.kycVerified) {
-      return const _InfoCard(
-        icon: Icons.hourglass_empty,
-        title: 'Verificación pendiente',
-        body:
-            'Tu identidad se está verificando con nuestro proveedor de pagos. '
-            'Podrás retirar en cuanto esté aprobada.',
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _InfoCard(
+            icon: Icons.hourglass_empty,
+            title: 'Verificación pendiente',
+            body:
+                'Aún falta completar tu verificación de identidad. Podrás retirar '
+                'tus ganancias en cuanto esté aprobada.',
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _ActionButton(
+            icon: Icons.verified_user_outlined,
+            label: 'Continuar verificación',
+            onPressed: () => _launchEscrowOnboarding(context, ref),
+          ),
+        ],
       );
     }
     // Sin saldo.
