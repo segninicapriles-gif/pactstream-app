@@ -239,6 +239,13 @@ export class MangopayClient implements EscrowProvider {
     })
     return { id: String(data.Id), status: String(data.Status) }
   }
+
+  // Mangopay no ofrece onboarding alojado tipo Account Link (su KYC es subida de
+  // documentos vía API/UBO). Método presente solo para satisfacer la interfaz;
+  // nunca se invoca en modo mangopay (el flujo alojado es exclusivo de Stripe).
+  createOnboardingLink(_accountId: string, _returnUrl: string, _refreshUrl: string): Promise<{ url: string }> {
+    return Promise.reject(new Error('Mangopay no soporta enlaces de onboarding alojados'))
+  }
 }
 
 // ── Cliente SIMULADO (MANGOPAY_SIMULATE=true) ──────────────────────────────
@@ -297,6 +304,9 @@ export class MockMangopayClient extends MangopayClient {
   }
   override createBankwirePayout(_a: string, _w: string, _b: string, _amt: number) {
     return Promise.resolve({ id: this.id('sim_payout'), status: 'SUCCEEDED' })
+  }
+  override createOnboardingLink(_a: string, _returnUrl: string, _refreshUrl: string): Promise<{ url: string }> {
+    return Promise.resolve({ url: `https://sim.mangopay.test/onboarding/${this.id('sim_kyc')}` })
   }
 }
 

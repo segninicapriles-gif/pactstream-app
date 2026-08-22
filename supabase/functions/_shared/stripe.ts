@@ -32,6 +32,7 @@
 import type {
   EscrowProvider,
   NaturalUserInput,
+  OnboardingLink,
   PayInDetail,
   PayInResult,
   TxResult,
@@ -252,6 +253,30 @@ export class StripeEscrowClient implements EscrowProvider {
     return { id: String(data.id) }
   }
 
+  // Account Link v2 (KYC alojado). POST /v2/core/account_links (JSON + Stripe-Version
+  // preview, igual que la creación de cuenta). `use_case.type=account_onboarding` con
+  // configurations=['recipient'] genera el formulario de verificación del constructor.
+  // La URL es de UN SOLO USO y caduca ~10 min: se pide bajo demanda, no se cachea.
+  // Sirve tanto para el alta inicial como para reanudar un KYC incompleto (Stripe
+  // decide qué falta a partir de los `requirements` de la cuenta).
+  async createOnboardingLink(accountId: string, returnUrl: string, refreshUrl: string): Promise<OnboardingLink> {
+    const data = await this.apiV2('/v2/core/account_links', 'POST', {
+      account: accountId,
+      use_case: {
+        type: 'account_onboarding',
+        account_onboarding: {
+          configurations: ['recipient'],
+          return_url: returnUrl,
+          refresh_url: refreshUrl,
+        },
+      },
+    })
+    return {
+      url: String(data.url),
+      expiresAt: data.expires_at ? String(data.expires_at) : undefined,
+    }
+  }
+
   // Marcador de custodia por pacto (ver cabecera). No es una cuenta ni una wallet;
   // sirve solo para poblar pacts.mangopay_wallet_id (columna UNIQUE, opaca) y ligar
   // el pay-in con el pacto por transfer_group.
@@ -419,6 +444,11 @@ export class MockStripeClient extends StripeEscrowClient {
   }
   override createNaturalUser(i: NaturalUserInput): Promise<{ id: string }> {
     return Promise.resolve({ id: this.id(i.category === 'OWNER' ? 'acct' : 'cus') })
+  }
+  override createOnboardingLink(_a: string, _returnUrl: string, _refreshUrl: string): Promise<OnboardingLink> {
+    // URL de onboarding SIMULADA. En simulate getKycLevel devuelve 'REGULAR', así que
+    // al "volver" del enlace la app ya muestra la verificación como completada.
+    return Promise.resolve({ url: `https://connect.stripe.com/setup/simulado/${this.id('cs')}` })
   }
   override createWallet(_o: string, _d: string): Promise<{ id: string }> {
     return Promise.resolve({ id: this.id('stripe_custody') })

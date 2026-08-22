@@ -71,6 +71,17 @@ export interface EscrowProvider {
     address: { line1: string; city: string; postalCode: string; country: string },
   ): Promise<{ id: string }>
   createBankwirePayout(authorId: string, debitedWalletId: string, bankAccountId: string, amountCents: number): Promise<TxResult>
+  // Enlace de onboarding ALOJADO (KYC) para que el OWNER complete su verificación
+  // de identidad en el proveedor. Sin completarlo, la capability de cobros queda
+  // 'inactive' y transfer/payout se rechazan. En Stripe → Account Link v2 (URL de un
+  // solo uso, caduca ~10 min). El promotor (PAYER) no lo necesita. Mangopay no soporta
+  // este flujo alojado (su KYC es subida de documentos): lanza si se invoca.
+  createOnboardingLink(accountId: string, returnUrl: string, refreshUrl: string): Promise<OnboardingLink>
+}
+
+export interface OnboardingLink {
+  url: string
+  expiresAt?: string // ISO-8601 si el proveedor lo devuelve (Stripe: single-use ~10 min)
 }
 
 // ── Factory ────────────────────────────────────────────────────────────────
