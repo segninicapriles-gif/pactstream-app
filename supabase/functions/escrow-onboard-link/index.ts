@@ -19,6 +19,9 @@
 // VIVO del proveedor (getKycLevel) tras volver del enlace. El webhook de capability
 // solo se registra para auditoría (ver stripe-webhook).
 //
+// Restringida a primary_role='constructor' (403 en otro caso): escribe una cuenta
+// OWNER en users.mangopay_user_id, columna compartida con el cus_ del promotor.
+//
 // Body JSON (opcional): { "country": "ES" }   // país de la cuenta (ISO-2), default ES.
 // Env: STRIPE_SECRET_KEY (o proveedor equivalente) → sin credenciales, 503 (inerte).
 //   ESCROW_ONBOARD_RETURN_URL  (default https://pactstream.io/escrow/onboarding-complete)
@@ -67,10 +70,19 @@ serve(async (req: Request) => {
 
     const { data: profile } = await admin
       .from('users')
-      .select('id, full_name, email, mangopay_user_id')
+      .select('id, full_name, email, mangopay_user_id, primary_role')
       .eq('auth_provider_id', userData.user.id)
       .maybeSingle()
     if (!profile) return json({ error: 'Perfil no encontrado' }, 404)
+
+    // Solo el CONSTRUCTOR pasa por aquí. No es una restricción cosmética: esta función
+    // escribe una cuenta OWNER (acct_…) en users.mangopay_user_id, la MISMA columna que
+    // escrow-payin lee para el promotor (donde debe haber un cus_). Si un promotor la
+    // invocase, su pay-in quedaría roto de forma permanente — escrow-onboard ve la
+    // columna poblada, devuelve `already: true` y no la sobrescribe nunca.
+    if (profile.primary_role !== 'constructor') {
+      return json({ error: 'Solo el constructor verifica su identidad para cobros' }, 403)
+    }
 
     const body = await req.json().catch(() => ({}))
     const country: string = (body?.country ?? 'ES').toString().trim().toUpperCase() || 'ES'

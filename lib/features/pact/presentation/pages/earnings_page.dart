@@ -170,7 +170,7 @@ class _Content extends ConsumerWidget {
           _ActionButton(
             icon: Icons.arrow_forward,
             label: 'Verificar mi identidad',
-            onPressed: () => _launchEscrowOnboarding(context, ref),
+            onPressed: () => _launchEscrowOnboarding(context),
           ),
         ] else ...[
           _StatusRow(
@@ -221,7 +221,7 @@ class _Content extends ConsumerWidget {
 /// Pide al backend el enlace de onboarding alojado y lo abre en el navegador.
 /// Al volver, el observer de [EarningsPage] refresca el estado (sin callback
 /// directo). Compartido por el alta inicial y por reanudar un KYC incompleto.
-Future<void> _launchEscrowOnboarding(BuildContext context, WidgetRef ref) async {
+Future<void> _launchEscrowOnboarding(BuildContext context) async {
   try {
     final url = await PactActionsV2.startEscrowOnboarding();
     if (!context.mounted) return;
@@ -232,7 +232,11 @@ Future<void> _launchEscrowOnboarding(BuildContext context, WidgetRef ref) async 
         const SnackBar(content: Text('No se pudo abrir la verificación')),
       );
     }
-    ref.invalidate(walletStatusProvider);
+    // Aquí NO se invalida el estado: con LaunchMode.externalApplication launchUrl
+    // retorna al abrir el navegador, no al volver, así que el KYC todavía no ha
+    // cambiado nada. El refresco lo hace el observer AppLifecycleState.resumed de
+    // [EarningsPage], que además es el único punto seguro (este callback puede
+    // sobrevivir al widget y usar `ref` tras el dispose lanzaría).
   } catch (e) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -277,7 +281,7 @@ class _PrimaryAction extends ConsumerWidget {
           _ActionButton(
             icon: Icons.verified_user_outlined,
             label: 'Continuar verificación',
-            onPressed: () => _launchEscrowOnboarding(context, ref),
+            onPressed: () => _launchEscrowOnboarding(context),
           ),
         ],
       );
