@@ -23,7 +23,7 @@
 | Aprobación negocio restringido | Dashboard Stripe | **Andrés** |
 | Connect habilitado en cuenta live | Dashboard Stripe | **Andrés** |
 | Secretos en Supabase prod | Dashboard Supabase | **Andrés** |
-| Aplicar migración payouts | `supabase db push` | **Andrés** (§5) |
+| Migraciones (payouts + identidad de escrow ×2) | `supabase db push` | ✅ **hechas** en `pactstream-dev`, 31-ago (§5) |
 | Registrar webhook endpoint | Dashboard Stripe / CLI | **Andrés** (§6) |
 
 ---
@@ -91,33 +91,55 @@ Flujo nuevo:
 > capability activa; si no, Stripe rechaza el transfer). La antigua copy "se activa
 > automáticamente al recibir tu primera liberación" ya NO aplica y fue reemplazada.
 
-## 5 · Aplicar la migración de payouts — Andrés
+## 5 · Migraciones — estado a 31-ago-2026
 
-`supabase/migrations/20260806000002_payouts.sql` (tabla `payouts` + columnas
-`users.mangopay_bank_account_id`). NO estaba aplicada a dev. Aplicar al proyecto destino:
+### ⚠️ No existe un proyecto Supabase de «producción»
 
-```bash
-supabase link --project-ref <ref-del-proyecto-destino>
-supabase db push
+En la cuenta solo hay dos proyectos: **`pactstream-dev`** (`erqglsrnknhwqhfupckf`), que es
+el que usa la app y por tanto el entorno vivo, y **`ConstructPro`**
+(`tkncogzzlzbfhsfqlnsw`), que es **otro producto** y NO es destino de estas migraciones
+(no tiene `pacts`, ni `pact_parties`, ni `payouts`, y su `users` no tiene
+`mangopay_user_id`). Si algún día se crea un proyecto aparte, esta sección hay que
+releerla entera.
+
+### Las tres migraciones del escrow: aplicadas ✅
+
+| Fichero | Qué hace | Estado en `pactstream-dev` |
+|---|---|---|
+| `20260806000002_payouts.sql` | Tabla `payouts` + `users.mangopay_bank_account_id`. Aditiva; RLS de solo lectura para el constructor | ✅ aplicada 31-ago |
+| `20260831090000_escrow_identidad_separada_por_rol.sql` | Separa `users.mangopay_user_id` en `escrow_owner_id` (cobra) / `escrow_payer_id` (paga), porque el rol se asigna POR PACTO y una persona puede necesitar las dos. CHECK de prefijo, índices únicos y extensión del trigger anti-escalada | ✅ aplicada 31-ago |
+| `20260831100000_escrow_identidad_separada_organizations.sql` | Lo mismo en `organizations` (también puede ser parte vía `pact_parties.organization_id`). Sin tocar triggers: esa tabla no tiene política de UPDATE | ✅ aplicada 31-ago |
+
+El backfill de las dos últimas es un **no-op** mientras nadie tenga cuenta creada. Por eso
+se hicieron ahora: después del primer onboarding real ya no serían gratis.
+
+### ⚠️ El historial anotó versiones distintas a los nombres de fichero
+
+Se aplicaron con la herramienta MCP de Supabase, que **sella cada migración con su propia
+marca de tiempo** en vez de con el nombre del fichero:
+
+| Fichero en el repo | Anotado en `schema_migrations` |
+|---|---|
+| `20260806000002_payouts` | `20260831093759` |
+| `20260831090000_…_por_rol` | `20260831091225` |
+| `20260831100000_…_organizations` | `20260831092941` |
+
+**Consecuencia:** un `supabase db push` verá los tres ficheros como NO aplicados e
+intentará ejecutarlos otra vez. **No rompe nada** — las tres son idempotentes
+(`add column if not exists`, `create table if not exists`, `drop constraint if exists`,
+`create or replace function`), así que reejecutarlas es inocuo. Pero no hay que
+interpretar ese `db push` como señal de que faltaban.
+
+Para comprobar el estado real, mirar el esquema, no el historial:
+
+```sql
+select to_regclass('public.payouts')                                as tabla_payouts,
+       (select count(*) from information_schema.columns
+         where table_schema='public' and table_name='users'
+           and column_name in ('escrow_owner_id','escrow_payer_id')) as cols_users,   -- espera 2
+       (select count(*) from pg_constraint
+         where conname like '%escrow_%_prefijo')                     as checks;        -- espera 4
 ```
-
-**Además, desde el 31-ago hay una segunda migración pendiente de aplicar a producción:**
-`supabase/migrations/20260831090000_escrow_identidad_separada_por_rol.sql`. Separa
-`users.mangopay_user_id` en `escrow_owner_id` (cobra) y `escrow_payer_id` (paga),
-porque el rol se asigna POR PACTO y una misma persona puede necesitar las dos
-identidades. Incluye CHECK de prefijo, índices únicos y la extensión del trigger
-anti-escalada. **Ya aplicada a `pactstream-dev`**; el backfill es un no-op mientras
-nadie tenga cuenta creada, así que conviene aplicarla ANTES del primer onboarding real.
-
-Y su simétrica para organizaciones:
-`supabase/migrations/20260831100000_escrow_identidad_separada_organizations.sql`.
-Mismo cambio sobre `organizations` (que también puede ser parte de un pacto vía
-`pact_parties.organization_id`), sin tocar triggers: esa tabla no tiene política de
-UPDATE, así que no hay vector que cerrar. **Ya aplicada a `pactstream-dev`.**
-
-**Resumen: hay TRES migraciones pendientes de aplicar a producción** —
-`20260806000002_payouts.sql`, `20260831090000_…_por_rol.sql` y
-`20260831100000_…_organizations.sql`. `supabase db push` las aplica todas.
 
 (Para el onboarding en sí no hace falta migración: la decisión de arquitectura es que
 `getKycLevel` en vivo es la fuente de verdad; el webhook de capability solo audita.)
