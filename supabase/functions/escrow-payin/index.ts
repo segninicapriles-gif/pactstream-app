@@ -54,10 +54,10 @@ serve(async (req: Request) => {
     )
 
     const { data: profile } = await admin
-      .from('users').select('id, mangopay_user_id')
+      .from('users').select('id, escrow_payer_id')
       .eq('auth_provider_id', userData.user.id).maybeSingle()
     if (!profile) return json({ error: 'Perfil no encontrado' }, 404)
-    if (!profile.mangopay_user_id) {
+    if (!profile.escrow_payer_id) {
       return json({ error: 'El promotor debe completar el alta en el proveedor de escrow primero (onboard)' }, 409)
     }
 
@@ -94,7 +94,7 @@ serve(async (req: Request) => {
     let walletId: string = pact.mangopay_wallet_id ?? ''
     if (!walletId) {
       const wallet = await escrow.createWallet(
-        String(profile.mangopay_user_id), `PactStream custodia ${pact.id}`,
+        String(profile.escrow_payer_id), `PactStream custodia ${pact.id}`,
       )
       walletId = wallet.id
       await admin.from('pacts').update({ mangopay_wallet_id: walletId }).eq('id', pact.id)
@@ -118,7 +118,7 @@ serve(async (req: Request) => {
 
     // 3. Crear el Bankwire PayIn.
     const payin = await escrow.createBankwirePayIn(
-      String(profile.mangopay_user_id), walletId, amountCents,
+      String(profile.escrow_payer_id), walletId, amountCents,
     )
 
     await admin.from('payments').insert({

@@ -54,16 +54,16 @@ serve(async (req: Request) => {
 
     const { data: profile } = await admin
       .from('users')
-      .select('id, mangopay_user_id, mangopay_bank_account_id')
+      .select('id, escrow_owner_id, mangopay_bank_account_id')
       .eq('auth_provider_id', userData.user.id).maybeSingle()
-    if (!profile?.mangopay_user_id) {
+    if (!profile?.escrow_owner_id) {
       return json({ error: 'No estás dado de alta en el proveedor de escrow' }, 409)
     }
     if (!profile.mangopay_bank_account_id) {
       return json({ error: 'Registra primero tu cuenta bancaria' }, 409)
     }
 
-    const mpUserId = String(profile.mangopay_user_id)
+    const mpUserId = String(profile.escrow_owner_id)
 
     // Prerrequisito duro de Mangopay: KYC REGULAR para poder cobrar.
     const kyc = await escrow.getKycLevel(mpUserId)

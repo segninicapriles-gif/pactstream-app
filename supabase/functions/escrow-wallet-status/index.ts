@@ -49,14 +49,14 @@ serve(async (req: Request) => {
     )
     const { data: profile } = await admin
       .from('users')
-      .select('id, mangopay_user_id, mangopay_bank_account_id')
+      .select('id, escrow_owner_id, mangopay_bank_account_id')
       .eq('auth_provider_id', userData.user.id).maybeSingle()
 
-    if (!profile?.mangopay_user_id) {
+    if (!profile?.escrow_owner_id) {
       return json({ configured: true, onboarded: false, kyc_level: null, has_bank_account: false, balance_cents: 0 }, 200)
     }
 
-    const mpUserId = String(profile.mangopay_user_id)
+    const mpUserId = String(profile.escrow_owner_id)
     const kyc = await escrow.getKycLevel(mpUserId)
     const walletId = await escrow.getOrCreateEurWallet(mpUserId, `PactStream constructor ${profile.id}`)
     const balance = await escrow.getWalletBalanceCents(walletId)

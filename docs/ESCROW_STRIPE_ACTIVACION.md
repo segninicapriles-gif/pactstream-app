@@ -101,7 +101,15 @@ supabase link --project-ref <ref-del-proyecto-destino>
 supabase db push
 ```
 
-(No hace falta migración nueva para el onboarding: la decisión de arquitectura es que
+**Además, desde el 31-ago hay una segunda migración pendiente de aplicar a producción:**
+`supabase/migrations/20260831090000_escrow_identidad_separada_por_rol.sql`. Separa
+`users.mangopay_user_id` en `escrow_owner_id` (cobra) y `escrow_payer_id` (paga),
+porque el rol se asigna POR PACTO y una misma persona puede necesitar las dos
+identidades. Incluye CHECK de prefijo, índices únicos y la extensión del trigger
+anti-escalada. **Ya aplicada a `pactstream-dev`**; el backfill es un no-op mientras
+nadie tenga cuenta creada, así que conviene aplicarla ANTES del primer onboarding real.
+
+(Para el onboarding en sí no hace falta migración: la decisión de arquitectura es que
 `getKycLevel` en vivo es la fuente de verdad; el webhook de capability solo audita.)
 
 ## 6 · Registrar el endpoint de webhook en Stripe — Andrés

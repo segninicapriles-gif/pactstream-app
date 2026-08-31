@@ -49,9 +49,9 @@ serve(async (req: Request) => {
     )
 
     const { data: profile } = await admin
-      .from('users').select('id, mangopay_user_id')
+      .from('users').select('id, escrow_owner_id')
       .eq('auth_provider_id', userData.user.id).maybeSingle()
-    if (!profile?.mangopay_user_id) {
+    if (!profile?.escrow_owner_id) {
       return json({ error: 'Debes completar el alta en el proveedor de escrow primero (onboard OWNER)' }, 409)
     }
 
@@ -62,7 +62,7 @@ serve(async (req: Request) => {
     if (!ownerName || !iban) return json({ error: 'Faltan owner_name o iban' }, 400)
 
     const account = await escrow.createIbanBankAccount(
-      String(profile.mangopay_user_id),
+      String(profile.escrow_owner_id),
       ownerName,
       iban,
       {

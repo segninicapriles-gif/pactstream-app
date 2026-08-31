@@ -19,8 +19,10 @@
 // VIVO del proveedor (getKycLevel) tras volver del enlace. El webhook de capability
 // solo se registra para auditoría (ver stripe-webhook).
 //
-// Restringida a primary_role='constructor' (403 en otro caso): escribe una cuenta
-// OWNER en users.mangopay_user_id, columna compartida con el cus_ del promotor.
+// Restringida a quien ejerce de constructor (403 en otro caso): crea una cuenta de
+// COBRO. El rol se asigna por pacto, así que se mira primary_role Y pact_parties.
+// La cuenta se guarda en users.escrow_owner_id (columna exclusiva de cobro; la de
+// pago, escrow_payer_id, es otra — una misma persona puede necesitar las dos).
 //
 // Body JSON (opcional): { "country": "ES" }   // país de la cuenta (ISO-2), default ES.
 // Env: STRIPE_SECRET_KEY (o proveedor equivalente) → sin credenciales, 503 (inerte).
@@ -70,17 +72,27 @@ serve(async (req: Request) => {
 
     const { data: profile } = await admin
       .from('users')
-      .select('id, full_name, email, mangopay_user_id, primary_role')
+      .select('id, full_name, email, escrow_owner_id, primary_role')
       .eq('auth_provider_id', userData.user.id)
       .maybeSingle()
     if (!profile) return json({ error: 'Perfil no encontrado' }, 404)
 
-    // Solo el CONSTRUCTOR pasa por aquí. No es una restricción cosmética: esta función
-    // escribe una cuenta OWNER (acct_…) en users.mangopay_user_id, la MISMA columna que
-    // escrow-payin lee para el promotor (donde debe haber un cus_). Si un promotor la
-    // invocase, su pay-in quedaría roto de forma permanente — escrow-onboard ve la
-    // columna poblada, devuelve `already: true` y no la sobrescribe nunca.
-    if (profile.primary_role !== 'constructor') {
+    // Solo quien EJERCE de constructor pasa por aquí: esta función crea una cuenta de
+    // COBRO a su nombre. No basta con mirar users.primary_role — el rol en PactStream
+    // se asigna POR PACTO (pact_parties.role), así que hay perfiles con primary_role
+    // 'tecnico' o 'promotor' que sí son constructor en algún pacto y tienen que poder
+    // cobrar. Se acepta primary_role como vía rápida (constructor recién registrado,
+    // todavía sin pactos) y, si no, se comprueba la evidencia real.
+    let esConstructor = profile.primary_role === 'constructor'
+    if (!esConstructor) {
+      const { count } = await admin
+        .from('pact_parties')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', profile.id)
+        .eq('role', 'constructor')
+      esConstructor = (count ?? 0) > 0
+    }
+    if (!esConstructor) {
       return json({ error: 'Solo el constructor verifica su identidad para cobros' }, 403)
     }
 
@@ -88,7 +100,7 @@ serve(async (req: Request) => {
     const country: string = (body?.country ?? 'ES').toString().trim().toUpperCase() || 'ES'
 
     // 1 · Asegurar cuenta conectada OWNER (idempotente).
-    let accountId = profile.mangopay_user_id ? String(profile.mangopay_user_id) : ''
+    let accountId = profile.escrow_owner_id ? String(profile.escrow_owner_id) : ''
     if (!accountId) {
       const nameParts = String(profile.full_name ?? '').trim().split(/\s+/)
       const firstName = nameParts[0] || String(profile.full_name ?? '—')
@@ -102,7 +114,7 @@ serve(async (req: Request) => {
         countryOfResidence: country,
       })
       accountId = owner.id
-      await admin.from('users').update({ mangopay_user_id: accountId }).eq('id', profile.id)
+      await admin.from('users').update({ escrow_owner_id: accountId }).eq('id', profile.id)
     }
 
     // 2 · Generar el Account Link (un solo uso). URLs de retorno configurables: la
