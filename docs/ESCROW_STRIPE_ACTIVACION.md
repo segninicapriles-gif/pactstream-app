@@ -109,6 +109,16 @@ identidades. Incluye CHECK de prefijo, índices únicos y la extensión del trig
 anti-escalada. **Ya aplicada a `pactstream-dev`**; el backfill es un no-op mientras
 nadie tenga cuenta creada, así que conviene aplicarla ANTES del primer onboarding real.
 
+Y su simétrica para organizaciones:
+`supabase/migrations/20260831100000_escrow_identidad_separada_organizations.sql`.
+Mismo cambio sobre `organizations` (que también puede ser parte de un pacto vía
+`pact_parties.organization_id`), sin tocar triggers: esa tabla no tiene política de
+UPDATE, así que no hay vector que cerrar. **Ya aplicada a `pactstream-dev`.**
+
+**Resumen: hay TRES migraciones pendientes de aplicar a producción** —
+`20260806000002_payouts.sql`, `20260831090000_…_por_rol.sql` y
+`20260831100000_…_organizations.sql`. `supabase db push` las aplica todas.
+
 (Para el onboarding en sí no hace falta migración: la decisión de arquitectura es que
 `getKycLevel` en vivo es la fuente de verdad; el webhook de capability solo audita.)
 
