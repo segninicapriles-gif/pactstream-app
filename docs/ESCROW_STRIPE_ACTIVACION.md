@@ -22,7 +22,8 @@
 | Webhook capability v2 (auditoría) | `stripe-webhook` rama `v2.core.account*` | Código ✅ (nuevo) |
 | Aprobación negocio restringido | Dashboard Stripe | **Andrés** |
 | Connect habilitado en cuenta live | Dashboard Stripe | **Andrés** |
-| Secretos en Supabase prod | Dashboard Supabase | **Andrés** |
+| Secretos de escrow (Stripe) | Dashboard Supabase | **Andrés** (§3) |
+| Desplegar las 8 Edge Functions | `supabase functions deploy` | ✅ **hecho** en `pactstream-dev`, 31-ago (§3) |
 | Migraciones (payouts + identidad de escrow ×2) | `supabase db push` | ✅ **hechas** en `pactstream-dev`, 31-ago (§5) |
 | Registrar webhook endpoint | Dashboard Stripe / CLI | **Andrés** (§6) |
 
@@ -62,6 +63,7 @@ Deploy de las funciones (incluye la nueva `escrow-onboard-link`, `--no-verify-jw
 solo para el webhook):
 
 ```bash
+supabase functions deploy escrow-onboard        # faltaba en la lista original
 supabase functions deploy escrow-onboard-link
 supabase functions deploy escrow-wallet-status
 supabase functions deploy escrow-release
@@ -70,6 +72,28 @@ supabase functions deploy escrow-payout
 supabase functions deploy escrow-bank-account
 supabase functions deploy stripe-webhook --no-verify-jwt
 ```
+
+### ✅ Desplegadas el 31-ago-2026 en `pactstream-dev`
+
+Las **8** están `ACTIVE` en versión 1 (era un primer despliegue: ninguna existía antes).
+`verify_jwt=true` en las siete de escrow y **`false` solo en `stripe-webhook`**.
+
+Comprobado por HTTP, no solo por el listado:
+
+| Prueba | Resultado | Qué demuestra |
+|---|---|---|
+| `POST /escrow-wallet-status` sin auth | `401` | El JWT se exige de verdad |
+| `POST /escrow-onboard-link` sin auth | `401` | Ídem |
+| `POST /stripe-webhook` sin auth | `503 {"error":"Webhook de Stripe no configurado"}` | **No** rebota en 401 → `--no-verify-jwt` quedó bien puesto, y la petición llega al código |
+
+Ese 503 confirma además que **todo el escrow está inerte sin secretos**: `getEscrowClient()`
+no encuentra `STRIPE_SECRET_KEY` ni `ESCROW_PROVIDER` ni `STRIPE_SIMULATE`, así que
+devuelve `null` y las funciones responden 503 en vez de caer a mock.
+
+> Desplegar NO activa nada. Lo que enciende el escrow son los secretos de §3, que siguen
+> pendientes. Tras ponerlos, **comprobar con la misma llamada de arriba**: cuando
+> `stripe-webhook` deje de responder «no configurado», los secretos están llegando al
+> runtime. Si siguiera respondiendo 503, redesplegar y volver a comprobar.
 
 ## 4 · Onboarding del constructor (Account Links) — CÓDIGO (hecho)
 
