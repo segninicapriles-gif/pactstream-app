@@ -1,7 +1,11 @@
 // Edge Function: escrow-onboard  (proveedor-neutral — NO mueve dinero)
 //
-// Crea el usuario Mangopay del usuario autenticado y guarda mangopay_user_id en
-// public.users. La creación de wallet y el pay-in llegan en la Fase 2.1.
+// Crea la identidad del usuario autenticado en el proveedor de escrow y la guarda
+// en public.users, en la columna que corresponda a su categoría:
+//   OWNER (cobra) → users.escrow_owner_id   ·   PAYER (paga) → users.escrow_payer_id
+// Son columnas distintas a propósito: el rol se asigna POR PACTO, así que una misma
+// persona puede ser constructor en uno y promotor en otro y necesitar las dos.
+// Por eso la idempotencia es POR CATEGORÍA, no por usuario.
 //
 // Body JSON:
 //   { "category": "PAYER" | "OWNER",
@@ -57,15 +61,10 @@ serve(async (req: Request) => {
 
     const { data: profile } = await admin
       .from('users')
-      .select('id, full_name, email, mangopay_user_id')
+      .select('id, full_name, email, escrow_owner_id, escrow_payer_id')
       .eq('auth_provider_id', userData.user.id)
       .maybeSingle()
     if (!profile) return json({ error: 'Perfil no encontrado' }, 404)
-
-    // Idempotente: si ya tiene usuario Mangopay, no se crea otro.
-    if (profile.mangopay_user_id) {
-      return json({ mangopay_user_id: profile.mangopay_user_id, already: true }, 200)
-    }
 
     const body = await req.json().catch(() => ({}))
     const category: 'PAYER' | 'OWNER' = body?.category === 'OWNER' ? 'OWNER' : 'PAYER'
@@ -74,6 +73,16 @@ serve(async (req: Request) => {
         { error: 'OWNER requiere birthday (unix), nationality y country' },
         400,
       )
+    }
+
+    // Idempotente POR CATEGORÍA, no por usuario. Antes bastaba con tener CUALQUIER
+    // identidad para que la función se diera por hecha, así que quien ya era promotor
+    // no podía darse de alta como constructor (ni al revés) — y el rol se asigna por
+    // pacto, así que esa combinación es legítima y ocurre.
+    const columna = category === 'OWNER' ? 'escrow_owner_id' : 'escrow_payer_id'
+    const yaExiste = category === 'OWNER' ? profile.escrow_owner_id : profile.escrow_payer_id
+    if (yaExiste) {
+      return json({ escrow_user_id: yaExiste, category, already: true }, 200)
     }
 
     const nameParts = String(profile.full_name ?? '').trim().split(/\s+/)
@@ -90,9 +99,9 @@ serve(async (req: Request) => {
       countryOfResidence: body?.country,
     })
 
-    await admin.from('users').update({ mangopay_user_id: mpUser.id }).eq('id', profile.id)
+    await admin.from('users').update({ [columna]: mpUser.id }).eq('id', profile.id)
 
-    return json({ mangopay_user_id: mpUser.id, category }, 200)
+    return json({ escrow_user_id: mpUser.id, category }, 200)
   } catch (error) {
     console.error('mangopay-onboard error:', error instanceof Error ? error.message : error)
     return json({ error: 'Error creando el usuario en el proveedor de escrow' }, 500)

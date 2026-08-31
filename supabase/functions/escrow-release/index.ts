@@ -52,10 +52,11 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
+    // Quien libera es el PROMOTOR: paga, luego su identidad es la de pago.
     const { data: profile } = await admin
-      .from('users').select('id, mangopay_user_id')
+      .from('users').select('id, escrow_payer_id')
       .eq('auth_provider_id', userData.user.id).maybeSingle()
-    if (!profile?.mangopay_user_id) {
+    if (!profile?.escrow_payer_id) {
       return json({ error: 'El promotor no está dado de alta en el proveedor de escrow' }, 409)
     }
 
@@ -109,21 +110,22 @@ serve(async (req: Request) => {
       .eq('pact_id', pact.id).eq('role', 'constructor').maybeSingle()
     if (!constructorParty?.user_id) return json({ error: 'Pacto sin constructor' }, 409)
 
+    // El destinatario es el CONSTRUCTOR: cobra, luego su identidad es la de cobro.
     const { data: constructorUser } = await admin
-      .from('users').select('mangopay_user_id')
+      .from('users').select('escrow_owner_id')
       .eq('id', constructorParty.user_id).maybeSingle()
-    if (!constructorUser?.mangopay_user_id) {
+    if (!constructorUser?.escrow_owner_id) {
       return json({ error: 'El constructor no está dado de alta en el proveedor de escrow' }, 409)
     }
 
     const constructorWalletId = await escrow.getOrCreateEurWallet(
-      String(constructorUser.mangopay_user_id),
+      String(constructorUser.escrow_owner_id),
       `PactStream constructor ${constructorParty.user_id}`,
     )
 
     // Transfer SÍNCRONO escrow → constructor. Solo si SUCCEEDED marcamos paid.
     const transfer = await escrow.createTransfer(
-      String(profile.mangopay_user_id),
+      String(profile.escrow_payer_id),
       String(pact.mangopay_wallet_id),
       constructorWalletId,
       netCents,
