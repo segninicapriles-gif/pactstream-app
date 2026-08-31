@@ -108,6 +108,12 @@ Deno.test('mock Stripe: PAYER→cus_, OWNER→acct_', async () => {
   assertStringIncludes(owner.id, 'acct_')
 })
 
+Deno.test('mock Stripe: createOnboardingLink devuelve una URL', async () => {
+  const c = new MockStripeClient()
+  const link = await c.createOnboardingLink('acct_1', 'https://ret', 'https://ref')
+  assertStringIncludes(link.url, 'https://')
+})
+
 Deno.test('mock Stripe: getPayIn SUCCEEDED, transfer SUCCEEDED, kyc REGULAR', async () => {
   const c = new MockStripeClient()
   assertEquals((await c.getPayIn('pi_x')).status, 'SUCCEEDED')
@@ -198,6 +204,29 @@ Deno.test('Stripe createNaturalUser(PAYER): POST /v1/customers', async () => {
     assertEquals(r.id, 'cus_1')
     assertEquals(s.last().url, 'https://api.stripe.test/v1/customers')
     assertStringIncludes(s.last().body, 'email=l%40p.es')
+  } finally {
+    s.restore()
+  }
+})
+
+Deno.test('Stripe createOnboardingLink: POST /v2/core/account_links (JSON + preview, use_case recipient)', async () => {
+  const s = stubFetch({ url: 'https://connect.stripe.com/setup/acct_1/abc', expires_at: '2026-08-22T10:10:00Z' })
+  try {
+    const c = new StripeEscrowClient(CFG)
+    const link = await c.createOnboardingLink('acct_1', 'https://ret', 'https://ref')
+    assertEquals(link.url, 'https://connect.stripe.com/setup/acct_1/abc')
+    assertEquals(link.expiresAt, '2026-08-22T10:10:00Z')
+    const req = s.last()
+    assertEquals(req.method, 'POST')
+    assertEquals(req.url, 'https://api.stripe.test/v2/core/account_links')
+    assertEquals(req.headers.get('Stripe-Version'), '2026-07-29.preview')
+    assertEquals(req.headers.get('Content-Type'), 'application/json')
+    const body = JSON.parse(req.body)
+    assertEquals(body.account, 'acct_1')
+    assertEquals(body.use_case.type, 'account_onboarding')
+    assertEquals(body.use_case.account_onboarding.configurations, ['recipient'])
+    assertEquals(body.use_case.account_onboarding.return_url, 'https://ret')
+    assertEquals(body.use_case.account_onboarding.refresh_url, 'https://ref')
   } finally {
     s.restore()
   }
