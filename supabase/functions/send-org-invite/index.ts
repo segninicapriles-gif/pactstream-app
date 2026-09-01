@@ -112,6 +112,18 @@ serve(async (req: Request) => {
     );
   }
 
+  // --- Authorization: caller must be an active member of the org ---
+  const { count: callerMembership } = await adminClient
+    .from('organization_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('organization_id', m.organization_id)
+    .eq('user_id', user.id)
+    .eq('state', 'active');
+
+  if (!callerMembership) {
+    return json({ error: 'No perteneces a esta organización' }, 403);
+  }
+
   const org = Array.isArray(m.organizations) ? m.organizations[0] : m.organizations;
   const inviter = Array.isArray(m.inviter) ? m.inviter[0] : m.inviter;
 
