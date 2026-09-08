@@ -69,6 +69,24 @@ abstract final class AppColors {
   static const Color warningInk = ArcoTokens.warningInk;
   static const Color errorInk = ArcoTokens.errorInk;
 
+  /// Color de TEXTO/ICONO legible para un [fill] semántico o de rol que se pinta
+  /// sobre su propio tinte pálido (chips, pills, badges). Los rellenos
+  /// (success/warning/error, 2,0-3,4:1) NO valen como texto: aquí se mapean a su
+  /// variante `*Ink` aprobada; cualquier otro matiz se OSCURECE conservando el
+  /// tono (nunca a gris — la regla ARCO). En modo oscuro el relleno ya contrasta
+  /// sobre la superficie oscura, así que se devuelve tal cual.
+  static Color textOnSoftTint(Color fill, Brightness brightness) {
+    if (brightness == Brightness.dark) return fill;
+    if (fill == success) return successInk;
+    if (fill == warning) return warningInk;
+    if (fill == error) return errorInk;
+    final h = HSLColor.fromColor(fill);
+    return h
+        .withLightness((h.lightness * 0.55).clamp(0.0, 0.32))
+        .withSaturation((h.saturation * 0.95).clamp(0.0, 0.9))
+        .toColor();
+  }
+
   // Backgrounds suaves para los semánticos (light)
   static const Color successBg = Color(0x1A00C389); // 10% alpha
   static const Color warningBg = Color(0x24FFB020); // ~14% alpha

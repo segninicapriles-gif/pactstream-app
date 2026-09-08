@@ -1515,7 +1515,7 @@ class _PaidBanner extends StatelessWidget {
                 Text('Hito pagado',
                     style: AppTypography.body.copyWith(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.success,
+                      color: context.colors.successText,
                     )),
                 const SizedBox(height: 2),
                 Text(

@@ -416,7 +416,7 @@ class _UploadEvidencePageState extends ConsumerState<UploadEvidencePage> {
                     'GPS capturado',
                     style: AppTypography.bodyS.copyWith(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.success,
+                      color: context.colors.successText,
                     ),
                   ),
                   Text(

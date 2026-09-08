@@ -1443,7 +1443,7 @@ class _PredepositMilestoneSheetState
                 _kvLine('Falta por pre-depositar',
                     AppFormatters.moneyLong(m.predepositRemainingCents),
                     emphasis: true,
-                    color: AppColors.warning),
+                    color: context.colors.warningText),
               ],
             ],
           ),
@@ -1612,7 +1612,7 @@ class _ForceAdvanceSheetState extends State<_ForceAdvanceSheet> {
                     Text(AppFormatters.moneyLong(gap),
                         style: AppTypography.body.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.warning)),
+                            color: context.colors.warningText)),
                   ],
                 ),
               ),

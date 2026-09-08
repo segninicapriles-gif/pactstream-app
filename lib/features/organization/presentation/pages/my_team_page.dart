@@ -268,6 +268,7 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = color ?? context.colors.textSecondary;
+    final tc = AppColors.textOnSoftTint(c, Theme.of(context).brightness);
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm, vertical: 4),
@@ -278,11 +279,11 @@ class _StatChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: c),
+          Icon(icon, size: 12, color: tc),
           const SizedBox(width: 4),
           Text(label,
               style: AppTypography.caption
-                  .copyWith(color: c, fontWeight: FontWeight.w700)),
+                  .copyWith(color: tc, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -550,7 +551,8 @@ class _MiniPill extends StatelessWidget {
       ),
       child: Text(label,
           style: AppTypography.caption.copyWith(
-              color: color, fontWeight: FontWeight.w700, fontSize: 10)),
+              color: AppColors.textOnSoftTint(color, Theme.of(context).brightness),
+              fontWeight: FontWeight.w700, fontSize: 10)),
     );
   }
 }

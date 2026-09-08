@@ -732,7 +732,7 @@ class _RolePill extends StatelessWidget {
       child: Text(
         spec.label,
         style: AppTypography.caption.copyWith(
-          color: spec.color,
+          color: AppColors.textOnSoftTint(spec.color, Theme.of(context).brightness),
           fontSize: 10,
           fontWeight: FontWeight.w800,
         ),

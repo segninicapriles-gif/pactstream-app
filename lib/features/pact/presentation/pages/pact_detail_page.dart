@@ -816,7 +816,9 @@ class _PartyTile extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(roleSpec.icon,
-                color: roleSpec.color, size: 20),
+                color: AppColors.textOnSoftTint(
+                    roleSpec.color, Theme.of(context).brightness),
+                size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -1233,6 +1235,7 @@ class _MilestoneBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tc = AppColors.textOnSoftTint(color, Theme.of(context).brightness);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -1243,11 +1246,11 @@ class _MilestoneBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 11, color: color),
+          Icon(icon, size: 11, color: tc),
           const SizedBox(width: 3),
           Text(label,
               style: AppTypography.caption.copyWith(
-                  color: color, fontWeight: FontWeight.w700, fontSize: 10)),
+                  color: tc, fontWeight: FontWeight.w700, fontSize: 10)),
         ],
       ),
     );
