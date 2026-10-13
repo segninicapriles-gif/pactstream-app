@@ -62,12 +62,12 @@ class KycIntroPage extends ConsumerWidget {
                 style: AppTypography.body.copyWith(color: context.colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.xl),
-              // ⚠️ Los dos primeros bullets hacen AFIRMACIONES REGULATORIAS
-              // (licencia europea de Mangopay, validez eIDAS) que solo son
-              // ciertas en la UE. Traducirlas a inglés no las hace válidas en
-              // EE. UU., donde el marco de firma es ESIGN Act / UETA y el
-              // escrow se licencia por estado. Pendiente de revisión legal
-              // antes de lanzar fuera de Europa — ver handoff.
+              // ⚠️ El primer bullet hace una AFIRMACIÓN REGULATORIA (licencia
+              // europea de Mangopay) que solo es cierta en la UE: el escrow en
+              // EE. UU. se licencia por estado. Pendiente de revisión legal
+              // antes de lanzar fuera de Europa — ver handoff. El segundo
+              // describe la firma real (consentimiento en la app + documento
+              // sellado por hash): no hay prestador eIDAS integrado.
               _BulletPoint(
                 title: l10n.kycBulletEscrowTitle,
                 subtitle: l10n.kycBulletEscrowBody,

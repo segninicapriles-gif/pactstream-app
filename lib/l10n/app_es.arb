@@ -149,10 +149,10 @@
   "@kycBulletEscrowBody": {
     "description": "⚠️ AFIRMACIÓN REGULATORIA. La licencia de Mangopay es europea; para los mercados de EE. UU. y LATAM esta frase necesita revisión legal, no solo traducción. Ver handoff."
   },
-  "kycBulletSignatureTitle": "Firma legal eIDAS",
-  "kycBulletSignatureBody": "Tu pacto tiene validez ante un juez (Signaturit).",
+  "kycBulletSignatureTitle": "Firma con trazabilidad",
+  "kycBulletSignatureBody": "Documento sellado y tu consentimiento registrado.",
   "@kycBulletSignatureBody": {
-    "description": "⚠️ AFIRMACIÓN REGULATORIA. eIDAS es el reglamento europeo de firma electrónica; en EE. UU. el marco equivalente es ESIGN Act / UETA. Revisión legal pendiente."
+    "description": "Describe la firma REAL: consentimiento explícito en la app, documento sellado con huella criptográfica (SHA-256) y consentimiento registrado (sf_sign_contract). No hay prestador de firma integrado: no mencionar eIDAS, Signaturit ni firma avanzada/cualificada."
   },
   "kycBulletTrustTitle": "Confianza para las 3 partes",
   "kycBulletTrustBody": "Promotor, técnico y constructora.",
@@ -285,9 +285,9 @@
       "total": { "type": "int" }
     }
   },
-  "pdfSignatureDisclaimer": "Las firmas a continuación fueron realizadas mediante firma electrónica avanzada conforme al Reglamento eIDAS (UE) 910/2014 y la Ley 6/2020 española. Cada firma quedó registrada con fecha, hora, dispositivo y hash verificable en PactStream.",
+  "pdfSignatureDisclaimer": "Las firmas a continuación se realizaron mediante consentimiento expreso en PactStream. El documento quedó sellado con una huella criptográfica y cada firma quedó registrada con fecha, hora, dispositivo y hash verificable.",
   "@pdfSignatureDisclaimer": {
-    "description": "⚠️ AFIRMACIÓN REGULATORIA. eIDAS y Ley 6/2020 son europeas. Necesita revisión legal antes de lanzar fuera de la UE."
+    "description": "Describe la firma REAL (consentimiento expreso + documento sellado + consentimiento registrado). No hay prestador de firma integrado: no mencionar eIDAS, Ley 6/2020, Signaturit ni firma avanzada/cualificada."
   },
 
   "pdfReportDocTitle": "Libro de la Obra · {displayId}",

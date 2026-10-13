@@ -342,11 +342,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your funds are held in escrow under a European payment license (Mangopay).';
 
   @override
-  String get kycBulletSignatureTitle => 'Legally binding eIDAS signature';
+  String get kycBulletSignatureTitle => 'Traceable signature';
 
   @override
   String get kycBulletSignatureBody =>
-      'Your agreement holds up in court (Signaturit).';
+      'Sealed document and your consent on record.';
 
   @override
   String get kycBulletTrustTitle => 'Trust for all three parties';
@@ -642,7 +642,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pdfSignatureDisclaimer =>
-      'The signatures below were made using advanced electronic signatures in compliance with eIDAS Regulation (EU) 910/2014 and Spanish Law 6/2020. Each signature was recorded with date, time, device, and a verifiable hash in PactStream.';
+      'The signatures below were made by explicit consent in PactStream. The document was sealed with a cryptographic fingerprint, and each signature was recorded with date, time, device, and a verifiable hash.';
 
   @override
   String pdfReportDocTitle(String displayId) {

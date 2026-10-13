@@ -342,11 +342,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tu dinero queda en custodia bajo licencia europea (Mangopay).';
 
   @override
-  String get kycBulletSignatureTitle => 'Firma legal eIDAS';
+  String get kycBulletSignatureTitle => 'Firma con trazabilidad';
 
   @override
   String get kycBulletSignatureBody =>
-      'Tu pacto tiene validez ante un juez (Signaturit).';
+      'Documento sellado y tu consentimiento registrado.';
 
   @override
   String get kycBulletTrustTitle => 'Confianza para las 3 partes';
@@ -643,7 +643,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pdfSignatureDisclaimer =>
-      'Las firmas a continuación fueron realizadas mediante firma electrónica avanzada conforme al Reglamento eIDAS (UE) 910/2014 y la Ley 6/2020 española. Cada firma quedó registrada con fecha, hora, dispositivo y hash verificable en PactStream.';
+      'Las firmas a continuación se realizaron mediante consentimiento expreso en PactStream. El documento quedó sellado con una huella criptográfica y cada firma quedó registrada con fecha, hora, dispositivo y hash verificable.';
 
   @override
   String pdfReportDocTitle(String displayId) {
@@ -1136,11 +1136,11 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
       'Tu dinero queda en custodia bajo licencia europea (Mangopay).';
 
   @override
-  String get kycBulletSignatureTitle => 'Firma legal eIDAS';
+  String get kycBulletSignatureTitle => 'Firma con trazabilidad';
 
   @override
   String get kycBulletSignatureBody =>
-      'Tu pacto tiene validez ante un juez (Signaturit).';
+      'Documento sellado y tu consentimiento registrado.';
 
   @override
   String get kycBulletTrustTitle => 'Confianza para las 3 partes';

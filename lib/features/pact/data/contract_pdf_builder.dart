@@ -214,8 +214,8 @@ class ContractPdfBuilder {
               'Las partes manifiestan haber leído, entendido y aceptado las cláusulas anteriores, prestando '
               'su consentimiento de forma libre, inequívoca y consciente mediante la firma electrónica que '
               'sigue. Cada firma queda registrada con fecha, hora, dispositivo y un identificador único '
-              'verificable en PactStream. La firma electrónica cumple con el Reglamento (UE) 910/2014 (eIDAS) '
-              'y la Ley 6/2020 española, equiparándose a la firma manuscrita.',
+              'verificable en PactStream. El texto del contrato queda sellado con una huella criptográfica '
+              '(SHA-256), de modo que cualquier cambio posterior es detectable.',
               fontBold),
 
           pw.SizedBox(height: 20),

@@ -143,8 +143,9 @@ class ContractTextBuilder {
 
     buf.writeln('---');
     buf.writeln(
-        'Este documento se firma electrónicamente. La firma electrónica avanzada cumple con el '
-        'Reglamento (UE) 910/2014 (eIDAS) y la Ley 6/2020 española, equiparándose a la firma manuscrita.');
+        'Este documento se firma electrónicamente mediante consentimiento expreso en PactStream. El texto '
+        'queda sellado con una huella criptográfica (SHA-256) y el consentimiento de cada parte se registra '
+        'con fecha, hora y dispositivo.');
 
     return buf.toString();
   }

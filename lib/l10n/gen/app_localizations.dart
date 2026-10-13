@@ -63,7 +63,7 @@ import 'app_localizations_es.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,17 +86,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('es'),
-    Locale('es', '419')
+    Locale('es', '419'),
   ];
 
   /// Nombre de la app en el gestor de tareas del sistema. No se traduce: es marca.
@@ -720,13 +720,13 @@ abstract class AppLocalizations {
   /// No description provided for @kycBulletSignatureTitle.
   ///
   /// In es, this message translates to:
-  /// **'Firma legal eIDAS'**
+  /// **'Firma con trazabilidad'**
   String get kycBulletSignatureTitle;
 
-  /// ⚠️ AFIRMACIÓN REGULATORIA. eIDAS es el reglamento europeo de firma electrónica; en EE. UU. el marco equivalente es ESIGN Act / UETA. Revisión legal pendiente.
+  /// Describe la firma REAL: consentimiento explícito en la app, documento sellado con huella criptográfica (SHA-256) y consentimiento registrado (sf_sign_contract). No hay prestador de firma integrado: no mencionar eIDAS, Signaturit ni firma avanzada/cualificada.
   ///
   /// In es, this message translates to:
-  /// **'Tu pacto tiene validez ante un juez (Signaturit).'**
+  /// **'Documento sellado y tu consentimiento registrado.'**
   String get kycBulletSignatureBody;
 
   /// No description provided for @kycBulletTrustTitle.
@@ -1275,10 +1275,10 @@ abstract class AppLocalizations {
   /// **'Pág. {page} de {total}'**
   String pdfPageNumber(int page, int total);
 
-  /// ⚠️ AFIRMACIÓN REGULATORIA. eIDAS y Ley 6/2020 son europeas. Necesita revisión legal antes de lanzar fuera de la UE.
+  /// Describe la firma REAL (consentimiento expreso + documento sellado + consentimiento registrado). No hay prestador de firma integrado: no mencionar eIDAS, Ley 6/2020, Signaturit ni firma avanzada/cualificada.
   ///
   /// In es, this message translates to:
-  /// **'Las firmas a continuación fueron realizadas mediante firma electrónica avanzada conforme al Reglamento eIDAS (UE) 910/2014 y la Ley 6/2020 española. Cada firma quedó registrada con fecha, hora, dispositivo y hash verificable en PactStream.'**
+  /// **'Las firmas a continuación se realizaron mediante consentimiento expreso en PactStream. El documento quedó sellado con una huella criptográfica y cada firma quedó registrada con fecha, hora, dispositivo y hash verificable.'**
   String get pdfSignatureDisclaimer;
 
   /// No description provided for @pdfReportDocTitle.
@@ -1591,8 +1591,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

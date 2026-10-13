@@ -133,8 +133,8 @@
   "kycIntroBody": "To sign agreements and move money, we need to confirm who you are. It takes 2 minutes.",
   "kycBulletEscrowTitle": "Regulated escrow",
   "kycBulletEscrowBody": "Your funds are held in escrow under a European payment license (Mangopay).",
-  "kycBulletSignatureTitle": "Legally binding eIDAS signature",
-  "kycBulletSignatureBody": "Your agreement holds up in court (Signaturit).",
+  "kycBulletSignatureTitle": "Traceable signature",
+  "kycBulletSignatureBody": "Sealed document and your consent on record.",
   "kycBulletTrustTitle": "Trust for all three parties",
   "kycBulletTrustBody": "Owner, architect, and general contractor.",
   "kycStartCta": "Start verification",
@@ -256,7 +256,7 @@
       "total": { "type": "int" }
     }
   },
-  "pdfSignatureDisclaimer": "The signatures below were made using advanced electronic signatures in compliance with eIDAS Regulation (EU) 910/2014 and Spanish Law 6/2020. Each signature was recorded with date, time, device, and a verifiable hash in PactStream.",
+  "pdfSignatureDisclaimer": "The signatures below were made by explicit consent in PactStream. The document was sealed with a cryptographic fingerprint, and each signature was recorded with date, time, device, and a verifiable hash.",
 
   "pdfReportDocTitle": "Project Record · {displayId}",
   "@pdfReportDocTitle": {
