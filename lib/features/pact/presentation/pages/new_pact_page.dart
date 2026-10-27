@@ -60,6 +60,7 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
   String? _pendingPactId;
   String? _pendingDisplayId;
   final Set<String> _invitedEmails = <String>{};
+  bool _costpactLinked = false;
 
   static const int _totalSteps = 4;
 
@@ -274,6 +275,20 @@ class _NewPactPageState extends ConsumerState<NewPactPage> {
 
       final pactId = _pendingPactId!;
       final displayId = _pendingDisplayId!;
+
+      // 1b. Pacto importado de CostPact: enlace + plan de hitos. Tiene que ir
+      // antes de finalizar (la RPC solo acepta el pacto en borrador).
+      if (_data.hasCostpactBudget && !_costpactLinked) {
+        await client.rpc(
+          'sf_link_costpact_budget',
+          params: {
+            'p_pact_id': pactId,
+            'p_presupuesto_id': _data.costpactPresupuestoId,
+            'p_items': _data.costpactPlan,
+          },
+        );
+        _costpactLinked = true;
+      }
 
       // 2. Invitar partes — solo si no es borrador, y solo los emails que
       // aún no fueron invitados con éxito en intentos anteriores.

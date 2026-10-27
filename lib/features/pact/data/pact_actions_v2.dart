@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../../data/datasources/supabase/supabase_client.dart';
 
 /// Conector único contra las RPCs del modelo v2.0.
@@ -126,6 +128,50 @@ class PactActionsV2 {
     }
   }
 
+  /// Elementos del plan de CostPact que aún no tienen certificación.
+  /// El Adelanto queda fuera: en v2.1 lo gestiona el propio pacto.
+  /// Devuelve lista vacía si el pacto no tiene plan (o si falla la lectura:
+  /// el plan es una ayuda para rellenar, no un requisito para certificar).
+  static Future<List<({String id, String name, String? description, int amountCents})>>
+      fetchOpenPlanItems(String pactId) async {
+    try {
+      final rows = await SupabaseConfig.client
+          .from('pact_plan_items')
+          .select('id, name, description, amount_cents')
+          .eq('pact_id', pactId)
+          .neq('kind', 'advance')
+          .isFilter('milestone_id', null)
+          .order('ordinal');
+      return [
+        for (final r in rows)
+          (
+            id: r['id'] as String,
+            name: r['name'] as String,
+            description: r['description'] as String?,
+            amountCents: (r['amount_cents'] as num).toInt(),
+          ),
+      ];
+    } catch (e) {
+      debugPrint('fetchOpenPlanItems($pactId): $e');
+      return const [];
+    }
+  }
+
+  /// Enlaza una certificación recién creada con su elemento del plan.
+  static Future<void> linkCertToPlanItem({
+    required String certId,
+    required String planItemId,
+  }) async {
+    try {
+      await SupabaseConfig.client.rpc(
+        'sf_link_cert_to_plan_item',
+        params: {'p_milestone_id': certId, 'p_plan_item_id': planItemId},
+      );
+    } catch (e) {
+      throw PactActionException('No se pudo enlazar la certificación con el plan', e);
+    }
+  }
+
   /// Puente cert→factura: pide a CostPact que emita la factura Verifactu de un
   /// hito aprobado. NO bloqueante — traga cualquier error para no afectar a la
   /// aprobación (el servidor loguea; la emisión es idempotente y reintentar es
@@ -136,8 +182,9 @@ class PactActionsV2 {
         'bridge-emit-invoice',
         body: {'milestone_id': milestoneId},
       );
-    } catch (_) {
-      // Silencioso a propósito: la factura no debe romper la aprobación.
+    } catch (e) {
+      // No se relanza: la factura no debe romper la aprobación. Sí queda traza.
+      debugPrint('emitInvoiceForMilestone($milestoneId): $e');
     }
   }
 

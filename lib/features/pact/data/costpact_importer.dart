@@ -73,6 +73,22 @@ class CostPactImporter {
 
     final milestones = json['milestones'] as List<dynamic>? ?? [];
 
+    // Los hitos de CostPact entran como PLAN, no como hitos: en el modelo v2.1
+    // todo hito no pagado resta del techo y bloquearía las certificaciones.
+    data.costpactPresupuestoId =
+        (json['costpact_presupuesto_id'] as String? ?? '').trim();
+    data.costpactPlan
+      ..clear()
+      ..addAll(milestones.whereType<Map<String, dynamic>>().map(
+            (m) => {
+              'name': m['name'],
+              'description': m['description'],
+              'amount_cents': (m['amount_cents'] as num?)?.round() ?? 0,
+              'percentage': m['percentage'],
+              'trigger': m['trigger'],
+            },
+          ),);
+
     return CostPactImportResult(
       data: data,
       presupuestoId: json['costpact_presupuesto_id'] as String? ?? '',

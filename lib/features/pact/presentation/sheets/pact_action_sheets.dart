@@ -486,7 +486,40 @@ class _CreateCertSheetState extends State<_CreateCertSheet> {
   bool _loading = false;
   String? _error;
 
+  /// Plan de hitos importado de CostPact (vacío si el pacto no viene de allí).
+  List<({String id, String name, String? description, int amountCents})> _plan =
+      const [];
+  ({String id, String name, String? description, int amountCents})? _planItem;
+
+  @override
+  void initState() {
+    super.initState();
+    PactActionsV2.fetchOpenPlanItems(widget.detail.pact.id).then((items) {
+      if (mounted) setState(() => _plan = items);
+    });
+  }
+
+  static String _wholeEuros(int cents) => (cents / 100).round().toString();
+
+  void _pickPlanItem(
+    ({String id, String name, String? description, int amountCents}) item,
+  ) {
+    setState(() {
+      _planItem = item;
+      _nameCtrl.text = item.name;
+      _descCtrl.text = item.description ?? '';
+      _amountCtrl.text = _wholeEuros(item.amountCents);
+      _error = null;
+    });
+  }
+
   int get _amountCents {
+    // Con un elemento del plan elegido y el importe sin tocar, se certifica
+    // el importe exacto del plan (con céntimos), no el redondeado a euros.
+    final item = _planItem;
+    if (item != null && _amountCtrl.text == _wholeEuros(item.amountCents)) {
+      return item.amountCents;
+    }
     final euros = int.tryParse(_amountCtrl.text) ?? 0;
     return euros * 100;
   }
@@ -524,13 +557,25 @@ class _CreateCertSheetState extends State<_CreateCertSheet> {
       _error = null;
     });
     try {
-      await PactActionsV2.createCertification(
+      final cert = await PactActionsV2.createCertification(
         pactId: widget.detail.pact.id,
         name: _nameCtrl.text,
         amountCents: _amountCents,
         description: _descCtrl.text,
         modelVersion: widget.detail.pact.modelVersion,
       );
+      final item = _planItem;
+      if (item != null) {
+        // La certificación ya existe: si el enlace falla, no se deshace.
+        try {
+          await PactActionsV2.linkCertToPlanItem(
+            certId: cert.certId,
+            planItemId: item.id,
+          );
+        } catch (e) {
+          debugPrint('linkCertToPlanItem: $e');
+        }
+      }
       if (!mounted) return;
       Navigator.of(context).pop(true);
       await showSuccessOverlay(context, message: 'Certificación creada');
@@ -554,10 +599,32 @@ class _CreateCertSheetState extends State<_CreateCertSheet> {
           'Describe el avance certificado y su importe. Recuerda adjuntar la factura desde el detalle de la certificación antes de enviarla a revisión.',
           style: AppTypography.bodyS.copyWith(color: context.colors.textSecondary),
         ),
+        if (_plan.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Del plan del presupuesto (CostPact)',
+            style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              for (final item in _plan)
+                ChoiceChip(
+                  label: Text(
+                    '${item.name} · ${AppFormatters.moneyShort(item.amountCents)}',
+                  ),
+                  selected: _planItem?.id == item.id,
+                  onSelected: (_) => _pickPlanItem(item),
+                ),
+            ],
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _nameCtrl,
-          autofocus: true,
+          autofocus: _plan.isEmpty,
           decoration: const InputDecoration(
             labelText: 'Nombre de la certificación *',
             hintText: 'Ej: Certificación #3 · Tabiquería',

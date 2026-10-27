@@ -72,9 +72,16 @@ serve(async (req: Request) => {
 
     // Enlace con CostPact: sin presupuesto origen no hay factura que emitir
     // (el pacto no vino del ecosistema). No es un error: se omite.
-    const { data: meta } = await admin
-      .from('pact_metadata').select('costpact_presupuesto_id').eq('pact_id', ms.pact_id).maybeSingle()
-    if (!meta?.costpact_presupuesto_id) {
+    // pact_metadata es clave-valor: (pact_id, key, value).
+    const { data: meta, error: metaErr } = await admin
+      .from('pact_metadata').select('value')
+      .eq('pact_id', ms.pact_id).eq('key', 'costpact_presupuesto_id').maybeSingle()
+    if (metaErr) {
+      console.error('[bridge-emit-invoice] lectura de pact_metadata', metaErr.message)
+      return json({ error: 'No se pudo leer el enlace con CostPact' }, 500)
+    }
+    const presupuestoId = meta?.value?.trim()
+    if (!presupuestoId) {
       return json({ skipped: true, reason: 'Pacto sin presupuesto CostPact enlazado' }, 200)
     }
 
@@ -83,7 +90,7 @@ serve(async (req: Request) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-bridge-key': bridgeKey },
       body: JSON.stringify({
-        presupuesto_id: meta.costpact_presupuesto_id,
+        presupuesto_id: presupuestoId,
         external_ref: `ps:milestone:${milestoneId}`,
         amount_cents: Number(ms.amount_cents),
         concepto: ms.name ? `Certificación · ${ms.name}` : undefined,

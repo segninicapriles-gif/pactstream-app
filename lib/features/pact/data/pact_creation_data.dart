@@ -64,6 +64,16 @@ class PactCreationData {
 
   final List<PartyInvite> invites = [];
 
+  // === Origen CostPact (solo si el pacto se importó de un presupuesto) ===
+
+  /// Id del presupuesto de CostPact; vacío si el pacto no viene de CostPact.
+  String costpactPresupuestoId = '';
+
+  /// Hitos del presupuesto como plan (`sf_link_costpact_budget`, p_items).
+  final List<Map<String, dynamic>> costpactPlan = [];
+
+  bool get hasCostpactBudget => costpactPresupuestoId.isNotEmpty;
+
   // === Validaciones por paso ===
 
   bool get step1Valid =>
