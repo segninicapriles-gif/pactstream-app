@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -102,6 +103,11 @@ class MilestoneDetailPage extends ConsumerWidget {
                 evidenceCount: detail.evidences.length,
               ),
               const SizedBox(height: AppSpacing.md),
+              if (detail.milestone.hasInvoice ||
+                  detail.milestone.canAttachInvoice) ...[
+                _InvoiceSection(milestone: detail.milestone),
+                const SizedBox(height: AppSpacing.md),
+              ],
               if (detail.milestone.canSubmitForReview &&
                   detail.evidences.isNotEmpty)
                 _SubmitForReviewCta(
@@ -128,6 +134,172 @@ class MilestoneDetailPage extends ConsumerWidget {
 }
 
 // _ErrorView ahora usa ErrorStateView de core/widgets/empty_state_view.dart.
+
+// =====================================================================
+// FACTURA DE LA CERTIFICACIÓN
+// La emite CostPact si la empresa lo usa; si no, el constructor adjunta la
+// de su sistema de facturación. PactStream no emite facturas.
+// =====================================================================
+
+class _InvoiceSection extends ConsumerStatefulWidget {
+  const _InvoiceSection({required this.milestone});
+  final MilestoneFull milestone;
+
+  @override
+  ConsumerState<_InvoiceSection> createState() => _InvoiceSectionState();
+}
+
+class _InvoiceSectionState extends ConsumerState<_InvoiceSection> {
+  bool _busy = false;
+
+  Future<void> _attach() async {
+    final m = widget.milestone;
+    final picked = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      withData: true,
+    );
+    if (picked == null || picked.files.isEmpty || !mounted) return;
+    final file = picked.files.first;
+    final number = await _askNumber(m.invoiceNumber);
+    if (number == null || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final bytes = file.bytes ?? await file.xFile.readAsBytes();
+      final up = await ref.read(evidenceUploaderProvider).uploadFile(
+            pactId: m.pactId,
+            milestoneId: m.id,
+            bytes: bytes,
+            filename: file.name,
+            mimeType: 'application/pdf',
+          );
+      await PactActionsV2.attachCertInvoice(
+        certId: m.id,
+        storagePath: up.storagePath,
+        sha256: up.sha256Hash,
+        invoiceNumber: number,
+        sizeBytes: up.sizeBytes,
+      );
+      ref.invalidate(milestoneDetailProvider(m.id));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(humanizeError(e))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<String?> _askNumber(String? current) {
+    final ctrl = TextEditingController(text: current ?? '');
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Número de factura'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'p. ej. F2026/0012'),
+          onSubmitted: (v) {
+            if (v.trim().isNotEmpty) Navigator.pop(ctx, v.trim());
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (ctrl.text.trim().isNotEmpty) {
+                Navigator.pop(ctx, ctrl.text.trim());
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _open() async {
+    final path = widget.milestone.invoiceStoragePath;
+    if (path == null) return;
+    try {
+      final url = await ref
+          .read(evidenceUploaderProvider)
+          .createSignedUrl(storagePath: path);
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(humanizeError(e))),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = widget.milestone;
+    final co = context.colors;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: co.card,
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.receipt_long_outlined,
+              color: m.hasInvoice ? AppColors.success : co.textTertiary),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  m.hasInvoice
+                      ? 'Factura ${m.invoiceNumber ?? ''}'.trim()
+                      : 'Factura de la certificación',
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: co.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  m.hasInvoice
+                      ? 'Adjuntada por el constructor'
+                      : 'Adjunta el PDF de tu factura, la emitas con CostPact '
+                          'o con tu programa de facturación.',
+                  style: AppTypography.caption.copyWith(color: co.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          if (_busy)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else if (m.hasInvoice) ...[
+            TextButton(onPressed: _open, child: const Text('Ver')),
+            if (m.canAttachInvoice)
+              TextButton(onPressed: _attach, child: const Text('Cambiar')),
+          ] else
+            OutlinedButton(onPressed: _attach, child: const Text('Adjuntar')),
+        ],
+      ),
+    );
+  }
+}
 
 // =====================================================================
 // HEADER

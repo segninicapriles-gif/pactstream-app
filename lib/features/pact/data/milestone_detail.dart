@@ -48,6 +48,8 @@ class MilestoneFull {
     this.lastValidationRationale,
     this.lastValidationAt,
     this.lastValidationByName,
+    this.invoiceNumber,
+    this.invoiceStoragePath,
   });
 
   final String id;
@@ -83,6 +85,29 @@ class MilestoneFull {
   final String? lastValidationRationale;
   final DateTime? lastValidationAt;
   final String? lastValidationByName;
+
+  /// Factura de la certificación: la emite CostPact si la empresa lo usa; si
+  /// no, el constructor adjunta la de su sistema de facturación.
+  final String? invoiceNumber;
+  final String? invoiceStoragePath;
+
+  bool get hasInvoice =>
+      invoiceStoragePath != null && invoiceStoragePath!.isNotEmpty;
+
+  /// El constructor adjunta la factura desde la ejecución hasta el pago
+  /// (la factura de una certificación se emite al aprobarla).
+  bool get canAttachInvoice =>
+      myRole == 'constructor' &&
+      const {
+        'in_execution',
+        'ready_for_review',
+        'rejected_by_tech',
+        'info_requested',
+        'in_validation',
+        'approved_by_tech',
+        'awaiting_promotor',
+        'paid',
+      }.contains(state);
 
   /// True si hay un motivo de la última validación que merece mostrarse.
   bool get hasValidationRationale =>
@@ -149,6 +174,8 @@ class MilestoneFull {
       lastValidationRationale: j['last_validation_rationale'] as String?,
       lastValidationAt: _parseDt(j['last_validation_at']),
       lastValidationByName: j['last_validation_by_name'] as String?,
+      invoiceNumber: j['invoice_number'] as String?,
+      invoiceStoragePath: j['invoice_storage_path'] as String?,
     );
   }
 

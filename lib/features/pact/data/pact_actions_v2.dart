@@ -172,6 +172,31 @@ class PactActionsV2 {
     }
   }
 
+  /// Adjunta la factura de una certificación (PDF ya subido + número). Es el
+  /// camino de quien factura con un sistema externo (empresa sin CostPact).
+  static Future<void> attachCertInvoice({
+    required String certId,
+    required String storagePath,
+    required String sha256,
+    required String invoiceNumber,
+    required int sizeBytes,
+  }) async {
+    try {
+      await SupabaseConfig.client.rpc(
+        'sf_attach_cert_invoice',
+        params: {
+          'p_cert_id': certId,
+          'p_storage_path': storagePath,
+          'p_sha256': sha256,
+          'p_invoice_number': invoiceNumber,
+          'p_size_bytes': sizeBytes,
+        },
+      );
+    } catch (e) {
+      throw PactActionException('No se pudo adjuntar la factura', e);
+    }
+  }
+
   /// Puente cert→factura: pide a CostPact que emita la factura Verifactu de un
   /// hito aprobado. NO bloqueante — traga cualquier error para no afectar a la
   /// aprobación (el servidor loguea; la emisión es idempotente y reintentar es
