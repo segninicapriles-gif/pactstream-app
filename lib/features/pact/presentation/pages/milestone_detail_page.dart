@@ -103,6 +103,10 @@ class MilestoneDetailPage extends ConsumerWidget {
                 evidenceCount: detail.evidences.length,
               ),
               const SizedBox(height: AppSpacing.md),
+              if (detail.milestone.costpactLinked) ...[
+                _CostpactCertSection(milestone: detail.milestone),
+                const SizedBox(height: AppSpacing.md),
+              ],
               if (detail.milestone.hasInvoice ||
                   detail.milestone.canAttachInvoice) ...[
                 _InvoiceSection(milestone: detail.milestone),
@@ -134,6 +138,156 @@ class MilestoneDetailPage extends ConsumerWidget {
 }
 
 // _ErrorView ahora usa ErrorStateView de core/widgets/empty_state_view.dart.
+
+// =====================================================================
+// CERTIFICACIÓN DE COSTPACT
+// En un pacto que viene de CostPact, la factura la emite CostPact y nace de su
+// certificación: el constructor indica cuál corresponde a este hito y, al
+// aprobarse, CostPact factura esa certificación (una sola vez).
+// =====================================================================
+
+class _CostpactCertSection extends ConsumerStatefulWidget {
+  const _CostpactCertSection({required this.milestone});
+  final MilestoneFull milestone;
+
+  @override
+  ConsumerState<_CostpactCertSection> createState() =>
+      _CostpactCertSectionState();
+}
+
+class _CostpactCertSectionState extends ConsumerState<_CostpactCertSection> {
+  bool _busy = false;
+
+  Widget _certTile(BuildContext ctx, Map<String, dynamic> c) {
+    final m = widget.milestone;
+    final otro = c['milestone_id'] != null && c['milestone_id'] != m.id;
+    final factura = c['factura_numero'] as String?;
+    final cents = (((c['importe_bruto'] as num?) ?? 0) * 100).round();
+    return ListTile(
+      enabled: !otro,
+      title: Text('Nº ${c['numero']} · ${c['fecha'] ?? ''}'),
+      subtitle: Text([
+        AppFormatters.moneyShort(cents),
+        if (factura != null) 'factura $factura',
+        if (otro) 'enlazada a otro hito',
+      ].join(' · ')),
+      trailing: c['id'] == m.costpactCertId ? const Icon(Icons.check) : null,
+      onTap: () => Navigator.pop(ctx, c),
+    );
+  }
+
+  Future<void> _choose() async {
+    final m = widget.milestone;
+    setState(() => _busy = true);
+    List<Map<String, dynamic>> certs;
+    try {
+      certs = await PactActionsV2.costpactCertificaciones(m.pactId);
+    } catch (e) {
+      _fail(e);
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    final chosen = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: certs.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                child: Text(
+                    'Este presupuesto aún no tiene certificaciones en CostPact.'),
+              )
+            : ListView(
+                shrinkWrap: true,
+                children: [
+                  const ListTile(title: Text('Certificación de CostPact')),
+                  for (final c in certs) _certTile(ctx, c),
+                ],
+              ),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await PactActionsV2.linkCostpactCert(
+        milestoneId: m.id,
+        certId: chosen['id'] as String,
+        numero: (chosen['numero'] as num?)?.toInt(),
+      );
+      ref.invalidate(milestoneDetailProvider(m.id));
+    } catch (e) {
+      _fail(e);
+      return;
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  void _fail(Object e) {
+    if (!mounted) return;
+    setState(() => _busy = false);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(humanizeError(e))));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = widget.milestone;
+    final co = context.colors;
+    final enlazada = m.costpactCertId != null;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: co.card,
+        borderRadius: AppRadius.lgAll,
+        boxShadow: AppShadows.soft,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.link,
+              color: enlazada ? AppColors.success : co.textTertiary),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  enlazada
+                      ? 'Certificación de CostPact nº ${m.costpactCertNumero ?? '—'}'
+                      : 'Certificación de CostPact sin elegir',
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: co.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  enlazada
+                      ? 'CostPact factura esta certificación al aprobarse el hito.'
+                      : 'Elige la certificación que corresponde a este hito: '
+                          'CostPact la factura al aprobarse.',
+                  style:
+                      AppTypography.caption.copyWith(color: co.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          if (_busy)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else if (m.canLinkCostpactCert)
+            OutlinedButton(
+              onPressed: _choose,
+              child: Text(enlazada ? 'Cambiar' : 'Elegir'),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 // =====================================================================
 // FACTURA DE LA CERTIFICACIÓN
@@ -274,9 +428,10 @@ class _InvoiceSectionState extends ConsumerState<_InvoiceSection> {
                 const SizedBox(height: 2),
                 Text(
                   m.hasInvoice
-                      ? 'Adjuntada por el constructor'
-                      : 'Adjunta el PDF de tu factura, la emitas con CostPact '
-                          'o con tu programa de facturación.',
+                      ? (m.hasInvoicePdf
+                          ? 'Adjuntada por el constructor'
+                          : 'Emitida por CostPact')
+                      : 'Adjunta el PDF de la factura de tu programa de facturación.',
                   style: AppTypography.caption.copyWith(color: co.textSecondary),
                 ),
               ],
@@ -290,10 +445,11 @@ class _InvoiceSectionState extends ConsumerState<_InvoiceSection> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           else if (m.hasInvoice) ...[
-            TextButton(onPressed: _open, child: const Text('Ver')),
+            if (m.hasInvoicePdf)
+              TextButton(onPressed: _open, child: const Text('Ver')),
             if (m.canAttachInvoice)
               TextButton(onPressed: _attach, child: const Text('Cambiar')),
-          ] else
+          ] else if (m.canAttachInvoice)
             OutlinedButton(onPressed: _attach, child: const Text('Adjuntar')),
         ],
       ),

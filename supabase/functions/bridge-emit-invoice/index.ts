@@ -1,14 +1,18 @@
 // Edge Function: bridge-emit-invoice  (puente del ecosistema R3, sentido
 // PactStream → FiscalCore/CostPact)
 //
-// Al aprobarse un hito, PactStream pide a CostPact que emita la factura
-// Verifactu de esa certificación. Server-to-server: la clave del puente
-// (INVOICE_BRIDGE_KEY) vive como secreto de la función, NUNCA en el cliente.
+// Regla: factura CostPact y la factura nace de la CERTIFICACIÓN. Al aprobarse
+// un hito enlazado a una certificación de CostPact (sf_link_costpact_cert),
+// PactStream pide a CostPact la factura de ESA certificación: una por
+// certificación (si ya se emitió desde CostPact, devuelve la misma) y guarda
+// su número en el hito. Sin enlace no se factura nada desde aquí: la empresa
+// que no usa CostPact adjunta su factura externa (sf_attach_cert_invoice).
+// Server-to-server: la clave vive como secreto de la función, nunca en el cliente.
 //
 // Body: { "milestone_id": "<uuid>" }
-// Env: INVOICE_BRIDGE_URL (endpoint emit-invoice-external de CostPact) +
-//      INVOICE_BRIDGE_KEY. Sin ellos → 503 (inerte). Idempotencia la garantiza
-//      el lado CostPact por ref_externa = 'ps:milestone:<id>'.
+// Env: COSTPACT_BRIDGE_URL (base de las rutas /api/bridge de CostPact, p.ej.
+//      https://constructpro.es/api/bridge) + COSTPACT_BRIDGE_KEY.
+//      Sin ellos → 503 (inerte).
 //
 // No bloqueante: el fallo aquí NO revierte la aprobación del hito. El caller
 // (Flutter) lo invoca en fire-and-forget tras aprobar.
@@ -34,8 +38,8 @@ serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
-    const bridgeUrl = Deno.env.get('INVOICE_BRIDGE_URL')
-    const bridgeKey = Deno.env.get('INVOICE_BRIDGE_KEY')
+    const bridgeUrl = Deno.env.get('COSTPACT_BRIDGE_URL')
+    const bridgeKey = Deno.env.get('COSTPACT_BRIDGE_KEY')
     if (!bridgeUrl || !bridgeKey) return json({ error: 'Puente de facturación no configurado' }, 503)
 
     const authHeader = req.headers.get('Authorization')
@@ -59,7 +63,7 @@ serve(async (req: Request) => {
     if (!milestoneId) return json({ error: 'Falta milestone_id' }, 400)
 
     const { data: ms } = await admin
-      .from('milestones').select('id, pact_id, amount_cents, name')
+      .from('milestones').select('id, pact_id, costpact_certificacion_id, invoice_number')
       .eq('id', milestoneId).maybeSingle()
     if (!ms) return json({ error: 'Hito no encontrado' }, 404)
 
@@ -85,15 +89,23 @@ serve(async (req: Request) => {
       return json({ skipped: true, reason: 'Pacto sin presupuesto CostPact enlazado' }, 200)
     }
 
+    if (ms.invoice_number) {
+      return json({ skipped: true, reason: 'La certificación ya tiene factura', invoice_number: ms.invoice_number }, 200)
+    }
+    // Sin certificación de CostPact enlazada no hay factura que pedir: una
+    // factura «por hito» duplicaría la de la certificación.
+    if (!ms.costpact_certificacion_id) {
+      return json({ skipped: true, reason: 'Hito sin certificación de CostPact enlazada' }, 200)
+    }
+
     // Llamada server-to-server a CostPact.
-    const resp = await fetch(bridgeUrl, {
+    const resp = await fetch(`${bridgeUrl.replace(/\/$/, '')}/factura-certificacion`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-bridge-key': bridgeKey },
       body: JSON.stringify({
         presupuesto_id: presupuestoId,
+        certificacion_id: ms.costpact_certificacion_id,
         external_ref: `ps:milestone:${milestoneId}`,
-        amount_cents: Number(ms.amount_cents),
-        concepto: ms.name ? `Certificación · ${ms.name}` : undefined,
       }),
     })
     const result = await resp.json().catch(() => ({}))
@@ -102,7 +114,17 @@ serve(async (req: Request) => {
       return json({ error: result?.error || 'CostPact rechazó la emisión', status: resp.status }, 502)
     }
 
-    return json({ ok: true, invoice: result }, 200)
+    // El número de la factura de CostPact queda en la certificación de PactStream.
+    const numero = result?.num_serie_factura as string | undefined
+    if (numero) {
+      await admin.from('milestones').update({ invoice_number: numero }).eq('id', milestoneId)
+      await admin.from('pact_events').insert({
+        pact_id: ms.pact_id, event_type: 'invoice_attached', actor_type: 'system',
+        payload: { cert_id: milestoneId, invoice_number: numero, source: 'costpact' },
+      })
+    }
+
+    return json({ ok: true, invoice_number: numero ?? null, reused: !!result?.reused }, 200)
   } catch (error) {
     console.error('bridge-emit-invoice error:', error instanceof Error ? error.message : error)
     return json({ error: 'Error emitiendo la factura' }, 500)

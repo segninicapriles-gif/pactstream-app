@@ -172,6 +172,37 @@ class PactActionsV2 {
     }
   }
 
+  /// Certificaciones de CostPact del presupuesto del pacto (para enlazar hitos).
+  static Future<List<Map<String, dynamic>>> costpactCertificaciones(String pactId) async {
+    try {
+      final res = await SupabaseConfig.client.functions.invoke(
+        'costpact-certs',
+        body: {'pact_id': pactId},
+      );
+      final data = res.data as Map<String, dynamic>? ?? const {};
+      return (data['certificaciones'] as List<dynamic>? ?? const [])
+          .cast<Map<String, dynamic>>();
+    } catch (e) {
+      throw PactActionException('No se pudieron leer las certificaciones de CostPact', e);
+    }
+  }
+
+  /// Enlaza (o desenlaza, con null) el hito con su certificación de CostPact.
+  static Future<void> linkCostpactCert({
+    required String milestoneId,
+    String? certId,
+    int? numero,
+  }) async {
+    try {
+      await SupabaseConfig.client.rpc(
+        'sf_link_costpact_cert',
+        params: {'p_milestone_id': milestoneId, 'p_cert_id': certId, 'p_numero': numero},
+      );
+    } catch (e) {
+      throw PactActionException('No se pudo enlazar la certificación de CostPact', e);
+    }
+  }
+
   /// Adjunta la factura de una certificación (PDF ya subido + número). Es el
   /// camino de quien factura con un sistema externo (empresa sin CostPact).
   static Future<void> attachCertInvoice({

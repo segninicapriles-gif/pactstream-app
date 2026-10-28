@@ -50,6 +50,9 @@ class MilestoneFull {
     this.lastValidationByName,
     this.invoiceNumber,
     this.invoiceStoragePath,
+    this.costpactLinked = false,
+    this.costpactCertId,
+    this.costpactCertNumero,
   });
 
   final String id;
@@ -91,13 +94,30 @@ class MilestoneFull {
   final String? invoiceNumber;
   final String? invoiceStoragePath;
 
+  /// Pacto que viene de un presupuesto de CostPact, y la certificación de
+  /// CostPact enlazada a este hito (la que lo factura).
+  final bool costpactLinked;
+  final String? costpactCertId;
+  final int? costpactCertNumero;
+
+  /// Hay factura: número (la de CostPact llega sin PDF aquí) o PDF adjunto.
   bool get hasInvoice =>
-      invoiceStoragePath != null && invoiceStoragePath!.isNotEmpty;
+      (invoiceNumber?.trim().isNotEmpty ?? false) ||
+      (invoiceStoragePath?.isNotEmpty ?? false);
+  bool get hasInvoicePdf => invoiceStoragePath?.isNotEmpty ?? false;
+
+  /// La factura la emitirá CostPact (hito enlazado a su certificación).
+  bool get invoicedByCostpact => costpactCertId != null;
+
+  /// El constructor elige la certificación de CostPact mientras no haya factura.
+  bool get canLinkCostpactCert =>
+      myRole == 'constructor' && costpactLinked && !hasInvoice;
 
   /// El constructor adjunta la factura desde la ejecución hasta el pago
   /// (la factura de una certificación se emite al aprobarla).
   bool get canAttachInvoice =>
       myRole == 'constructor' &&
+      !invoicedByCostpact &&
       const {
         'in_execution',
         'ready_for_review',
@@ -176,6 +196,9 @@ class MilestoneFull {
       lastValidationByName: j['last_validation_by_name'] as String?,
       invoiceNumber: j['invoice_number'] as String?,
       invoiceStoragePath: j['invoice_storage_path'] as String?,
+      costpactLinked: j['costpact_linked'] as bool? ?? false,
+      costpactCertId: j['costpact_certificacion_id'] as String?,
+      costpactCertNumero: (j['costpact_cert_numero'] as num?)?.toInt(),
     );
   }
 
