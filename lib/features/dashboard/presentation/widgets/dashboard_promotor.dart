@@ -8,8 +8,10 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/animated_list_item.dart';
+import '../../data/budget_proposals.dart';
 import '../../data/dashboard_data.dart';
 import '../../data/dashboard_providers.dart';
+import 'budget_proposals_section.dart';
 import 'dashboard_shared.dart';
 import 'monthly_series_chart.dart';
 
@@ -37,6 +39,7 @@ class DashboardPromotor extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(dashboardDataProvider);
+        ref.invalidate(budgetProposalsProvider);
         await ref.read(dashboardDataProvider.future);
       },
       child: ListView(
@@ -129,6 +132,9 @@ class _Content extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
+
+        // Presupuestos enviados desde CostPact (solo si hay pendientes)
+        const BudgetProposalsSection(),
 
         // CTA principal
         AnimatedListItem(
