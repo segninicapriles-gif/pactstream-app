@@ -7,6 +7,9 @@
 // certificación (si ya se emitió desde CostPact, devuelve la misma) y guarda
 // su número en el hito. Sin enlace no se factura nada desde aquí: la empresa
 // que no usa CostPact adjunta su factura externa (sf_attach_cert_invoice).
+// Después, si el dinero del hito ya se liberó (pago milestone_release
+// succeeded), lo registra como el cobro de esa certificación en CostPact
+// (puente F; de ahí lo lee FiscalCore). Los dos pasos son idempotentes.
 // Server-to-server: la clave vive como secreto de la función, nunca en el cliente.
 //
 // Body: { "milestone_id": "<uuid>" }
@@ -89,42 +92,65 @@ serve(async (req: Request) => {
       return json({ skipped: true, reason: 'Pacto sin presupuesto CostPact enlazado' }, 200)
     }
 
-    if (ms.invoice_number) {
-      return json({ skipped: true, reason: 'La certificación ya tiene factura', invoice_number: ms.invoice_number }, 200)
-    }
-    // Sin certificación de CostPact enlazada no hay factura que pedir: una
-    // factura «por hito» duplicaría la de la certificación.
+    // Sin certificación de CostPact enlazada no hay factura ni cobro que
+    // enviar: una factura «por hito» duplicaría la de la certificación.
     if (!ms.costpact_certificacion_id) {
       return json({ skipped: true, reason: 'Hito sin certificación de CostPact enlazada' }, 200)
     }
-
-    // Llamada server-to-server a CostPact.
-    const resp = await fetch(`${bridgeUrl.replace(/\/$/, '')}/factura-certificacion`, {
+    const base = bridgeUrl.replace(/\/$/, '')
+    const post = (path: string, payload: unknown) => fetch(`${base}/${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-bridge-key': bridgeKey },
-      body: JSON.stringify({
+      body: JSON.stringify(payload),
+    })
+
+    // 1. Factura de la certificación (una por certificación).
+    let invoice: Record<string, unknown> = { skipped: true, invoice_number: ms.invoice_number }
+    if (!ms.invoice_number) {
+      const resp = await post('factura-certificacion', {
         presupuesto_id: presupuestoId,
         certificacion_id: ms.costpact_certificacion_id,
         external_ref: `ps:milestone:${milestoneId}`,
-      }),
-    })
-    const result = await resp.json().catch(() => ({}))
-    if (!resp.ok) {
-      console.error('[bridge-emit-invoice] CostPact respondió', resp.status, result)
-      return json({ error: result?.error || 'CostPact rechazó la emisión', status: resp.status }, 502)
-    }
-
-    // El número de la factura de CostPact queda en la certificación de PactStream.
-    const numero = result?.num_serie_factura as string | undefined
-    if (numero) {
-      await admin.from('milestones').update({ invoice_number: numero }).eq('id', milestoneId)
-      await admin.from('pact_events').insert({
-        pact_id: ms.pact_id, event_type: 'invoice_attached', actor_type: 'system',
-        payload: { cert_id: milestoneId, invoice_number: numero, source: 'costpact' },
       })
+      const result = await resp.json().catch(() => ({}))
+      if (!resp.ok) {
+        console.error('[bridge-emit-invoice] factura: CostPact respondió', resp.status, result)
+        invoice = { error: result?.error || 'CostPact rechazó la emisión', status: resp.status }
+      } else {
+        // El número de la factura de CostPact queda en la certificación de PactStream.
+        const numero = result?.num_serie_factura as string | undefined
+        if (numero) {
+          await admin.from('milestones').update({ invoice_number: numero }).eq('id', milestoneId)
+          await admin.from('pact_events').insert({
+            pact_id: ms.pact_id, event_type: 'invoice_attached', actor_type: 'system',
+            payload: { cert_id: milestoneId, invoice_number: numero, source: 'costpact' },
+          })
+        }
+        invoice = { ok: true, invoice_number: numero ?? null, reused: !!result?.reused }
+      }
     }
 
-    return json({ ok: true, invoice_number: numero ?? null, reused: !!result?.reused }, 200)
+    // 2. Cobro: el dinero liberado del hito (libro único de pagos).
+    let cobro: Record<string, unknown> = { skipped: true, reason: 'El hito aún no se ha liberado' }
+    const { data: pago } = await admin
+      .from('payments').select('amount_cents, succeeded_at')
+      .eq('milestone_id', milestoneId).eq('payment_type', 'milestone_release')
+      .eq('state', 'succeeded').maybeSingle()
+    if (pago) {
+      const resp = await post('cobro-certificacion', {
+        presupuesto_id: presupuestoId,
+        certificacion_id: ms.costpact_certificacion_id,
+        importe: Number(pago.amount_cents) / 100,
+        fecha: pago.succeeded_at,
+        ref: `ps:release:${milestoneId}`,
+      })
+      const result = await resp.json().catch(() => ({}))
+      if (!resp.ok) console.error('[bridge-emit-invoice] cobro: CostPact respondió', resp.status, result)
+      cobro = resp.ok ? { ok: true, ...result } : { error: result?.error || 'CostPact rechazó el cobro', status: resp.status }
+    }
+
+    const fallo = 'error' in invoice || 'error' in cobro
+    return json({ ok: !fallo, invoice, cobro }, fallo ? 502 : 200)
   } catch (error) {
     console.error('bridge-emit-invoice error:', error instanceof Error ? error.message : error)
     return json({ error: 'Error emitiendo la factura' }, 500)

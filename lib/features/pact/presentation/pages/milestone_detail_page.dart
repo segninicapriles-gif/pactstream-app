@@ -1536,8 +1536,8 @@ class _PromotorDecideCtaState extends ConsumerState<_PromotorDecideCta> {
               rationale: rationale.isEmpty ? null : rationale,
             );
       }
-      // Cierre del bucle fiscal (R3): al aprobar, pedir a CostPact la emisión
-      // de la factura Verifactu. Fire-and-forget, no bloquea la aprobación.
+      // Cierre del bucle con CostPact: al aprobar (y liberar), la factura de la
+      // certificación enlazada y su cobro. Fire-and-forget, no bloquea la aprobación.
       if (decision == 'approve' && EscrowConfig.invoiceBridgeOn) {
         unawaited(PactActionsV2.emitInvoiceForMilestone(widget.milestone.id));
       }
