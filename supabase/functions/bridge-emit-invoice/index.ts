@@ -10,12 +10,18 @@
 // Después, si el dinero del hito ya se liberó (pago milestone_release
 // succeeded), lo registra como el cobro de esa certificación en CostPact
 // (puente F; de ahí lo lee FiscalCore). Los dos pasos son idempotentes.
+//
+// Pacto que NO viene de CostPact (las apps no obligan al pack): no hay factura
+// que pedir (la adjunta el constructor), y el cobro liberado va directo a
+// FiscalCore (pactstream-cobro), que identifica la empresa constructora por el
+// NIF de su organización y solo lo acepta si la empresa conectó PactStream.
 // Server-to-server: la clave vive como secreto de la función, nunca en el cliente.
 //
 // Body: { "milestone_id": "<uuid>" }
 // Env: COSTPACT_BRIDGE_URL (base de las rutas /api/bridge de CostPact, p.ej.
-//      https://constructpro.es/api/bridge) + COSTPACT_BRIDGE_KEY.
-//      Sin ellos → 503 (inerte).
+//      https://constructpro.es/api/bridge) + COSTPACT_BRIDGE_KEY;
+//      FISCALCORE_BRIDGE_URL (función pactstream-cobro) + FISCALCORE_BRIDGE_KEY.
+//      Sin los de un camino, ese camino responde 503 (inerte).
 //
 // No bloqueante: el fallo aquí NO revierte la aprobación del hito. El caller
 // (Flutter) lo invoca en fire-and-forget tras aprobar.
@@ -41,10 +47,6 @@ serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
-    const bridgeUrl = Deno.env.get('COSTPACT_BRIDGE_URL')
-    const bridgeKey = Deno.env.get('COSTPACT_BRIDGE_KEY')
-    if (!bridgeUrl || !bridgeKey) return json({ error: 'Puente de facturación no configurado' }, 503)
-
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json({ error: 'Sesión requerida' }, 401)
 
@@ -66,7 +68,7 @@ serve(async (req: Request) => {
     if (!milestoneId) return json({ error: 'Falta milestone_id' }, 400)
 
     const { data: ms } = await admin
-      .from('milestones').select('id, pact_id, costpact_certificacion_id, invoice_number')
+      .from('milestones').select('id, pact_id, name, costpact_certificacion_id, invoice_number')
       .eq('id', milestoneId).maybeSingle()
     if (!ms) return json({ error: 'Hito no encontrado' }, 404)
 
@@ -88,9 +90,52 @@ serve(async (req: Request) => {
       return json({ error: 'No se pudo leer el enlace con CostPact' }, 500)
     }
     const presupuestoId = meta?.value?.trim()
+
+    // Dinero liberado del hito (libro único de pagos), para el cobro.
+    const { data: pago } = await admin
+      .from('payments').select('amount_cents, succeeded_at')
+      .eq('milestone_id', milestoneId).eq('payment_type', 'milestone_release')
+      .eq('state', 'succeeded').maybeSingle()
+
     if (!presupuestoId) {
-      return json({ skipped: true, reason: 'Pacto sin presupuesto CostPact enlazado' }, 200)
+      // Pacto sin CostPact: el cobro va directo a FiscalCore.
+      const fcUrl = Deno.env.get('FISCALCORE_BRIDGE_URL')
+      const fcKey = Deno.env.get('FISCALCORE_BRIDGE_KEY')
+      if (!fcUrl || !fcKey) return json({ error: 'Puente con FiscalCore no configurado' }, 503)
+      if (!pago) return json({ skipped: true, reason: 'El hito aún no se ha liberado' }, 200)
+      const { data: pact } = await admin
+        .from('pacts').select('title, iva_rate_pct, iva_included').eq('id', ms.pact_id).maybeSingle()
+      const { data: parte } = await admin
+        .from('pact_parties').select('organizations(cif)')
+        .eq('pact_id', ms.pact_id).eq('role', 'constructor').maybeSingle()
+      const nif = (parte as { organizations?: { cif?: string } | null } | null)?.organizations?.cif
+      if (!nif) return json({ skipped: true, reason: 'El constructor no tiene organización con NIF' }, 200)
+      const resp = await fetch(fcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-bridge-key': fcKey },
+        body: JSON.stringify({
+          nif,
+          ref: `ps:release:${milestoneId}`,
+          fecha: pago.succeeded_at,
+          importe_cents: Number(pago.amount_cents),
+          iva_rate_pct: Number(pact?.iva_rate_pct ?? 0),
+          iva_incluido: !!pact?.iva_included,
+          concepto: ms.name ?? null,
+          obra: pact?.title ?? null,
+          factura_numero: ms.invoice_number ?? null,
+        }),
+      }).catch(() => null)
+      const result = resp ? await resp.json().catch(() => ({})) : {}
+      if (!resp || !resp.ok) {
+        console.error('[bridge-emit-invoice] FiscalCore respondió', resp?.status, result)
+        return json({ error: result?.error || 'FiscalCore rechazó el cobro' }, 502)
+      }
+      return json({ ok: true, cobro: result }, 200)
     }
+
+    const bridgeUrl = Deno.env.get('COSTPACT_BRIDGE_URL')
+    const bridgeKey = Deno.env.get('COSTPACT_BRIDGE_KEY')
+    if (!bridgeUrl || !bridgeKey) return json({ error: 'Puente con CostPact no configurado' }, 503)
 
     // Sin certificación de CostPact enlazada no hay factura ni cobro que
     // enviar: una factura «por hito» duplicaría la de la certificación.
@@ -132,10 +177,6 @@ serve(async (req: Request) => {
 
     // 2. Cobro: el dinero liberado del hito (libro único de pagos).
     let cobro: Record<string, unknown> = { skipped: true, reason: 'El hito aún no se ha liberado' }
-    const { data: pago } = await admin
-      .from('payments').select('amount_cents, succeeded_at')
-      .eq('milestone_id', milestoneId).eq('payment_type', 'milestone_release')
-      .eq('state', 'succeeded').maybeSingle()
     if (pago) {
       const resp = await post('cobro-certificacion', {
         presupuesto_id: presupuestoId,
