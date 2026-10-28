@@ -36,15 +36,13 @@ class MoneyTimeline extends StatelessWidget {
     //   depositado    = totalAdvanceCents         (Hito 0 completo puesto por el promotor)
     //   en custodia   = depositCurrentCents       (reserva + no consumido)
     //   liberado      = advanceReleasedCents + budgetConsumedCents
-    //   cobrado       = suma de milestones con paid_at (aprox: budgetConsumedCents)
+    //   cobrado       = pagos milestone_release succeeded (neto, tabla payments)
     //
     // v1/v2.0 caen a un modelo simplificado sin reserva.
     final deposited = pact.isV2OrLater ? pact.totalAdvanceCents : pact.totalAmountCents;
     final inCustody = pact.depositCurrentCents;
     final released = pact.advanceReleasedCents + pact.budgetConsumedCents;
-    final collected = detail.milestones
-        .where((m) => m.paidAt != null)
-        .fold<int>(0, (sum, m) => sum + m.amountCents);
+    final collected = detail.collectedCents;
 
     // ─── Determinar el paso "actual" ─────────────────────────────────
     // Regla: el estado más avanzado alcanzado > 0.

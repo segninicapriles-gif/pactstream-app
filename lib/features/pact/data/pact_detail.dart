@@ -11,6 +11,7 @@ class PactDetail {
     required this.milestones,
     required this.addendums,
     required this.depositMovements,
+    this.payments = const [],
     this.suretyPolicy,
   });
 
@@ -19,6 +20,9 @@ class PactDetail {
   final List<PactMilestone> milestones;
   final List<PactAddendum> addendums;
   final List<DepositMovement> depositMovements;
+  /// Pagos del pacto (`payments`): una fila por liberación de hito, sea mock o
+  /// Mangopay. Fuente de lo cobrado. Vacío si no se ven economics.
+  final List<PactPayment> payments;
   /// Póliza de caución (v2.1). `null` para pacts v1/v2.0.
   final SuretyPolicy? suretyPolicy;
 
@@ -37,6 +41,9 @@ class PactDetail {
       depositMovements: (json['deposit_movements'] as List<dynamic>? ?? const [])
           .map((e) => DepositMovement.fromJson(e as Map<String, dynamic>))
           .toList(),
+      payments: (json['payments'] as List<dynamic>? ?? const [])
+          .map((e) => PactPayment.fromJson(e as Map<String, dynamic>))
+          .toList(),
       suretyPolicy: json['surety_policy'] != null
           ? SuretyPolicy.fromJson(json['surety_policy'] as Map<String, dynamic>)
           : null,
@@ -49,10 +56,18 @@ class PactDetail {
   int get milestonesPaid =>
       milestones.where((m) => m.state == 'paid').length;
 
-  /// Importe total ya liberado a través de certificaciones pagadas.
+  /// Bruto certificado de los hitos pagados: mide AVANCE DE OBRA, no dinero
+  /// movido (para eso, [collectedCents]).
   int get amountReleasedCents => milestones
       .where((m) => m.state == 'paid')
       .fold<int>(0, (acc, m) => acc + m.amountCents);
+
+  /// Neto liberado al constructor: suma de pagos `milestone_release` en
+  /// estado `succeeded`. Única fuente de «cobrado» (descuenta retención y
+  /// amortización del adelanto, por eso es menor que [amountReleasedCents]).
+  int get collectedCents => payments
+      .where((p) => p.isSucceededRelease)
+      .fold<int>(0, (acc, p) => acc + p.amountCents);
 
   /// Importe de certificaciones en curso (validadas o aprobadas, no pagadas).
   int get amountInCustodyCents => milestones
@@ -654,6 +669,54 @@ class DepositMovement {
       milestoneId: j['milestone_id'] as String?,
       triggeredByUserId: j['triggered_by_user_id'] as String,
       notes: j['notes'] as String?,
+      createdAt: DateTime.parse(j['created_at'] as String),
+    );
+  }
+}
+
+/// Pago del pacto (tabla `payments`), enlazado a su hito.
+class PactPayment {
+  PactPayment({
+    required this.id,
+    required this.paymentType,
+    required this.amountCents,
+    required this.state,
+    required this.createdAt,
+    this.milestoneId,
+    this.destinationUserId,
+    this.mangopayTransactionId,
+    this.succeededAt,
+  });
+
+  final String id;
+  /// 'pay_in' | 'milestone_release' | 'partial_refund' | 'full_refund' |
+  /// 'platform_fee' | 'reversal'
+  final String paymentType;
+  final int amountCents;
+  /// 'created' | 'pending' | 'succeeded' | 'failed' | 'cancelled'
+  final String state;
+  final String? milestoneId;
+  final String? destinationUserId;
+  /// null en modo mock (no hubo movimiento real de fondos).
+  final String? mangopayTransactionId;
+  final DateTime? succeededAt;
+  final DateTime createdAt;
+
+  bool get isSucceededRelease =>
+      paymentType == 'milestone_release' && state == 'succeeded';
+
+  factory PactPayment.fromJson(Map<String, dynamic> j) {
+    return PactPayment(
+      id: j['id'] as String,
+      paymentType: j['payment_type'] as String,
+      amountCents: ((j['amount_cents'] as num?) ?? 0).toInt(),
+      state: j['state'] as String,
+      milestoneId: j['milestone_id'] as String?,
+      destinationUserId: j['destination_user_id'] as String?,
+      mangopayTransactionId: j['mangopay_transaction_id'] as String?,
+      succeededAt: j['succeeded_at'] == null
+          ? null
+          : DateTime.parse(j['succeeded_at'] as String),
       createdAt: DateTime.parse(j['created_at'] as String),
     );
   }

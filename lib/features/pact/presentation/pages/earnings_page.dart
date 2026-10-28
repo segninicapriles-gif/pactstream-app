@@ -69,6 +69,14 @@ final payoutHistoryProvider =
   return (rows as List).cast<Map<String, dynamic>>();
 });
 
+/// Liberaciones de hitos cobradas por el usuario (tabla `payments`, vía
+/// `sf_my_milestone_releases`): cada una con su hito y su pacto.
+final milestoneReleasesProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final rows = await SupabaseConfig.client.rpc('sf_my_milestone_releases');
+  return (rows as List).cast<Map<String, dynamic>>();
+});
+
 // =====================================================================
 // Pantalla
 // =====================================================================
@@ -105,6 +113,7 @@ class _EarningsPageState extends ConsumerState<EarningsPage>
     if (state == AppLifecycleState.resumed) {
       ref.invalidate(walletStatusProvider);
       ref.invalidate(payoutHistoryProvider);
+      ref.invalidate(milestoneReleasesProvider);
     }
   }
 
@@ -128,6 +137,7 @@ class _EarningsPageState extends ConsumerState<EarningsPage>
         onRefresh: () async {
           ref.invalidate(walletStatusProvider);
           ref.invalidate(payoutHistoryProvider);
+          ref.invalidate(milestoneReleasesProvider);
           await ref.read(walletStatusProvider.future);
         },
         child: statusAsync.when(
@@ -151,6 +161,7 @@ class _Content extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final payoutsAsync = ref.watch(payoutHistoryProvider);
+    final releasesAsync = ref.watch(milestoneReleasesProvider);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -187,6 +198,32 @@ class _Content extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           _PrimaryAction(status: status),
         ],
+
+        const SizedBox(height: AppSpacing.xl),
+        Text('Hitos cobrados',
+            style: AppTypography.h3.copyWith(color: context.colors.textPrimary)),
+        const SizedBox(height: AppSpacing.sm),
+        releasesAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(AppSpacing.lg),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (e, _) => Text(humanizeError(e),
+              style: AppTypography.bodyS
+                  .copyWith(color: context.colors.textSecondary)),
+          data: (rows) => rows.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: Text('Aún no se ha liberado ningún hito.',
+                      style: AppTypography.bodyS
+                          .copyWith(color: context.colors.textSecondary)),
+                )
+              : Column(
+                  children: [
+                    for (final r in rows) _ReleaseTile(row: r),
+                  ],
+                ),
+        ),
 
         const SizedBox(height: AppSpacing.xl),
         Text('Retiradas',
@@ -328,6 +365,7 @@ class _PrimaryAction extends ConsumerWidget {
       await PactActionsV2.requestPayout();
       ref.invalidate(walletStatusProvider);
       ref.invalidate(payoutHistoryProvider);
+      ref.invalidate(milestoneReleasesProvider);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Retirada solicitada')),
@@ -535,6 +573,56 @@ class _PayoutTile extends StatelessWidget {
                 style: AppTypography.caption
                     .copyWith(color: color, fontWeight: FontWeight.w600)),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReleaseTile extends StatelessWidget {
+  const _ReleaseTile({required this.row});
+
+  final Map<String, dynamic> row;
+
+  @override
+  Widget build(BuildContext context) {
+    final cents = ((row['amount_cents'] as num?) ?? 0).toInt();
+    final ordinal = row['milestone_ordinal'];
+    final name = (row['milestone_name'] ?? '').toString();
+    final pact = (row['pact_display_id'] ?? '').toString();
+    final at = DateTime.tryParse((row['succeeded_at'] ?? '').toString());
+    final isMock = row['via'] == 'mock';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(ordinal != null ? 'Hito $ordinal · $name' : name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodyS.copyWith(
+                        color: context.colors.textPrimary,
+                        fontWeight: FontWeight.w600)),
+                Text(
+                    [
+                      pact,
+                      if (at != null) AppFormatters.dateMedium(at),
+                      if (isMock) 'simulado',
+                    ].join(' · '),
+                    style: AppTypography.caption
+                        .copyWith(color: context.colors.textTertiary)),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(AppFormatters.moneyLong(cents),
+              style: AppTypography.bodyS.copyWith(
+                  color: context.colors.successText,
+                  fontWeight: FontWeight.w600)),
         ],
       ),
     );

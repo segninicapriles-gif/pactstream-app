@@ -75,18 +75,6 @@ class PactsRepository {
 
   // === EVIDENCIAS Y EJECUCIÓN ===
 
-  /// DEV ONLY. Mock del depósito Mangopay. Mueve pact a 'in_execution'
-  /// y arranca el primer hito. Sustituir por integración real cuando
-  /// llegue chunk 5 (Mangopay).
-  Future<Map<String, dynamic>> mockFundPact(String pactId) async {
-    final raw = await SupabaseConfig.client.rpc(
-      'sf_mock_fund_pact',
-      params: {'p_pact_id': pactId},
-    );
-    kickEmailSender();
-    return (raw as Map<String, dynamic>);
-  }
-
   /// Detalle de un hito + evidencias.
   Future<MilestoneDetail> getMilestoneDetail(String milestoneId) async {
     final raw = await SupabaseConfig.client.rpc(

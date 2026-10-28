@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -678,7 +677,7 @@ class _MoneySummary extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           _moneyRow('Liberado',
-              AppFormatters.moneyShort(detail.amountReleasedCents),
+              AppFormatters.moneyShort(detail.collectedCents),
               valueColor: context.colors.successText),
           _moneyRow(
               'En custodia',
@@ -1274,71 +1273,6 @@ class _NextStepCtaState extends ConsumerState<_NextStepCta> {
   bool _accepting = false;
   String? _error;
 
-  Future<void> _mockFund() async {
-    // Sprint 6 · Bloqueo de mover dinero para miembros vía organización.
-    if (!widget.detail.pact.canMoveMoney) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.psNavy,
-          behavior: SnackBarBehavior.floating,
-          content: Text(
-            'Sólo el dueño de la organización puede activar la obra.',
-            style: AppTypography.bodyS.copyWith(color: AppColors.white),
-          ),
-        ),
-      );
-      return;
-    }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('¿Activar obra (modo dev)?'),
-        content: const Text(
-          'Esto simula el depósito del promotor. El pacto pasará a "En ejecución" y se activará el primer hito. En producción, esto lo hará Mangopay tras confirmar el ingreso.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Activar'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-
-    setState(() {
-      _accepting = true;
-      _error = null;
-    });
-    try {
-      await ref
-          .read(pactsRepositoryProvider)
-          .mockFundPact(widget.detail.pact.id);
-      ref.invalidate(myPactsProvider);
-      ref.invalidate(pactDetailProvider(widget.detail.pact.id));
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          content: Text('Obra activada · primer hito en curso',
-              style: AppTypography.bodyS
-                  .copyWith(color: AppColors.white)),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _accepting = false;
-        _error = e.toString();
-      });
-    }
-  }
-
   Future<void> _accept() async {
     setState(() {
       _accepting = true;
@@ -1415,17 +1349,15 @@ class _NextStepCtaState extends ConsumerState<_NextStepCta> {
     // Caso 3 — todos firmaron, pacto signed → activar la ejecución
     if (state == 'signed') {
       if (me?.role == 'promotor') {
-        // El depósito real (pasarela de pago) aún no está integrado.
-        // El mock solo se expone en builds de desarrollo; en release
-        // mostramos una tarjeta informativa sin acción.
-        if (kDebugMode) {
-          return _PrimaryActionCard(
-            title: 'Activa la ejecución de la obra',
+        // v2/v2.1: el depósito se hace desde el bloque de depósito (Mangopay
+        // o mock con libro de custodia). Aquí solo se señala el paso.
+        if (detail.pact.isV2OrLater) {
+          return const _InfoCard(
+            title: 'Deposita en custodia para activar la obra',
             description:
-                'Mock del depósito Mangopay (chunk 5 lo sustituye por la pasarela real). Al confirmar, el primer hito arranca y el constructor podrá subir evidencias.',
-            cta: 'Activar obra (modo dev)',
-            icon: Icons.play_arrow_rounded,
-            onPressed: () => _mockFund(),
+                'El contrato ya está firmado por todas las partes. Haz el '
+                'depósito desde el bloque de custodia de arriba: al '
+                'confirmarse, el primer hito arranca.',
           );
         }
         return const _InfoCard(

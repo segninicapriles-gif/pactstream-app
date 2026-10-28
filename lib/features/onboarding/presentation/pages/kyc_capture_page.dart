@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -180,27 +179,6 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() => _errorMessage = e.toString());
-    } finally {
-      if (mounted) setState(() => _processing = false);
-    }
-  }
-
-  // MOCK fallback (si Edge Functions no están desplegadas todavía)
-  Future<void> _simulateMock(String decision, {String? reason}) async {
-    setState(() {
-      _processing = true;
-      _errorMessage = null;
-    });
-    try {
-      await Future<void>.delayed(const Duration(seconds: 1));
-      await SupabaseConfig.client.rpc(
-        'sf_simulate_kyc_verification',
-        params: {'p_decision': decision, 'p_reason': reason},
-      );
-      if (!mounted) return;
-      context.go('${AppRoutes.kycResult}?status=$decision');
-    } catch (e) {
       setState(() => _errorMessage = e.toString());
     } finally {
       if (mounted) setState(() => _processing = false);
@@ -407,49 +385,6 @@ class _KycCapturePageState extends ConsumerState<KycCapturePage> {
 
         const SizedBox(height: AppSpacing.md),
 
-        // SECURITY: Mock KYC controls are hidden in release builds to
-        // prevent users from bypassing identity verification.
-        //
-        // i18n: este bloque se queda SIN traducir a propósito. `kDebugMode` lo
-        // recorta del build de release, así que ningún usuario lo ve nunca —
-        // su único público somos nosotros. Meterlo en los ARB añadiría 6
-        // claves a los tres idiomas para texto que no llega a producción.
-        if (kDebugMode)
-          ExpansionTile(
-            title: Text('Modo desarrollo · Simular resultado',
-                style: AppTypography.bodyS.copyWith(color: context.colors.textTertiary)),
-            tilePadding: EdgeInsets.zero,
-            children: [
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  OutlinedButton(
-                    onPressed:
-                        _processing ? null : () => _simulateMock('verified'),
-                    child: const Text('✓ Simular Aprobado'),
-                  ),
-                  OutlinedButton(
-                    onPressed: _processing
-                        ? null
-                        : () => _simulateMock('pending_review'),
-                    child: const Text('⏳ Simular En revisión'),
-                  ),
-                  OutlinedButton(
-                    onPressed:
-                        _processing ? null : () => _simulateMock('rejected'),
-                    child: const Text('✗ Simular Rechazado'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Solo visible mientras configuras Veriff. Eliminar este bloque antes de producción.',
-                style: AppTypography.caption.copyWith(color: context.colors.textTertiary),
-              ),
-            ],
-          ),
       ],
     );
   }
