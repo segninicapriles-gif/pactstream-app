@@ -318,7 +318,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingPaymentsBody =>
-      'Funds held in escrow, backed by a surety bond from a leading insurer. Money is released once the work is approved.';
+      'Funds held by a regulated payment provider. Money is released once the work is approved.';
 
   @override
   String get onboardingReputationTitle => 'Your track record counts';

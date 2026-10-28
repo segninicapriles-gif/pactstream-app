@@ -1272,7 +1272,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
               // Explicar el diferencial en el momento crítico (el promotor
               // está a punto de poner dinero). Único en España.
               Text(
-                'Protegido por póliza de caución con aseguradora líder',
+                'Custodiado por un proveedor de pagos regulado',
                 textAlign: TextAlign.center,
                 style: AppTypography.caption
                     .copyWith(color: context.colors.textSecondary),
@@ -1307,7 +1307,7 @@ class _SetupAdvanceSheetState extends State<_SetupAdvanceSheet> {
                 iconColor: context.colors.brandAccent,
                 label: 'Anticipo al constructor',
                 sublabel:
-                    'Se entrega hoy. Cobertura inicial de la póliza de caución.',
+                    'Se entrega hoy.',
                 value: AppFormatters.moneyLong(p.advanceVariableCents),
               ),
             ],

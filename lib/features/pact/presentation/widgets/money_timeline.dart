@@ -67,7 +67,7 @@ class MoneyTimeline extends StatelessWidget {
       _TimelineStep(
         icon: Icons.shield_outlined,
         label: 'En custodia',
-        sublabel: 'protegido por póliza',
+        sublabel: 'custodiado por un proveedor de pagos regulado',
         amountCents: inCustody,
       ),
       _TimelineStep(
