@@ -37,5 +37,22 @@ void main() {
 
       expect(result.data.hasCostpactBudget, isFalse);
     });
+
+    test('no invita al cliente (es quien importa); sí al constructor', () {
+      final soloCliente = CostPactImporter.parse(jsonEncode({
+        ...payload,
+        'client': {'name': 'Cliente', 'email': 'cliente@x.es'},
+      }));
+      expect(soloCliente.data.invites, isEmpty);
+
+      final conConstructor = CostPactImporter.parse(jsonEncode({
+        ...payload,
+        'client': {'name': 'Cliente', 'email': 'cliente@x.es'},
+        'constructor': {'name': 'Obras SL', 'email': 'obras@x.es'},
+      }));
+      expect(conConstructor.data.invites, hasLength(1));
+      expect(conConstructor.data.invites.single.role, 'constructor');
+      expect(conConstructor.data.invites.single.email, 'obras@x.es');
+    });
   });
 }

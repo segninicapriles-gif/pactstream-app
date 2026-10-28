@@ -63,11 +63,17 @@ class CostPactImporter {
     final clientName = client['name'] as String? ?? '';
     final clientEmail = client['email'] as String? ?? '';
 
-    if (clientEmail.isNotEmpty) {
+    // El cliente del presupuesto es quien importa (el promotor): no se le
+    // invita. La contraparte es el constructor que hizo el presupuesto, si el
+    // JSON lo trae; si no, se añade a mano en el paso de partes.
+    final builder = json['constructor'] as Map<String, dynamic>? ?? {};
+    final builderEmail = (builder['email'] as String? ?? '').trim();
+    if (builderEmail.isNotEmpty &&
+        builderEmail.toLowerCase() != clientEmail.trim().toLowerCase()) {
       data.invites.add(PartyInvite(
         role: 'constructor',
-        email: clientEmail,
-        fullName: clientName,
+        email: builderEmail,
+        fullName: builder['name'] as String? ?? '',
       ));
     }
 
