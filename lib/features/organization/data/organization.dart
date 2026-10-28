@@ -55,13 +55,11 @@ class Organization {
   factory Organization.fromJson(Map<String, dynamic> j) {
     return Organization(
       id: j['id'] as String,
-      // Acepta tanto `legal_name` (schema real) como `name` (versiones
-      // antiguas de la RPC), con fallback a 'Sin nombre' para no romper UI.
-      legalName: (j['legal_name'] as String?) ??
-          (j['name'] as String?) ??
-          'Sin nombre',
+      // Esquema único de organizations (28-oct): legal_name + cif. Las
+      // columnas name/vat_id nunca existieron en la base.
+      legalName: (j['legal_name'] as String?) ?? 'Sin nombre',
       tradeName: j['trade_name'] as String?,
-      cif: (j['cif'] as String?) ?? (j['vat_id'] as String?),
+      cif: j['cif'] as String?,
       description: j['description'] as String?,
       orgType: (j['org_type'] as String?) ?? 'constructor',
       kybStatus: j['kyb_status'] as String?,

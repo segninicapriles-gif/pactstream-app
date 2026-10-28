@@ -78,14 +78,14 @@ Cuando esté listo, ve a **Project Settings → API** y copia:
 
 ## Parte 4 · Aplicar el schema a Supabase
 
-El schema completo está en `supabase/migrations/20260429000000_initial_schema.sql`.
+El schema completo está en `supabase/migrations/20261028230000_linea_base_dev.sql` (línea base del 28-oct-2026: reproduce dev exactamente, incluidos Storage, cron y la configuración). Las migraciones anteriores están archivadas en `supabase/migrations_archivo/` solo como historia: **no** se aplican.
 
 ### Opción A: Vía dashboard Supabase (más fácil)
 
 1. En el dashboard del proyecto, ve a **SQL Editor** → **New query**.
-2. Abre el archivo `supabase/migrations/20260429000000_initial_schema.sql` en VS Code, copia todo su contenido y pégalo en el SQL Editor.
+2. Abre el archivo `supabase/migrations/20261028230000_linea_base_dev.sql` en VS Code, copia todo su contenido y pégalo en el SQL Editor.
 3. Pulsa **Run**. Tarda ~5 segundos. Si hay errores, te avisará en rojo.
-4. Verifica yendo a **Table Editor**: deberías ver las 27 tablas creadas (users, organizations, pacts, milestones, etc.).
+4. Verifica yendo a **Table Editor**: deberías ver las 50 tablas creadas (users, organizations, pacts, milestones, payments, etc.).
 
 ### Opción B: Vía Supabase CLI (recomendado para producción)
 
