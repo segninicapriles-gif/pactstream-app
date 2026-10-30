@@ -1,7 +1,7 @@
 -- NG-61 · Obra pública verificable (piloto P3).
 --
 -- Migración ADITIVA: no toca ninguna tabla ni función existente; solo añade
--- tres piezas nuevas y un disparador sobre pact_addendums.
+-- tablas y funciones nuevas y un disparador sobre pact_addendums.
 --
 -- 1. pact_modification_log: registro de modificaciones de un pacto. APPEND-ONLY
 --    de verdad: un disparador rechaza UPDATE, DELETE y TRUNCATE. pact_addendums
@@ -12,7 +12,15 @@
 -- 3. obras_publicas + registro_publico_obra(slug): la ficha que se publica y la
 --    única vía de lectura sin sesión. Devuelve SOLO datos de la obra: ni
 --    nombres, ni correos, ni ids de usuario, ni coordenadas del dispositivo,
---    ni rutas de Storage.
+--    ni rutas de Storage. Los textos libres que escriben las partes (título
+--    del pacto, justificación del anexo) NO se publican tal cual: el nombre
+--    público y el motivo público los redacta quien publica.
+--
+-- Borrado: las FK son ON DELETE RESTRICT a propósito. Un pacto con
+-- modificaciones registradas no se puede borrar, porque el registro de una
+-- obra pública no puede desaparecer. Para datos de demo o peticiones RGPD hace
+-- falta una vía de anonimización (pendiente); el registro no guarda datos
+-- personales salvo registrado_por_user_id, que no se publica.
 --
 -- NO se ha aplicado en ningún entorno. Revisar con /revisar-migracion.
 
@@ -89,6 +97,41 @@ create policy pact_modification_log_select_party on public.pact_modification_log
 revoke all on public.pact_modification_log from public, anon, authenticated;
 grant select on public.pact_modification_log to authenticated;
 grant select, insert on public.pact_modification_log to service_role;
+-- Defensa en profundidad: los disparadores ya lo impiden, pero sin privilegio
+-- ni siquiera llega a intentarse.
+revoke update, delete, truncate on public.pact_modification_log from service_role;
+
+-- Motivo PÚBLICO de cada modificación. El motivo del registro viene de la
+-- justificación del anexo, que escriben las partes y puede llevar nombres o
+-- detalles de la negociación: no se publica. Quien publica redacta este texto,
+-- que también es append-only (una corrección es una fila nueva; vale la última).
+create table if not exists public.pact_modification_motivo_publico (
+  id               uuid primary key default gen_random_uuid(),
+  modificacion_id  uuid not null references public.pact_modification_log(id) on delete restrict,
+  motivo_publico   text not null check (length(btrim(motivo_publico)) > 0),
+  -- clock_timestamp y no now(): dos correcciones en la misma transacción deben
+  -- quedar ordenadas, porque en la vista pública vale la última.
+  created_at       timestamptz not null default clock_timestamp()
+);
+
+create index if not exists idx_motivo_publico_modificacion
+  on public.pact_modification_motivo_publico (modificacion_id, created_at desc);
+
+drop trigger if exists trg_motivo_publico_no_update on public.pact_modification_motivo_publico;
+create trigger trg_motivo_publico_no_update
+  before update or delete on public.pact_modification_motivo_publico
+  for each row execute function public.pact_modification_log_inmutable();
+
+drop trigger if exists trg_motivo_publico_no_truncate on public.pact_modification_motivo_publico;
+create trigger trg_motivo_publico_no_truncate
+  before truncate on public.pact_modification_motivo_publico
+  for each statement execute function public.pact_modification_log_inmutable();
+
+alter table public.pact_modification_motivo_publico enable row level security;
+
+revoke all on public.pact_modification_motivo_publico from public, anon, authenticated;
+grant select, insert on public.pact_modification_motivo_publico to service_role;
+revoke update, delete, truncate on public.pact_modification_motivo_publico from service_role;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- 2. Cada anexo activado deja su entrada
@@ -104,6 +147,8 @@ declare
   v_roles       public.pact_party_role[] := '{}';
   v_ordinal     integer;
 begin
+  -- Las entradas manuales del service_role deben tomar el mismo candado
+  -- (select ... from pacts ... for update) o chocarán con este ordinal.
   -- Serializa por pacto para que dos activaciones simultáneas no choquen en el
   -- ordinal. AFTER: handle_addendum_active() (BEFORE) ya actualizó el total.
   select total_amount_cents into v_total_nuevo
@@ -126,7 +171,7 @@ begin
     documento_storage_path, documento_sha256, addendum_id)
   values (
     new.pact_id, v_ordinal,
-    coalesce(nullif(btrim(new.justification), ''), new.title),
+    coalesce(nullif(btrim(new.justification), ''), nullif(btrim(new.title), ''), 'Anexo n.º ' || new.ordinal),
     v_total_nuevo - new.extra_amount_cents, v_total_nuevo, new.extra_days,
     coalesce(new.finalized_at, now()), v_roles, new.proposed_by_user_id,
     new.detailed_doc_storage_path,
@@ -155,6 +200,8 @@ create table if not exists public.obras_publicas (
   id                          uuid primary key default gen_random_uuid(),
   pact_id                     uuid not null unique references public.pacts(id) on delete restrict,
   slug                        text not null unique check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+  -- Lo redacta quien publica; pacts.title es texto de las partes.
+  nombre_publico              text not null check (length(btrim(nombre_publico)) > 0),
   organo_contratacion         text not null,
   expediente                  text,
   importe_adjudicacion_cents  bigint not null check (importe_adjudicacion_cents >= 0),
@@ -184,6 +231,7 @@ create policy obras_publicas_select_party on public.obras_publicas
 revoke all on public.obras_publicas from public, anon, authenticated;
 grant select on public.obras_publicas to authenticated;
 grant select, insert, update on public.obras_publicas to service_role;
+revoke delete, truncate on public.obras_publicas from service_role;
 
 create or replace function public.registro_publico_obra(p_slug text)
 returns jsonb
@@ -193,17 +241,19 @@ security definer
 set search_path = public, pg_temp
 as $$
   select jsonb_build_object(
-    'esquema', 'cimbrium.registro-obra-publica/v1',
+    'esquema', 'cimbrium.registro-obra-publica/v0.1',
     'generado_at', now(),
     'obra', jsonb_build_object(
       'slug', op.slug,
-      'nombre', p.title,
+      'nombre', op.nombre_publico,
       'municipio', p.obra_city,
       'provincia', p.obra_province,
       'organo_contratacion', op.organo_contratacion,
       'expediente', op.expediente,
       'importe_adjudicacion_cents', op.importe_adjudicacion_cents,
       'importe_vigente_cents', p.total_amount_cents,
+      -- Base de los importes, como pide CODICE (TaxExclusiveAmount).
+      'importes_sin_iva', not p.iva_included,
       'es_demo', op.es_demo or p.is_demo_only),
     'hitos', coalesce((
       select jsonb_agg(jsonb_build_object(
@@ -230,11 +280,17 @@ as $$
           where v.milestone_id = m.id), '[]'::jsonb))
         order by m.ordinal)
       from public.milestones m
-      where m.pact_id = p.id and m.previous_version_id is null), '[]'::jsonb),
+      -- Solo la versión vigente de cada hito: la que ninguna otra sustituye.
+      where m.pact_id = p.id
+        and not exists (select 1 from public.milestones n where n.previous_version_id = m.id)), '[]'::jsonb),
     'modificaciones', coalesce((
       select jsonb_agg(jsonb_build_object(
         'ordinal', l.ordinal,
-        'motivo', l.motivo,
+        -- NULL hasta que quien publica redacte el motivo público.
+        'motivo', (select mp.motivo_publico
+                     from public.pact_modification_motivo_publico mp
+                    where mp.modificacion_id = l.id
+                    order by mp.created_at desc limit 1),
         'importe_anterior_cents', l.importe_anterior_cents,
         'importe_posterior_cents', l.importe_posterior_cents,
         'plazo_dias_delta', l.plazo_dias_delta,
