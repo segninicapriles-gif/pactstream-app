@@ -9,6 +9,7 @@ import 'core/routing/app_router.dart';
 import 'core/theme/app_scroll_behavior.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/widgets/demo_banner.dart';
 import 'core/widgets/responsive_wrapper.dart';
 import 'features/pact/data/evidence_queue.dart';
 import 'l10n/gen/app_localizations.dart';
@@ -36,8 +37,9 @@ class PactStreamApp extends ConsumerWidget {
       themeMode: themeMode,
       scrollBehavior: const AppScrollBehavior(),
       routerConfig: router,
-      builder: (context, child) =>
-          ResponsiveWrapper(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => DemoBanner(
+        child: ResponsiveWrapper(child: child ?? const SizedBox.shrink()),
+      ),
       // Localización.
       //
       // `AppLocalizations.delegate` va PRIMERO: si una clave existe tanto en
