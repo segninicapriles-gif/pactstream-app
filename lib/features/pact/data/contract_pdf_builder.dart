@@ -184,8 +184,9 @@ class ContractPdfBuilder {
 
           _clause('Cuarta · Custodia y depósito',
               'El promotor depositará el importe correspondiente a cada hito en una cuenta de custodia '
-              'gestionada por PactStream. El importe permanece bloqueado hasta su liberación tras la '
-              'validación correspondiente.',
+              'gestionada por un proveedor de pagos regulado, ajeno a las partes y a PactStream. El importe '
+              'permanece bloqueado hasta su liberación tras la validación correspondiente, que PactStream '
+              'comunica al proveedor.',
               fontBold),
 
           _clause('Quinta · Validación de hitos',

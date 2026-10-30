@@ -117,7 +117,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       const CoachMarkStep(
         title: 'Custodia segura',
         description:
-            'Todos los fondos están protegidos en custodia. El promotor deposita, PactStream custodia, y el constructor cobra al completar cada hito verificado.',
+            'El importe de cada hito queda custodiado por un proveedor de pagos regulado, ajeno a las partes. El promotor deposita, PactStream verifica y el constructor cobra al completar cada hito verificado.',
         icon: Icons.shield_rounded,
         alignment: CoachMarkAlignment.center,
       ),
