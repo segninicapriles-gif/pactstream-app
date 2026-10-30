@@ -135,9 +135,9 @@
   "onboardingWorksTitle": "Gestiona tus obras",
   "onboardingWorksBody": "Crea contratos, invita participantes y controla los hitos de cada proyecto.",
   "onboardingPaymentsTitle": "Pagos seguros",
-  "onboardingPaymentsBody": "Custodia protegida por póliza de caución con aseguradora líder. Los fondos se liberan al validar el trabajo.",
+  "onboardingPaymentsBody": "Custodia a cargo de un proveedor de pagos regulado. Los fondos se liberan al validar el trabajo.",
   "@onboardingPaymentsBody": {
-    "description": "⚠️ AFIRMACIÓN COMERCIAL SIN CONTRATO FIRMADO. No hay póliza contratada con ninguna aseguradora; la fórmula acordada en REFERENCIA_RAPIDA es 'aseguradora líder del mercado (en negociación)'. Esta cadena la promete en presente a un usuario final. Revisar antes de lanzar."
+    "description": "Custodia: no prometer póliza de caución mientras no haya contrato firmado con aseguradora (fórmula: 'aseguradora líder del mercado (en negociación)')."
   },
   "onboardingReputationTitle": "Tu reputación importa",
   "onboardingReputationBody": "Construye tu Trust Score con cada proyecto exitoso. Tu historial es tu mejor credencial.",

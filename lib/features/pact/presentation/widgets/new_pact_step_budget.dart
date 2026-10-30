@@ -317,7 +317,7 @@ class _NewPactStepBudgetState extends State<NewPactStepBudget> {
                           'Anticipo al constructor (${d.advanceVariablePct.toStringAsFixed(0)} %)',
                       sublabel: d.advancePct == 10
                           ? 'No hay anticipo · solo reserva'
-                          : 'Entregado el día 1, asegurado con caución',
+                          : 'Entregado el día 1',
                       value: AppFormatters.moneyShort(d.advanceReleasedCents),
                     ),
                   ],

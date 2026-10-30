@@ -675,10 +675,10 @@ abstract class AppLocalizations {
   /// **'Pagos seguros'**
   String get onboardingPaymentsTitle;
 
-  /// ⚠️ AFIRMACIÓN COMERCIAL SIN CONTRATO FIRMADO. No hay póliza contratada con ninguna aseguradora; la fórmula acordada en REFERENCIA_RAPIDA es 'aseguradora líder del mercado (en negociación)'. Esta cadena la promete en presente a un usuario final. Revisar antes de lanzar.
+  /// Custodia: no prometer póliza de caución mientras no haya contrato firmado con aseguradora (fórmula: 'aseguradora líder del mercado (en negociación)').
   ///
   /// In es, this message translates to:
-  /// **'Custodia protegida por póliza de caución con aseguradora líder. Los fondos se liberan al validar el trabajo.'**
+  /// **'Custodia a cargo de un proveedor de pagos regulado. Los fondos se liberan al validar el trabajo.'**
   String get onboardingPaymentsBody;
 
   /// No description provided for @onboardingReputationTitle.

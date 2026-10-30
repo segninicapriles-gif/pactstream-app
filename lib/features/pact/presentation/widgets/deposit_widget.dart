@@ -204,8 +204,8 @@ class _UnfundedV21 extends StatelessWidget {
     // está a punto de poner dinero. Este es el lugar donde "Hito 0 Asegurado"
     // deja de ser jerga interna y se convierte en garantía visible.
     final subtitle = canSetupNow
-        ? 'pendiente de depositar. Cubierto por póliza de caución hasta la liberación de cada hito.'
-        : 'a depositar cuando todas las partes hayan firmado. Cubierto por póliza de caución.';
+        ? 'pendiente de depositar. Queda custodiado por un proveedor de pagos regulado hasta la liberación de cada hito.'
+        : 'a depositar cuando todas las partes hayan firmado. Queda custodiado por un proveedor de pagos regulado.';
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),

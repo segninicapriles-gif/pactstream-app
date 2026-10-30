@@ -163,12 +163,8 @@ class _WelcomeOnboardingPageState
                         subtitle: l10n.onboardingWorksBody,
                         isDark: isDark,
                       ),
-                      // ⚠️ Este paso promete en presente una póliza de caución
-                      // con "aseguradora líder". NO hay contrato firmado con
-                      // ninguna aseguradora; la fórmula acordada es
-                      // "aseguradora líder del mercado (en negociación)".
-                      // Aquí se le dice a un usuario final que su dinero ya
-                      // está cubierto. Revisar antes de lanzar.
+                      // Custodia: el texto habla del proveedor de pagos regulado, no de una
+                      // póliza (no hay contrato firmado con ninguna aseguradora).
                       _OnboardingStep(
                         illustration: _PaymentsIllustration(isDark: isDark),
                         title: l10n.onboardingPaymentsTitle,

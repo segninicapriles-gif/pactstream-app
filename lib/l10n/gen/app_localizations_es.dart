@@ -318,7 +318,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingPaymentsBody =>
-      'Custodia protegida por póliza de caución con aseguradora líder. Los fondos se liberan al validar el trabajo.';
+      'Custodia a cargo de un proveedor de pagos regulado. Los fondos se liberan al validar el trabajo.';
 
   @override
   String get onboardingReputationTitle => 'Tu reputación importa';
@@ -1112,7 +1112,7 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
 
   @override
   String get onboardingPaymentsBody =>
-      'Custodia protegida por póliza de fianza con aseguradora líder. Los fondos se liberan al validar el trabajo.';
+      'Custodia a cargo de un proveedor de pagos regulado. Los fondos se liberan al validar el trabajo.';
 
   @override
   String get onboardingReputationTitle => 'Tu reputación importa';
